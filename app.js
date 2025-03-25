@@ -7,11 +7,19 @@ const path = require('path');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/pagetemplate', (req, res) => {
+
+    res.render("pagetemplate")
+
+});
+
 app.get('/', (req, res) => {
 
     res.render("studentmanagement")
 
 });
+
+
 
 app.listen(3000, (err) => {
     if (err) console.log(err);
