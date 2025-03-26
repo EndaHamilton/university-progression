@@ -17,7 +17,7 @@ app.get('/', async (req, res) => {
 
     try {
         //GET request to API endpoint to get all students
-        const allStudentsEp = "http://localhost:4000/student";
+        const allStudentsEp = "http://localhost:4000/student/details";
         const response = await axios.get(allStudentsEp);
         const students = response.data;
 

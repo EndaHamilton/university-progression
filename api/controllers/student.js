@@ -10,35 +10,68 @@ module.exports = function (db) {
 
     // GET all students - /students
     // This route should return all students in the database
-    router.get("/", (req, res) => {
-        db.query('SELECT * FROM student', (err, rows) => {
-            if (err) {
-                res.status(500).json({ error: 'Failed to connect to database' });
-            } else if (rows.length === 0) {
-                res.status(404).json({ error: 'No students found' });
-            }
-            else {
+    router.get("/", async (req, res) => {
+        const allStudentsSQL = `SELECT * FROM student`;
+
+        try {
+            const [rows] = await db.promise().query(allStudentsSQL);
+            if (rows.length === 0) {
+                return res.status(404).json({ error: 'No students found' });
+            } else {
                 res.json(rows);
             }
-        });
+        } catch (err) {
+            res.status(500).json({ error: 'Failed to connect to database' });
+        }
+
+    });
+
+    // Get All Students with Related Data foreign key data(JOIN Query)
+    router.get("/details", async (req, res) => {
+        const allStudentsDetailsSQL = `
+            SELECT 
+                s.*, 
+                p.name AS pathway_name, 
+                ss.name AS study_status, 
+                el.name AS entry_level
+            FROM student s
+            INNER JOIN pathway p ON s.pathway_id = p.id
+            INNER JOIN study_status ss ON s.study_status_id = ss.id
+            INNER JOIN entry_level el ON s.entry_level_id = el.id`;
+
+        try {
+            const [rows] = await db.promise().query(allStudentsDetailsSQL);
+            res.json(rows);
+        } catch (err) {
+            console.error("Database error", err);
+            res.status(500).json({ error: "Failed to fetch student details" });
+        }
     });
 
     // GET student by ID - /students/:id
     // This route should return a single student by ID
-    router.get("/:id", (req, res) => {
+    router.get("/:id", async (req, res) => {
         const id = parseInt(req.params.id);
-        db.query('SELECT * FROM student WHERE id = ?', [id], (err, rows) => {
-            if (isNaN(id)) {
-                res.status(400).json({ error: 'Invalid ID. Must be a number' });
-            } else if (err) {
-                res.status(500).json({ error: 'Failed to connect to database' });
-            } else if (rows.length === 0) {
-                res.status(404).json({ error: 'Student not found' });
-            }
-            else {
+        const studentByIdSQL = `SELECT * FROM student WHERE id = ?`;
+
+        if (isNaN(id)) {
+            res.status(400).json({ error: 'Invalid ID. Must be a number' });
+        }
+
+
+
+        try {
+            const [rows] = await db.promise().query(studentByIdSQL, [id]);
+            if (rows.length === 0) {
+                return res.status(404).json({ error: 'Student not found' })
+            } else {
                 res.json(rows[0]);
             }
-        });
+        } catch (err) {
+            console.error("Database error", err);
+            res.status(500).json({ error: "Failed to fetch student details" });
+        }
+
     });
 
     // POST a new student - /students
@@ -170,7 +203,7 @@ module.exports = function (db) {
         }
 
         const deleteSQL = `DELETE FROM student WHERE id = ?`;
-        
+
         db.query(deleteSQL, [id], (err, result) => {
             if (err) {
                 return res.status(500).json({ error: 'Failed to delete student', details: err.message });
