@@ -58,8 +58,6 @@ module.exports = function (db) {
             res.status(400).json({ error: 'Invalid ID. Must be a number' });
         }
 
-
-
         try {
             const [rows] = await db.promise().query(studentByIdSQL, [id]);
             if (rows.length === 0) {
