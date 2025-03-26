@@ -2,7 +2,7 @@ const express = require('express');
 const mysql = require('mysql2');
 
 const app = express(); // create express app
-const port = 3000;
+const port = 4000;
 
 app.use(express.json()); // middleware to parse json requests
 
@@ -28,7 +28,7 @@ const studentRoutes = require('./controllers/student')(db);
 app.use('/student', studentRoutes);
 
 
-// start express server on port 3000
+// start express server on port 4000
 app.listen(port, () => {
     console.log(`Server started on port http://localhost:${port}`);
 });
