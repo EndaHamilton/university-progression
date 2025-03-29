@@ -8,7 +8,7 @@ module.exports = function (db) {
         res.send("Student route is working!");
     });
 
-    // GET all students - /students
+    // GET all students - /student
     // This route should return all students in the database
     router.get("/", async (req, res) => {
         const allStudentsSQL = `SELECT * FROM student`;
@@ -27,6 +27,7 @@ module.exports = function (db) {
     });
 
     // Get All Students with Related Data foreign key data(JOIN Query)
+    // - student/details
     router.get("/details", async (req, res) => {
         const allStudentsDetailsSQL = `
             SELECT 
@@ -48,7 +49,7 @@ module.exports = function (db) {
         }
     });
 
-    // GET student by ID - /students/:id
+    // GET student by ID - /student/:id
     // This route should return a single student by ID
     router.get("/:id", async (req, res) => {
         const id = parseInt(req.params.id);
@@ -72,7 +73,7 @@ module.exports = function (db) {
 
     });
 
-    // POST a new student - /students
+    // POST a new student - /student
     // This route should add a new student to the database
     router.post("/", (req, res) => {
         const { student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id } = req.body;
@@ -93,7 +94,7 @@ module.exports = function (db) {
         });
     });
 
-    // PUT (Update) a student by ID - /students/:id
+    // PUT (Update) a student by ID - /student/:id
     // This route should update a student's details based on their ID
     router.put("/:id", (req, res) => {
         const id = parseInt(req.params.id);
@@ -192,7 +193,7 @@ module.exports = function (db) {
         });
     });
 
-    // DELETE a student by ID - /students/:id
+    // DELETE a student by ID - /student/:id
     // This route should delete a student based on their ID
     router.delete("/:id", (req, res) => {
         const id = parseInt(req.params.id);

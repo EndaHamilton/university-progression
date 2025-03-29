@@ -8,7 +8,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 // Middleware to parse URL-encoded data from forms
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.urlencoded({ extended: true }));
 
 
 app.get('/pagetemplate', (req, res) => {
@@ -17,6 +17,7 @@ app.get('/pagetemplate', (req, res) => {
 
 });
 
+// Fetch all student details
 app.get('/', async (req, res) => {
 
     try {
@@ -32,9 +33,28 @@ app.get('/', async (req, res) => {
         console.error("Error returning students", error.message);
         res.status(500).send("Internal Server Error");
     }
-    
+
 
 });
+
+// Add Student Route - Posting Data to Your API
+app.post('/add-student', async (req, res) => {
+    try {
+        const addStudentEp = "http://localhost:4000/student";
+        const response = await axios.post(addStudentEp, req.body);
+
+        console.log("Response from API: ", response.data);
+
+        res.redirect('/');  // Redirect back to student mgmt page after successful addition
+    } catch (error) {
+        console.error('Error adding student:', error.message);
+        res.status(500).send('Failed to add student.');
+    }
+});
+
+
+
+
 
 
 
