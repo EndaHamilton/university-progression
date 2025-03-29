@@ -7,6 +7,10 @@ const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
 
 
+// Middleware to parse URL-encoded data from forms
+app.use(express.urlencoded({ extended: true })); 
+
+
 app.get('/pagetemplate', (req, res) => {
 
     res.render("pagetemplate")

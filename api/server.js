@@ -23,7 +23,7 @@ db.connect(err => {
     }
 });
 
-// // define a route on '/students' that uses the studentRoutes controller
+// define a route on '/students' that uses the studentRoutes controller
 const studentRoutes = require('./controllers/student')(db);
 app.use('/student', studentRoutes);
 

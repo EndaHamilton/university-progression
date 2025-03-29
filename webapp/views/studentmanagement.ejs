@@ -11,6 +11,7 @@
 </head>
 
 <body>
+
     <!-- Navigation Bar -->
     <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
         <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Generic University Name</a>
@@ -63,10 +64,18 @@
                 </div>
             </nav>
 
+            <!-- Main Content to right of Side Bar -->
             <main class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
-                <div
-                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <!-- Flex Container for Heading and Buttons -->
+                <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
                     <h2>Student Management</h2>
+
+                    <div class="btn-group mr-2">
+                        <!-- Trigger button for Add Student Modal-->
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#addStudentModal" >Add Student</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary">Edit Student</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary">Delete Student</button>
+                    </div>
                 </div>
 
                 <div class="table-responsive">
@@ -111,6 +120,49 @@
         </div>
 
     </div>
+
+    <!-- Add Student Modal (activated by Add button) -->
+        <div class="modal fade" id="addStudentModal" tabindex="-1" role="dialog" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form action="/add-student" method="POST">
+                    <div class="form-group">
+                      <label>Student Number</label>
+                      <input type="text" class="form-control" name="student_number" required>
+                    </div>
+                    <div class="form-group">
+                      <label>First Name</label>
+                      <input type="text" class="form-control" name="first_name" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Last Name</label>
+                      <input type="text" class="form-control" name="last_name" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Pathway ID</label>
+                      <input type="number" class="form-control" name="pathway_id" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Study Status ID</label>
+                      <input type="number" class="form-control" name="study_status_id" required>
+                    </div>
+                    <div class="form-group">
+                      <label>Entry Level ID</label>
+                      <input type="number" class="form-control" name="entry_level_id" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Student</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
 
 
 
