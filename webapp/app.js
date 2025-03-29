@@ -55,7 +55,13 @@ app.post('/add-student', async (req, res) => {
         res.redirect('/');  // Redirect back to student mgmt page after successful addition
     } catch (error) {
         console.error('Error adding student:', error.message);
-        res.status(500).send('Failed to add student.');
+
+        if (error.response && error.response.data) {
+            res.render('studentmanagement', { students: [], errorMessage: error.response.data.error });  // Displaying backend error message
+            res.status(400).send(error.response.data.error);  // Displaying backend error message
+        } else {
+            res.render('studentmanagement', { students: [], errorMessage: 'Failed to add student. An unknown error occurred.' });
+        }
     }
 });
 
