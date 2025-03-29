@@ -39,9 +39,16 @@ app.get('/', async (req, res) => {
 
 // Add Student Route - Posting Data to Your API
 app.post('/add-student', async (req, res) => {
+
+    const studentData = { ...req.body };
+
+    if(!studentData.user_id) {
+        studentData.user_id = null; // Set user_id to null if it is not provided in the form
+    } 
+
     try {
         const addStudentEp = "http://localhost:4000/student";
-        const response = await axios.post(addStudentEp, req.body);
+        const response = await axios.post(addStudentEp, studentData);
 
         console.log("Response from API: ", response.data);
 

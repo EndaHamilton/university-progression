@@ -80,7 +80,7 @@ module.exports = function (db) {
         const insertStudentSQL = `INSERT INTO student (student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id) 
                                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-        db.query(insertStudentSQL, [student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id], (err, result) => {
+        db.query(insertStudentSQL, [student_number, user_id || null, pathway_id, first_name, last_name, study_status_id, entry_level_id], (err, result) => {
             if (err) {
                 if (err.code === 'ER_DUP_ENTRY') {
                     return res.status(409).json({ error: 'Student Number already exists' });
