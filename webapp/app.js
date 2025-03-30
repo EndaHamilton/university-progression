@@ -42,9 +42,9 @@ app.post('/add-student', async (req, res) => {
 
     const studentData = { ...req.body };
 
-    if(!studentData.user_id) {
+    if (!studentData.user_id) {
         studentData.user_id = null; // Set user_id to null if it is not provided in the form
-    } 
+    }
 
     try {
         const addStudentEp = "http://localhost:4000/student";
@@ -56,12 +56,22 @@ app.post('/add-student', async (req, res) => {
     } catch (error) {
         console.error('Error adding student:', error.message);
 
-        if (error.response && error.response.data) {
-            res.render('studentmanagement', { students: [], errorMessage: error.response.data.error });  // Displaying backend error message
-            res.status(400).send(error.response.data.error);  // Displaying backend error message
-        } else {
-            res.render('studentmanagement', { students: [], errorMessage: 'Failed to add student. An unknown error occurred.' });
+        let students = [];
+
+        try {
+            const studentRes = await axios.get("http://localhost:4000/student/details");
+            students = studentRes.data;
+        } catch (fetchErr) {
+            console.error('Error fetching students for fallback:', fetchErr.message);
         }
+
+        const errorMessage = (error.response && error.response.data?.error) || 'An unknown error occurred.';
+
+        res.status(400).render('studentmanagement', {
+            students,
+            errorMessage
+        });
+
     }
 });
 

@@ -171,6 +171,7 @@
                             <label>Entry Level ID</label>
                             <input type="number" class="form-control" name="entry_level_id" required>
                         </div>
+                        <div id="addError" class="alert alert-danger d-none"></div>
                         <button type="submit" class="btn btn-primary">Add Student</button>
                     </form>
                 </div>
@@ -179,6 +180,30 @@
     </div>
 
 
+
+    <script>
+        document.getElementById('addStudentModal').addEventListener('submit', function(e) {
+            const firstName = document.querySelector('[name="first_name"]').value.trim();
+            const lastName = document.querySelector('[name="last_name"]').value.trim();
+            const errorDiv = document.getElementById('addError');
+    
+            // Reset error
+            errorDiv.classList.add('d-none');
+            errorDiv.textContent = '';
+    
+            // Client-side name validation
+            if (!isNaN(firstName) || !isNaN(lastName)) {
+                e.preventDefault(); // Prevent form submission
+                errorDiv.textContent = 'Name entries must not be numeric.';
+                errorDiv.classList.remove('d-none');
+                return;
+            }
+    
+            // Optionally: validate that required number fields are positive integers
+    
+            // Allow form to submit if no issues
+        });
+    </script>
 
 
     <!-- Bootstrap CDSN -->
