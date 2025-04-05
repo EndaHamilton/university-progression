@@ -27,6 +27,10 @@ db.connect(err => {
 const studentRoutes = require('./controllers/student')(db);
 app.use('/student', studentRoutes);
 
+// define a route on '/pathway' that uses the pathwayRoutes controller
+const pathwayRoutes = require('./controllers/pathway')(db);
+app.use('/pathway', pathwayRoutes);
+
 
 // start express server on port 4000
 app.listen(port, () => {

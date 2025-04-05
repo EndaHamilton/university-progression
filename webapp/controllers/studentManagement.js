@@ -6,13 +6,25 @@ const axios = require("axios");
 router.get('/', async (req, res) => {
 
     try {
-        //GET request to API endpoint to get all students
-        const allStudentsEp = "http://localhost:4000/student/details";
-        const response = await axios.get(allStudentsEp);
-        const students = response.data;
+        //GET request to different API endpoints for all data studentManagement page uses
 
-        //Render EJS view and pass in student data
-        res.render("studentmanagement", { students: students });
+        const [studentsRes, pathwaysRes] = await Promise.all([
+            axios.get("http://localhost:4000/student/details"),
+            axios.get("http://localhost:4000/pathway"),
+        ]);
+
+        //Render EJS view with all data fetched from API endpoints
+        console.log("Students: ", studentsRes.data);
+        console.log("Pathways: ", pathwaysRes.data);
+
+        res.render('studentmanagement', {
+            students: studentsRes.data,
+            pathways: pathwaysRes.data,
+            errorMessage: null
+        });
+
+
+
 
     } catch (error) {
         console.error("Error returning students", error.message);
@@ -37,7 +49,7 @@ router.post('/add-student', async (req, res) => {
 
         console.log("Response from API: ", response.data);
 
-        res.redirect('/');  // Redirect back to student mgmt page after successful addition
+        res.redirect('/studentmanagement');  // Redirect back to student mgmt page after successful addition
     } catch (error) {
         console.error('Error adding student:', error.message);
 
