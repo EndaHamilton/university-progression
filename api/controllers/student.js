@@ -75,7 +75,10 @@ module.exports = function (db) {
 
     // POST a new student - /student
     // This route should add a new student to the database
-    router.post("/", (req, res) => {
+
+    //adding callback function to handle separate error handling for duplicate student number
+
+    router.post("/", async (req, res) => {
         const { student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id } = req.body;
 
 
@@ -84,43 +87,43 @@ module.exports = function (db) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Validate that student_number is unique
-        const checkStudentNumberSQL = `SELECT * FROM student WHERE student_number = ?`;
-        db.query(checkStudentNumberSQL, [student_number], (err, rows) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to connect to database', details: err.message });
-            }
-            if (rows.length > 0) {
-                return res.status(409).json({ error: 'Student Number already exists' });
-            }
-        });
-
         // Validate data types
-        if ( !isNaN(first_name) || !isNaN(last_name) ) {
+        if (!isNaN(first_name) || !isNaN(last_name)) {
             return res.status(400).json({ error: 'Invalid data types: name entries cannot be numeric' });
         }
         if (isNaN(pathway_id) || isNaN(study_status_id) || isNaN(entry_level_id) || (user_id && isNaN(user_id))) { // Check if user_id is provided and numeric
             return res.status(400).json({ error: 'Invalid data types: must be numeric' });
         }
-        
 
+        // Validate that student_number is unique if all other validaton passes above
 
+        try {
+            const [existingStudentId] = await db.promise().query(`SELECT * FROM student WHERE student_number = ?`, [student_number]
 
-        const insertStudentSQL = `INSERT INTO student (student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id) 
+            );
+            if (existingStudentId.length > 0) {
+                return res.status(409).json({ error: 'Student Number already exists' });
+            }
+
+            const insertStudentSQL = `INSERT INTO student (student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id) 
                                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-        db.query(insertStudentSQL, [student_number, user_id || null, parseInt(pathway_id), first_name, last_name, parseInt(study_status_id), parseInt(entry_level_id)], (err, result) => {
-            if (err) {
-                if (err.code === 'ER_DUP_ENTRY') {
-                    return res.status(409).json({ error: 'Student Number already exists' });
-                }
-                else {
+            db.query(insertStudentSQL, [student_number, user_id || null, parseInt(pathway_id), first_name, last_name, parseInt(study_status_id), parseInt(entry_level_id)], (err, result) => {
+                if (err) {
+
                     return res.status(500).json({ error: 'Failed to connect to database', details: err.message });
+
+                } else {
+                    res.status(201).json({ message: "Student created successfully", studentId: result.insertId, student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id });
                 }
-            } else {
-                res.status(201).json({ message: "Student created successfully", studentId: result.insertId, student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id });
-            }
-        });
+            });
+
+        } catch (err) {
+            console.error("Error during student POST", err);
+            res.status(500).json({ error: 'Server error: ', details: err.message });
+        }
+
+
     });
 
     // PUT (Update) a student by ID - /student/:id

@@ -31,6 +31,14 @@ app.use('/student', studentRoutes);
 const pathwayRoutes = require('./controllers/pathway')(db);
 app.use('/pathway', pathwayRoutes);
 
+// define a route on '/studystatus' that uses the studyStatus controller
+const studyStatus = require('./controllers/studystatus')(db);
+app.use('/studystatus', studyStatus);
+
+// define a route on '/entrylevel' that uses the entryLevelRoutes controller
+const entryLevelRoutes = require('./controllers/entrylevel')(db);
+app.use('/entrylevel', entryLevelRoutes);
+
 
 // start express server on port 4000
 app.listen(port, () => {
