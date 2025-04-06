@@ -47,7 +47,8 @@ router.post('/add-student', async (req, res) => {
         const addStudentEp = "http://localhost:4000/student";
         const response = await axios.post(addStudentEp, studentData);
 
-        return res.status(200).json({ message: "Student created successfully" });
+        //passing through response from API to the frontend
+        return res.status(200).json(response.data);
 
         // console.log("Response from API: ", response.data);
 

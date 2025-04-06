@@ -81,6 +81,8 @@ module.exports = function (db) {
     router.post("/", async (req, res) => {
         const { student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id } = req.body;
 
+        const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty
+
 
         // Validate required fields
         if (!student_number || !pathway_id || !first_name || !last_name || !study_status_id || !entry_level_id) {
@@ -108,13 +110,13 @@ module.exports = function (db) {
             const insertStudentSQL = `INSERT INTO student (student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id) 
                                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-            db.query(insertStudentSQL, [student_number, user_id || null, parseInt(pathway_id), first_name, last_name, parseInt(study_status_id), parseInt(entry_level_id)], (err, result) => {
+            db.query(insertStudentSQL, [student_number, parsedUserId, parseInt(pathway_id), first_name, last_name, parseInt(study_status_id), parseInt(entry_level_id)], (err, result) => {
                 if (err) {
 
                     return res.status(500).json({ error: 'Failed to connect to database', details: err.message });
 
                 } else {
-                    res.status(201).json({ message: "Student created successfully", studentId: result.insertId, student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id });
+                    res.status(200).json({ message: "Student created successfully", studentId: result.insertId, student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id });
                 }
             });
 

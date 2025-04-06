@@ -7,10 +7,13 @@ document.addEventListener("DOMContentLoaded", function () {
         form.addEventListener('submit', async function (e) {
             e.preventDefault(); // Prevent form submission for validation
 
-            // Clear previous error message
+            // Clear previous error message and success box each time
             const errorDiv = document.getElementById('addError');
             errorDiv.classList.add('d-none');
             errorDiv.textContent = '';
+            const successDiv = document.getElementById('addSuccess');
+            successDiv.classList.add('d-none');
+            successDiv.textContent = '';
 
             const studentNumber = document.querySelector('[name="student_number"]').value.trim();
             const userId = document.querySelector('[name="user_id"]').value.trim();
@@ -123,6 +126,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const formData = new FormData(form);
             const payload = Object.fromEntries(formData.entries());
 
+           
+
+
+            /*Using fetch here instead of standard form submission to preserve modal state and 
+            provide in-modal validation feedback */
+            //Allows form to get to server side for duplicate student number check
             try {
                 const response = await fetch('/studentmanagement/add-student', {
                     method: 'POST',
@@ -132,16 +141,39 @@ document.addEventListener("DOMContentLoaded", function () {
                     body: JSON.stringify(payload)
                 });
 
+                const data = await response.json();
+
                 if (!response.ok) {
-                    const data = await response.json();
+
+                    let errorMessage = 'An unknown error occurred.';
+                    if (response.status === 409) {
+                        errorMessage = 'Student number already exists.';
+                    } else if (response.status === 400) {
+                        errorMessage = 'Invalid input data.';
+                    } else if (response.status === 500) {
+                        errorMessage = 'Server error. Please try again later.';
+                    }
+
+                    errorMessage = data.error || errorMessage;
+
                     console.log("API Error: ", data);
+
                     errorDiv.textContent = data.error || 'An error occurred.';
                     errorDiv.classList.remove('d-none');
                     return; // stay in modal
                 }
+                    // If successful, redirect to the student management page with a success message
 
-                // If successful, reload or redirect
-                window.location.href = '/studentmanagement';
+                    successDiv.textContent = data.message || 'Student added successfully!';
+                    successDiv.classList.remove('d-none');
+
+                    //delay redirect to allow user to see success message
+                    setTimeout(() => {
+                        window.location.href = '/studentmanagement'; // Redirect to student management page
+                    }, 2000); // 2 seconds delay before redirecting
+
+                
+
 
             } catch (err) {
                 console.error('Error submitting form:', err);

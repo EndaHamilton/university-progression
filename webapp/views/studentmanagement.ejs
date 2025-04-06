@@ -185,13 +185,17 @@
                             <label>Entry Level</label>
                             <select name="entry_level_id" class="form-control" required>
                                 <option value="" disabled selected>Select an entry level</option>
-                                <% entryLevels.forEach(entryLevel => { %>
-                                  <option value="<%= entryLevel.id %>"><%= entryLevel.name %></option>
-                                <% }) %>
-                              </select>
+                                <% entryLevels.forEach(entryLevel=> { %>
+                                    <option value="<%= entryLevel.id %>">
+                                        <%= entryLevel.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
                         </div>
                         <!--Hidden error msg which appears once submit selected with invalid data-->
                         <div id="addError" class="alert alert-danger d-none"></div>
+                        <!-- Success message container -->
+                        <div id="addSuccess" class="alert alert-success d-none"></div>
                         <button type="submit" class="btn btn-primary">Add Student</button>
                     </form>
                 </div>
@@ -221,6 +225,8 @@
     <script>
         feather.replace()
     </script>
+
+
 </body>
 
 </html>
