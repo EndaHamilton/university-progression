@@ -81,7 +81,7 @@ module.exports = function (db) {
     router.post("/", async (req, res) => {
         const { student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id } = req.body;
 
-        const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty
+        const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
 
 
         // Validate required fields

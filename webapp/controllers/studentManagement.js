@@ -56,8 +56,12 @@ router.post('/add-student', async (req, res) => {
     } catch (error) {
         console.error('Error adding student:', error.message);
 
-        const errorMessage = (error.response && error.response.data?.error) || 'An unknown error occurred.';
-        return res.status(409).json({ error: errorMessage });
+        const status = error.response?.status || 500; // Default to 500 if status is not available
+        const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
+        console.error('Error message from API:', errorMessage);
+        console.error('Status code from API:', status);
+
+        return res.status(status).json({ error: errorMessage }); // updated to handle error response dynamically - not just 409
 
         // let students = [], pathways = [], studyStatuses = [], entryLevels = [];;
 
@@ -92,6 +96,10 @@ router.post('/add-student', async (req, res) => {
 
     }
 });
+
+
+
+
 
 
 

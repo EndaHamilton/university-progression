@@ -145,18 +145,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (!response.ok) {
 
-                    let errorMessage = 'An unknown error occurred.';
-                    if (response.status === 409) {
-                        errorMessage = 'Student number already exists.';
-                    } else if (response.status === 400) {
-                        errorMessage = 'Invalid input data.';
-                    } else if (response.status === 500) {
-                        errorMessage = 'Server error. Please try again later.';
-                    }
+                    const status = response.status;
+                    const errorMessage = data.error || 
+                    (status === 400 ? 'Invalid input data.' :
+                        status === 409 ? 'Student number already exists.' :
+                            status === 500 ? 'Server error. Please try again later.' :
+                                'An unknown error occurred.'
+                    );
 
-                    errorMessage = data.error || errorMessage;
-
-                    console.log("API Error: ", data);
+                    console.error("API Error: ", errorMessage);
 
                     errorDiv.textContent = data.error || 'An error occurred.';
                     errorDiv.classList.remove('d-none');
