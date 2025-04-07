@@ -1,6 +1,54 @@
 console.log("Student Management JS loaded.");
 // This script handles the display of the student management page, including fetching data from the API and populating the table.
 
+function validateStudentForm(form, errorDiv) {
+
+    const studentNumber = form.querySelector('[name="student_number"]').value.trim();
+    const userId = form.querySelector('[name="user_id"]').value.trim();
+    const pathwayId = form.querySelector('[name="pathway_id"]').value.trim();
+    const firstName = form.querySelector('[name="first_name"]').value.trim();
+    const lastName = form.querySelector('[name="last_name"]').value.trim();
+    const studyStatusId = form.querySelector('[name="study_status_id"]').value.trim();
+    const entryLevelId = form.querySelector('[name="entry_level_id"]').value.trim();
+
+    //query for checking positive integers
+    const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
+
+    // 1. Presence check for all fields
+    if (!studentNumber) return showError('Student number is required.');
+    if (!pathwayId) return showError('Please select a pathway.');
+    if (!firstName) return showError('First name is required.');
+    if (!lastName) return showError('Last name is required.');
+    if (!studyStatusId) return showError('Study Status ID is required.');
+    if (!entryLevelId) return showError('Entry Level ID is required.');
+
+    // 2. Format check for individual fields
+    if (studentNumber.length < 5 || studentNumber.length > 15)
+        return showError('Student number must be between 5 and 15 characters.');
+    if (userId && !isPositiveInteger(userId))
+        return showError('User ID must be a positive whole number.');
+    if (!isNaN(firstName) || !isNaN(lastName))
+        return showError('Name entries must not be numeric.');
+    if (firstName.length < 2 || lastName.length < 2)
+        return showError('Name entries must be more than 1 character long.');
+    if (firstName.length > 50 || lastName.length > 50)
+        return showError('Name entries must be less than 50 characters long.');
+    if (!isPositiveInteger(studyStatusId))
+        return showError('Please select a valid Study Status.');
+    if (!isPositiveInteger(entryLevelId))
+        return showError('Please select a valid Entry Level.');
+
+    return null; // No errors found
+
+    function showError(msg) {
+        errorDiv.textContent = msg;
+        errorDiv.classList.remove('d-none');
+        return msg;
+    }
+
+}
+
+
 //Client-side add student form with client-side validation
 // This script handles the form submission for adding a student, including client-side validation and error handling.
 document.addEventListener("DOMContentLoaded", function () {
@@ -19,109 +67,112 @@ document.addEventListener("DOMContentLoaded", function () {
             successDiv.classList.add('d-none');
             successDiv.textContent = '';
 
-            const studentNumber = document.querySelector('[name="student_number"]').value.trim();
-            const userId = document.querySelector('[name="user_id"]').value.trim();
-            const pathwayId = document.querySelector('[name="pathway_id"]').value.trim();
-            const firstName = document.querySelector('[name="first_name"]').value.trim();
-            const lastName = document.querySelector('[name="last_name"]').value.trim();
-            const studyStatusId = document.querySelector('[name="study_status_id"]').value.trim();
-            const entryLevelId = document.querySelector('[name="entry_level_id"]').value.trim();
+            const error = validateStudentForm(form, errorDiv);
+            if (error) return; // If validation fails, show error and return
 
-            //query for checking positive integers
-            const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
+            // const studentNumber = document.querySelector('[name="student_number"]').value.trim();
+            // const userId = document.querySelector('[name="user_id"]').value.trim();
+            // const pathwayId = document.querySelector('[name="pathway_id"]').value.trim();
+            // const firstName = document.querySelector('[name="first_name"]').value.trim();
+            // const lastName = document.querySelector('[name="last_name"]').value.trim();
+            // const studyStatusId = document.querySelector('[name="study_status_id"]').value.trim();
+            // const entryLevelId = document.querySelector('[name="entry_level_id"]').value.trim();
 
-            //1. Presence check for all fields individually (so user knows which one)
-            if (!studentNumber) {
-                e.preventDefault();
-                errorDiv.textContent = 'Student number is required.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // //query for checking positive integers
+            // const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
 
-            if (!pathwayId) {
-                e.preventDefault();
-                errorDiv.textContent = 'Please select a pathway.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // //1. Presence check for all fields individually (so user knows which one)
+            // if (!studentNumber) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Student number is required.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            if (!firstName) {
-                e.preventDefault();
-                errorDiv.textContent = 'First name is required.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // if (!pathwayId) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Please select a pathway.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            if (!lastName) {
-                e.preventDefault();
-                errorDiv.textContent = 'Last name is required.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // if (!firstName) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'First name is required.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            if (!studyStatusId) {
-                e.preventDefault();
-                errorDiv.textContent = 'Study Status ID is required.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // if (!lastName) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Last name is required.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            if (!entryLevelId) {
-                e.preventDefault();
-                errorDiv.textContent = 'Entry Level ID is required.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // if (!studyStatusId) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Study Status ID is required.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            //2. Format check for individual fields
-            if (studentNumber.length < 5 || studentNumber.length > 15) {
-                e.preventDefault();
-                errorDiv.textContent = 'Student number must be between 5 and 15 characters.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // if (!entryLevelId) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Entry Level ID is required.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            if (userId && !isPositiveInteger(userId)) {
-                e.preventDefault();
-                errorDiv.textContent = 'User ID must be a positive whole number.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // //2. Format check for individual fields
+            // if (studentNumber.length < 5 || studentNumber.length > 15) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Student number must be between 5 and 15 characters.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            if (!isNaN(firstName) || !isNaN(lastName)) {
-                e.preventDefault();
-                errorDiv.textContent = 'Name entries must not be numeric.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // if (userId && !isPositiveInteger(userId)) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'User ID must be a positive whole number.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            if (firstName.length < 2 || lastName.length < 2) {
-                e.preventDefault();
-                errorDiv.textContent = 'Name entries must be more than 1 character long.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // if (!isNaN(firstName) || !isNaN(lastName)) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Name entries must not be numeric.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            if (firstName.length > 50 || lastName.length > 50) {
-                e.preventDefault();
-                errorDiv.textContent = 'Name entries must be less than 50 characters long.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // if (firstName.length < 2 || lastName.length < 2) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Name entries must be more than 1 character long.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            if (!isPositiveInteger(studyStatusId)) {
-                e.preventDefault();
-                errorDiv.textContent = 'Please selecte a Study Status.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // if (firstName.length > 50 || lastName.length > 50) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Name entries must be less than 50 characters long.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
-            if (!isPositiveInteger(entryLevelId)) {
-                e.preventDefault();
-                errorDiv.textContent = 'Please select an entry level.';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
+            // if (!isPositiveInteger(studyStatusId)) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Please selecte a Study Status.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
+
+            // if (!isPositiveInteger(entryLevelId)) {
+            //     e.preventDefault();
+            //     errorDiv.textContent = 'Please select an entry level.';
+            //     errorDiv.classList.remove('d-none');
+            //     return;
+            // }
 
             /*if all client-side validation passes, the form will submit and hit the API endpoint (database)
             Only at this point can the check against duplicate student numbers be made, which is validated
@@ -191,7 +242,6 @@ document.addEventListener("DOMContentLoaded", function () {
 // This script handles the form submission for editing a student, including client-side validation and error handling.
 document.addEventListener("DOMContentLoaded", function () {
     const editForm = document.querySelector("#editStudentForm");
-    const editModalEl = document.getElementById("editStudentModal");
 
     // 1. Attach click handlers to all "Edit" buttons
     document.querySelectorAll(".edit-btn").forEach(button => {
@@ -235,6 +285,9 @@ document.addEventListener("DOMContentLoaded", function () {
         errorDiv.textContent = "";
         successDiv.classList.add("d-none");
         successDiv.textContent = "";
+
+        const error = validateStudentForm(editForm, errorDiv);
+        if (error) return; // If validation fails, show error and return
 
         try {
             const response = await fetch(`/studentmanagement/edit-student/${studentId}`, {
