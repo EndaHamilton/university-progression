@@ -48,9 +48,11 @@ router.post('/add-student', async (req, res) => {
         const response = await axios.post(addStudentEp, studentData);
 
         //passing through response from API to the frontend
+        console.log("Response from API: ", response.data);
+
         return res.status(200).json(response.data);
 
-        // console.log("Response from API: ", response.data);
+        
 
         // res.redirect('/studentmanagement');  // Redirect back to student mgmt page after successful addition
     } catch (error) {
@@ -97,10 +99,32 @@ router.post('/add-student', async (req, res) => {
     }
 });
 
+// Get Student by ID Route - Fetching Data from API
+router.get('/student/:id', async (req, res) => {
+    try {
+        const studentId = req.params.id;
+        const getStudentEp = `http://localhost:4000/student/${studentId}`;
+        const response = await axios.get(getStudentEp);
+        console.log("Response from API: ", response.data);
+        return res.status(200).json(response.data);
+    } catch (error) {
+
+        const status = error.response?.status || 500; 
+        const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
+        console.error('Error message from API:', errorMessage);
+        console.error('Status code from API:', status);
+        // Handle the error response dynamically
+
+        return res.status(status).json({ error: errorMessage });
+    }
+
+});
+
 // Edit Student Route - Putting Data to API
 router.put('/edit-student/:id', async (req, res) => {
     try {
-        const editStudentEp = `http://localhost:4000/student/${req.params.id}`;
+        const studentId = req.params.id;
+        const editStudentEp = `http://localhost:4000/student/${studentId}`;
         const response = await axios.put(editStudentEp, req.body);
         console.log("Response from API: ", response.data);
         return res.status(200).json(response.data);

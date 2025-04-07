@@ -1,4 +1,8 @@
-//Client-side validation for add student form
+console.log("Student Management JS loaded.");
+// This script handles the display of the student management page, including fetching data from the API and populating the table.
+
+//Client-side add student form with client-side validation
+// This script handles the form submission for adding a student, including client-side validation and error handling.
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector('#addStudentModal form');
 
@@ -126,7 +130,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const formData = new FormData(form);
             const payload = Object.fromEntries(formData.entries());
 
-           
+
 
 
             /*Using fetch here instead of standard form submission to preserve modal state and 
@@ -146,12 +150,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!response.ok) {
 
                     const status = response.status;
-                    const errorMessage = data.error || 
-                    (status === 400 ? 'Invalid input data.' :
-                        status === 409 ? 'Student number already exists.' :
-                            status === 500 ? 'Server error. Please try again later.' :
-                                'An unknown error occurred.'
-                    );
+                    const errorMessage = data.error ||
+                        (status === 400 ? 'Invalid input data.' :
+                            status === 409 ? 'Student number already exists.' :
+                                status === 500 ? 'Server error. Please try again later.' :
+                                    'An unknown error occurred.'
+                        );
 
                     console.error("API Error: ", errorMessage);
 
@@ -159,17 +163,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     errorDiv.classList.remove('d-none');
                     return; // stay in modal
                 }
-                    // If successful, redirect to the student management page with a success message
+                // If successful, redirect to the student management page with a success message
 
-                    successDiv.textContent = data.message || 'Student added successfully!';
-                    successDiv.classList.remove('d-none');
+                successDiv.textContent = data.message || 'Student added successfully!';
+                successDiv.classList.remove('d-none');
 
-                    //delay redirect to allow user to see success message
-                    setTimeout(() => {
-                        window.location.href = '/studentmanagement'; // Redirect to student management page
-                    }, 2000); // 2 seconds delay before redirecting
+                //delay redirect to allow user to see success message
+                setTimeout(() => {
+                    window.location.href = '/studentmanagement'; // Redirect to student management page
+                }, 2000); // 2 seconds delay before redirecting
 
-                
+
 
 
             } catch (err) {
@@ -181,4 +185,92 @@ document.addEventListener("DOMContentLoaded", function () {
 
         });
     }
+});
+
+// Client-side edit student form with client-side validation
+// This script handles the form submission for editing a student, including client-side validation and error handling.
+document.addEventListener("DOMContentLoaded", function () {
+    const editForm = document.querySelector("#editStudentForm");
+    const editModalEl = document.getElementById("editStudentModal");
+
+    // 1. Attach click handlers to all "Edit" buttons
+    document.querySelectorAll(".edit-btn").forEach(button => {
+        button.addEventListener("click", async function () {
+            const studentId = this.getAttribute("data-id");
+
+            try {
+                const response = await fetch(`/studentmanagement/student/${studentId}`);
+                const student = await response.json();
+
+                // Fill form with student data
+                editForm.setAttribute("data-id", student.id);
+                editForm.querySelector('[name="student_number"]').value = student.student_number;
+                editForm.querySelector('[name="user_id"]').value = student.user_id || '';
+                editForm.querySelector('[name="pathway_id"]').value = student.pathway_id;
+                editForm.querySelector('[name="first_name"]').value = student.first_name;
+                editForm.querySelector('[name="last_name"]').value = student.last_name;
+                editForm.querySelector('[name="study_status_id"]').value = student.study_status_id;
+                editForm.querySelector('[name="entry_level_id"]').value = student.entry_level_id;
+
+                // Show modal
+                $('#editStudentModal').modal('show');
+
+            } catch (err) {
+                console.error("Failed to fetch student for editing", err);
+            }
+        });
+    });
+
+    // 2. Submit handler for Edit Form
+    editForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const studentId = editForm.getAttribute("data-id");
+        const formData = new FormData(editForm);
+        const payload = Object.fromEntries(formData.entries());
+
+        // Clear previous feedback
+        const errorDiv = document.getElementById("editError");
+        const successDiv = document.getElementById("editSuccess");
+        errorDiv.classList.add("d-none");
+        errorDiv.textContent = "";
+        successDiv.classList.add("d-none");
+        successDiv.textContent = "";
+
+        try {
+            const response = await fetch(`/studentmanagement/edit-student/${studentId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const status = response.status;
+                const errorMessage = data.error ||
+                    (status === 400 ? "Invalid input." :
+                        status === 404 ? "Student not found." :
+                            status === 409 ? "Duplicate student number." :
+                                "An unexpected error occurred."
+                    );
+                errorDiv.textContent = errorMessage;
+                errorDiv.classList.remove("d-none");
+                return;
+            }
+
+            successDiv.textContent = data.message || "Student updated successfully!";
+            successDiv.classList.remove("d-none");
+
+            setTimeout(() => {
+                window.location.href = "/studentmanagement";
+            }, 2000);
+
+        } catch (err) {
+            console.error("Error submitting update:", err);
+            errorDiv.textContent = "A network error occurred.";
+            errorDiv.classList.remove("d-none");
+        }
+    });
 });
