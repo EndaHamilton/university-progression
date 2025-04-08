@@ -23,7 +23,7 @@ function validateStudentForm(form, errorDiv) {
     if (!entryLevelId) return showError('Entry Level ID is required.');
 
     // 2. Format check for individual fields
-    if (studentNumber.length < 5 || studentNumber.length > 15)
+    if (studentNumber.length < 5 || studentNumber.length > 15 || !isPositiveInteger(studentNumber))
         return showError('Student number must be between 5 and 15 characters.');
     if (userId && !isPositiveInteger(userId))
         return showError('User ID must be a positive whole number.');
