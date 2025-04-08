@@ -52,7 +52,7 @@ router.post('/add-student', async (req, res) => {
 
         return res.status(200).json(response.data);
 
-        
+
 
         // res.redirect('/studentmanagement');  // Redirect back to student mgmt page after successful addition
     } catch (error) {
@@ -109,7 +109,7 @@ router.get('/student/:id', async (req, res) => {
         return res.status(200).json(response.data);
     } catch (error) {
 
-        const status = error.response?.status || 500; 
+        const status = error.response?.status || 500;
         const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
         console.error('Error message from API:', errorMessage);
         console.error('Status code from API:', status);
@@ -130,7 +130,7 @@ router.put('/edit-student/:id', async (req, res) => {
         return res.status(response.status).json(response.data);
     } catch (error) {
 
-        const status = error.response?.status || 500; 
+        const status = error.response?.status || 500;
         const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
         console.error('Error message from API:', errorMessage);
         console.error('Status code from API:', status);
@@ -139,6 +139,28 @@ router.put('/edit-student/:id', async (req, res) => {
         return res.status(status).json({ error: errorMessage });
     }
 });
+
+// Delete Student Route - Deleting Data from API
+router.delete('/delete-student/:id', async (req, res) => {
+
+    try {
+        const studentId = req.params.id;
+        const deleteStudentEp = `http://localhost:4000/student/${studentId}`;
+        const response = await axios.delete(deleteStudentEp);
+        console.log("Response from API: ", response.data);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        const status = error.response?.status || 500;
+        const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
+        console.error('Error message from API:', errorMessage);
+        console.error('Status code from API:', status);
+        // Handle the error response dynamically
+
+        return res.status(status).json({ error: errorMessage });
+    }
+
+});
+
 
 
 

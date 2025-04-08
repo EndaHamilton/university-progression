@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     );
                 errorDiv.textContent = errorMessage;
                 errorDiv.classList.remove("d-none");
-                
+
                 return;
             }
 
@@ -325,6 +325,37 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Error submitting update:", err);
             errorDiv.textContent = "A network error occurred.";
             errorDiv.classList.remove("d-none");
+        }
+    });
+});
+
+// Client-side delete student functionality
+document.querySelectorAll(".delete-btn").forEach(button => {
+
+    button.addEventListener("click", async function () {
+        const studentId = this.getAttribute("data-id");
+
+        if (!confirm("Are you sure you want to delete this student?")) {
+            return; // User cancelled
+        }
+
+        try {
+            const response = await fetch(`/studentmanagement/delete-student/${studentId}`, {
+                method: "DELETE"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.error || "An error occurred while deleting the student.");
+                return;
+            }
+
+            alert(data.message || "Student deleted successfully!");
+            window.location.href = "/studentmanagement"; // Redirect to student management page
+        } catch (err) {
+            console.error("Error deleting student:", err);
+            alert("A network error occurred while deleting the student.");
         }
     });
 });

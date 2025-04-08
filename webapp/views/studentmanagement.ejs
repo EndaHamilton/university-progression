@@ -81,8 +81,6 @@
                                 <!-- Trigger button for Add Student Modal-->
                                 <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal"
                                     data-target="#addStudentModal">Add Student</button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary">Edit Student</button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary">Delete Student</button>
                             </div>
                 </div>
 
@@ -120,6 +118,8 @@
                                     <td>
                                         <button type="button" class="btn btn-sm btn-outline-secondary edit-btn"
                                             data-id="<%= student.id %>">Edit</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+                                            data-id="<%= student.id %>">Delete</button>
                                     </td>
                                 </tr>
                                 <% }) %>
