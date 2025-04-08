@@ -86,7 +86,7 @@ module.exports = function (db) {
                 }
                 if (val.length > 50) {
                     errors.push("First name must be less than 50 characters.");
-                } 
+                }
             }
         }
 
@@ -98,9 +98,9 @@ module.exports = function (db) {
                 if (!isNaN(val)) {
                     errors.push("Last name must not be numeric.");
                 }
-                if (val.length < 2) { 
+                if (val.length < 2) {
                     errors.push("Last name must be at least 2 characters.");
-                } 
+                }
                 if (val.length > 50) {
                     errors.push("Last name must be less than 50 characters.");
                 }
@@ -135,23 +135,23 @@ module.exports = function (db) {
     //Format validation function for presence checks for required fields when adding a new student
     function validateNewStudent(data) {
         const presenceErrors = [];
-        
-        if(!data.student_number) {
+
+        if (!data.student_number) {
             presenceErrors.push("Student number is required.");
         }
-        if(!data.first_name) {
+        if (!data.first_name) {
             presenceErrors.push("First name is required.");
         }
-        if(!data.last_name) {
+        if (!data.last_name) {
             presenceErrors.push("Last name is required.");
         }
-        if(!data.pathway_id) {
+        if (!data.pathway_id) {
             presenceErrors.push("Pathway is required.");
         }
-        if(!data.study_status_id) {
+        if (!data.study_status_id) {
             presenceErrors.push("Study status is required.");
         }
-        if(!data.entry_level_id) {
+        if (!data.entry_level_id) {
             presenceErrors.push("Entry level is required.");
         }
 
@@ -173,7 +173,7 @@ module.exports = function (db) {
     //     if ('student_number' in data) {
     //         if (!data.student_number || data.first_name.trim() === "") {
     //             errors.push("Student number cannot be empty.");
-    //         } else if (data.student_number.length < 5 || data.student_number.length > 15 || !isPositiveInteger(data.student_number)) {
+    //         } else if (data.student_number.length < 5 || data.student_number.length > 15) {
     //             errors.push("Student number must be numeric and between 5 to 15 characters.");
     //         }
     //     }
@@ -484,13 +484,23 @@ module.exports = function (db) {
             //     return res.status(400).json({ error: 'No changes detected. Student data is identical.' });
             // }
 
+            // Check if the data being updated is the same as existing data
+            // Checks only for fields which are being passed in - doesn't check undefined fields that aren't being toucehd
             const isIdentical = Object.keys(req.body).every((key) => {
-                return req.body[key] == existingStudent[key];
-              });
-              
-              if (isIdentical) {
+                const newVal = req.body[key];
+                const existingVal = existingStudent[key];
+
+                // Convert both for comparison
+                const normalizedNew = (newVal === null || newVal === undefined) ? "" : String(newVal).trim();
+                const normalizedExisting = (existingVal === null || existingVal === undefined) ? "" : String(existingVal).trim();
+
+                return normalizedNew === normalizedExisting;
+
+            });
+
+            if (isIdentical) {
                 return res.status(400).json({ error: 'No changes detected. Student data is identical.' });
-              }
+            }
 
             // Prepare the update query
             const updateFields = [];
@@ -548,7 +558,7 @@ module.exports = function (db) {
                 }
 
                 res.status(201).json({
-                    message: "Student updated successfully",
+                    message: "Student updated successfully!!!",
                     studentId: id
                 });
             });

@@ -127,7 +127,7 @@ router.put('/edit-student/:id', async (req, res) => {
         const editStudentEp = `http://localhost:4000/student/${studentId}`;
         const response = await axios.put(editStudentEp, req.body);
         console.log("Response from API: ", response.data);
-        return res.status(200).json(response.data);
+        return res.status(response.status).json(response.data);
     } catch (error) {
 
         const status = error.response?.status || 500; 
