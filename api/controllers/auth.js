@@ -15,8 +15,9 @@ module.exports = function (db) {
             }
 
             if (rows.length > 0) {
-                res.json({ authenticate: true, userID: rows[0].id });
-                console.log(`User ID: ${rows[0].id}`);
+                res.json({ authenticate: true, userID: rows[0].id, role: rows[0].role });
+                console.log(`User ID: ${rows[0].id}
+                            Role: ${rows[0].role}`);
             } else {
                 res.json({ authenticate: false });
             }

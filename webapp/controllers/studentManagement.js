@@ -2,8 +2,11 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 
+const requireAdmin = require("../middleware/requireAdmin"); // Middleware to check if user is admin
+
+
 // Fetch all student details
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
 
     if(!req.session.userID) {
         return res.redirect('/'); // Redirect to sign-in page if user is not authenticated
@@ -41,7 +44,7 @@ router.get('/', async (req, res) => {
 });
 
 // Add Student Route - Posting Data to API
-router.post('/add-student', async (req, res) => {
+router.post('/add-student', requireAdmin, async (req, res) => {
 
     const studentData = { ...req.body };
 
@@ -108,7 +111,7 @@ router.post('/add-student', async (req, res) => {
 });
 
 // Get Student by ID Route - Fetching Data from API
-router.get('/student/:id', async (req, res) => {
+router.get('/student/:id', requireAdmin, async (req, res) => {
     try {
         const studentId = req.params.id;
         const getStudentEp = `http://localhost:4000/student/${studentId}`;
@@ -129,7 +132,7 @@ router.get('/student/:id', async (req, res) => {
 });
 
 // Edit Student Route - Putting Data to API
-router.put('/edit-student/:id', async (req, res) => {
+router.put('/edit-student/:id', requireAdmin, async (req, res) => {
     try {
         const studentId = req.params.id;
         const editStudentEp = `http://localhost:4000/student/${studentId}`;
@@ -149,7 +152,7 @@ router.put('/edit-student/:id', async (req, res) => {
 });
 
 // Delete Student Route - Deleting Data from API
-router.delete('/delete-student/:id', async (req, res) => {
+router.delete('/delete-student/:id', requireAdmin, async (req, res) => {
 
     try {
         const studentId = req.params.id;

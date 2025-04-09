@@ -26,6 +26,9 @@ app.use('/studentmanagement', studentManagementRoutes);
 const signInRoutes = require("./controllers/signIn");
 app.use('/', signInRoutes);
 
+// Student profile page route
+const studentProfileRoutes = require("./controllers/studentProfile");
+app.use('/studentprofile', studentProfileRoutes);
 
 app.listen(3000, (err) => {
     if (err) console.log(err);
