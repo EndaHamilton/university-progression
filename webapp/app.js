@@ -14,6 +14,10 @@ app.use(express.json()); // middleware to parse json requests
 const studentManagementRoutes = require("./controllers/studentManagement");
 app.use('/studentmanagement', studentManagementRoutes);
 
+//Sign in page route
+const signInRoutes = require("./controllers/signIn");
+app.use('/', signInRoutes);
+
 
 app.listen(3000, (err) => {
     if (err) console.log(err);
