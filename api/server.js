@@ -5,6 +5,7 @@ const app = express(); // create express app
 const port = 4000;
 
 app.use(express.json()); // middleware to parse json requests
+app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data
 
 //create a mySQL connection 
 const db = mysql.createConnection({
@@ -22,6 +23,11 @@ db.connect(err => {
         console.log('Connected to database');
     }
 });
+
+// define authentication route that uses the auth controller
+const authRoutes = require('./controllers/auth')(db);
+app.use('/auth', authRoutes);
+console.log('Auth routes loaded');
 
 // define a route on '/students' that uses the studentRoutes controller
 const studentRoutes = require('./controllers/student')(db);
