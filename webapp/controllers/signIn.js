@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 
+const getApiConfig = require("../utils/apiConfig"); // Import the API config function
+const configForm = getApiConfig('application/x-www-form-urlencoded'); // Get the config for login
+
 router.get('/', (req, res) => {
     const showError = req.query.error; // Check if error query parameter is present
     res.render('signin', { error: showError});
@@ -15,12 +18,12 @@ router.post('/login', async (req, res) => {
 
     const authEndpoint = 'http://localhost:4000/auth/authenticate';
     const payload = { "email" : emailData, "password" : passswordData };
-    const config = { headers: { 'Content-Type': 'application/x-www-form-urlencoded',
-                                'x-api-key': 'my-secret-key' // API key for authentication
-     } };
+    // const config = { headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+    //                             'x-api-key': 'my-secret-key' // API key for authentication
+    //  } };
 
     try {
-        const response = await axios.post(authEndpoint, payload, config);
+        const response = await axios.post(authEndpoint, payload, configForm);
         console.log("Response from API: ", response.data);
         if (response.data.authenticate) {
             req.session.userID = response.data.userID; // Store user ID in session
