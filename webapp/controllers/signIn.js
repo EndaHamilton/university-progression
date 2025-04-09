@@ -15,7 +15,9 @@ router.post('/login', async (req, res) => {
 
     const authEndpoint = 'http://localhost:4000/auth/authenticate';
     const payload = { "email" : emailData, "password" : passswordData };
-    const config = { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } };
+    const config = { headers: { 'Content-Type': 'application/x-www-form-urlencoded',
+                                'x-api-key': 'my-secret-key' // API key for authentication
+     } };
 
     try {
         const response = await axios.post(authEndpoint, payload, config);

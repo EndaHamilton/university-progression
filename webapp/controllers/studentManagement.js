@@ -4,6 +4,13 @@ const axios = require("axios");
 
 const requireAdmin = require("../middleware/requireAdmin"); // Middleware to check if user is admin
 
+const config = {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': 'my-secret-key'
+    }
+  };
+
 
 // Fetch all student details
 router.get('/', requireAdmin, async (req, res) => {
@@ -16,10 +23,10 @@ router.get('/', requireAdmin, async (req, res) => {
         //GET request to different API endpoints for all data studentManagement page uses
 
         const [studentsRes, pathwaysRes, studyStatusRes, entryLevelRes] = await Promise.all([
-            axios.get("http://localhost:4000/student/details"),
-            axios.get("http://localhost:4000/pathway"),
-            axios.get("http://localhost:4000/studystatus"),
-            axios.get("http://localhost:4000/entrylevel")
+            axios.get("http://localhost:4000/student/details", config),
+            axios.get("http://localhost:4000/pathway", config),
+            axios.get("http://localhost:4000/studystatus", config),
+            axios.get("http://localhost:4000/entrylevel", config)
         ]);
 
         //Render EJS view with all data fetched from API endpoints
@@ -56,7 +63,7 @@ router.post('/add-student', requireAdmin, async (req, res) => {
 
     try {
         const addStudentEp = "http://localhost:4000/student";
-        const response = await axios.post(addStudentEp, studentData);
+        const response = await axios.post(addStudentEp, studentData, config);
 
         //passing through response from API to the frontend
         console.log("Response from API: ", response.data);
@@ -115,7 +122,7 @@ router.get('/student/:id', requireAdmin, async (req, res) => {
     try {
         const studentId = req.params.id;
         const getStudentEp = `http://localhost:4000/student/${studentId}`;
-        const response = await axios.get(getStudentEp);
+        const response = await axios.get(getStudentEp, config);
         console.log("Response from API: ", response.data);
         return res.status(200).json(response.data);
     } catch (error) {
@@ -136,7 +143,7 @@ router.put('/edit-student/:id', requireAdmin, async (req, res) => {
     try {
         const studentId = req.params.id;
         const editStudentEp = `http://localhost:4000/student/${studentId}`;
-        const response = await axios.put(editStudentEp, req.body);
+        const response = await axios.put(editStudentEp, req.body, config);
         console.log("Response from API: ", response.data);
         return res.status(response.status).json(response.data);
     } catch (error) {
@@ -157,7 +164,7 @@ router.delete('/delete-student/:id', requireAdmin, async (req, res) => {
     try {
         const studentId = req.params.id;
         const deleteStudentEp = `http://localhost:4000/student/${studentId}`;
-        const response = await axios.delete(deleteStudentEp);
+        const response = await axios.delete(deleteStudentEp, config);
         console.log("Response from API: ", response.data);
         return res.status(response.status).json(response.data);
     } catch (error) {
