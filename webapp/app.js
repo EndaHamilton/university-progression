@@ -1,5 +1,13 @@
 const express = require("express");
 const app = express();
+const session = require("express-session");
+
+app.use(session({
+    secret: "my-secret-key",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } 
+}));
 
 app.set('view engine', 'ejs');
 const path = require('path');

@@ -5,6 +5,10 @@ const axios = require("axios");
 // Fetch all student details
 router.get('/', async (req, res) => {
 
+    if(!req.session.userID) {
+        return res.redirect('/'); // Redirect to sign-in page if user is not authenticated
+    }
+
     try {
         //GET request to different API endpoints for all data studentManagement page uses
 
@@ -17,6 +21,10 @@ router.get('/', async (req, res) => {
 
         //Render EJS view with all data fetched from API endpoints
         res.render('studentmanagement', {
+            user: {
+                id: req.session.userID,
+                email: req.session.email
+            },
             students: studentsRes.data,
             pathways: pathwaysRes.data,
             studyStatuses: studyStatusRes.data,
