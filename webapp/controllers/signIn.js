@@ -3,7 +3,8 @@ const router = express.Router();
 const axios = require("axios");
 
 router.get('/', (req, res) => {
-    res.render('signin');
+    const showError = req.query.error; // Check if error query parameter is present
+    res.render('signin', { error: showError});
 });
 
 // Handle sign-in submission
@@ -25,10 +26,10 @@ router.post('/login', async (req, res) => {
 
             return res.redirect('/studentmanagement'); // Redirect to student management page
         } else {
-            return res.redirect('/', {error: 'Invalid username or password'}); // Redirect back to sign-in page with error message
+            return res.redirect('/?error=1'); // Redirect back to sign-in page with error message
         }
     } catch (error) {
-        console.error('Login error:', err);
+        console.error('Login error:', error);
         res.status(500).send('Internal Server Error');
     }
 });

@@ -330,7 +330,7 @@ module.exports = function (db) {
 
     });
 
-    // Get All Students with Related Data foreign key data(JOIN Query)
+    // Get All Students with Related foreign key data(JOIN Query)
     // - student/details
     router.get("/details", async (req, res) => {
         const allStudentsDetailsSQL = `
