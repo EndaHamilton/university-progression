@@ -22,6 +22,10 @@ app.use(express.json()); // middleware to parse json requests
 const studentManagementRoutes = require("./controllers/studentManagement");
 app.use('/studentmanagement', studentManagementRoutes);
 
+// Module page route
+const moduleManagementRoutes = require("./controllers/moduleManagement");
+app.use('/modulemanagement', moduleManagementRoutes);
+
 //Sign in page route
 const signInRoutes = require("./controllers/signIn");
 app.use('/', signInRoutes);

@@ -363,7 +363,7 @@ module.exports = function (db) {
         const studentByIdSQL = `SELECT * FROM student WHERE id = ?`;
 
         if (isNaN(id)) {
-            res.status(400).json({ error: 'Invalid ID. Must be a number' });
+            return res.status(400).json({ error: 'Invalid ID. Must be a number' });
         }
 
         try {

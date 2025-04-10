@@ -27,7 +27,10 @@ db.connect(err => {
 // define authentication route that uses the auth controller
 const authRoutes = require('./controllers/auth')(db);
 app.use('/auth', authRoutes);
-console.log('Auth routes loaded');
+
+// define a route on '/module' that uses the module controller
+const moduleRoutes = require('./controllers/module')(db);
+app.use('/module', moduleRoutes);
 
 // define a route on '/students' that uses the studentRoutes controller
 const studentRoutes = require('./controllers/student')(db);
