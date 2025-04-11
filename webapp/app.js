@@ -22,7 +22,7 @@ app.use(express.json()); // middleware to parse json requests
 const studentManagementRoutes = require("./controllers/studentManagement");
 app.use('/studentmanagement', studentManagementRoutes);
 
-// Module page route
+// Module Mamagement page route
 const moduleManagementRoutes = require("./controllers/moduleManagement");
 app.use('/modulemanagement', moduleManagementRoutes);
 

@@ -7,6 +7,9 @@ router.use(checkApiKey) // Apply the API key check middleware to all routes in t
 module.exports = function (db) {
     // Route to GET all modules - including related FK data
     router.get('/', (req, res) => {
+
+        console.log('GET /module called');
+
         db.query(`
             SELECT
             module.*,
@@ -17,7 +20,7 @@ module.exports = function (db) {
             (err, rows) => {
                 if (err) {
                     console.error('Error fetching modules:', err);
-                    return res.status(500).json({ error: 'Internal server error' });
+                    return res.status(500).json({ error: 'Database error' });
                 }
                 res.json(rows);
             });
