@@ -8,8 +8,6 @@ module.exports = function (db) {
     // Route to GET all modules - including related FK data
     router.get('/', (req, res) => {
 
-        console.log('GET /module called');
-
         db.query(`
             SELECT
             module.*,
@@ -53,6 +51,12 @@ module.exports = function (db) {
 
     // POST a new module - /module
     // This route should create a new module in the database
+    router.post("/", async (req, res) => { 
+
+        const { subject_code, catalogue_code, title, credits, semester_id, module_code} = req.body
+        
+
+    });
 
 
 

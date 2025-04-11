@@ -56,7 +56,9 @@ module.exports = function (db) {
     // }
 
     //Format validation function for shared fields between adding and updating student
-    function validateSharedFields(data, { isUpdate = false } = {}) {
+    //isUpdate check is needed as means if it is a PUT request it only checks for the fields that are being updated and not all fields
+    //An optional nice to have on this later possibly is to implement helper functions to validate field types (e.g. names, numbers)
+    function validateStudenFields(data, { isUpdate = false } = {}) {
 
         const errors = [];
         const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
@@ -135,36 +137,36 @@ module.exports = function (db) {
 
     }
 
-    //Format validation function for presence checks for required fields when adding a new student
-    function validateNewStudent(data) {
-        const presenceErrors = [];
+    // //Format validation function for presence checks for required fields when adding a new student
+    // function validateNewStudent(data) {
+    //     const presenceErrors = [];
 
-        if (!data.student_number) {
-            presenceErrors.push("Student number is required.");
-        }
-        if (!data.first_name) {
-            presenceErrors.push("First name is required.");
-        }
-        if (!data.last_name) {
-            presenceErrors.push("Last name is required.");
-        }
-        if (!data.pathway_id) {
-            presenceErrors.push("Pathway is required.");
-        }
-        if (!data.study_status_id) {
-            presenceErrors.push("Study status is required.");
-        }
-        if (!data.entry_level_id) {
-            presenceErrors.push("Entry level is required.");
-        }
+    //     if (!data.student_number) {
+    //         presenceErrors.push("Student number is required.");
+    //     }
+    //     if (!data.first_name) {
+    //         presenceErrors.push("First name is required.");
+    //     }
+    //     if (!data.last_name) {
+    //         presenceErrors.push("Last name is required.");
+    //     }
+    //     if (!data.pathway_id) {
+    //         presenceErrors.push("Pathway is required.");
+    //     }
+    //     if (!data.study_status_id) {
+    //         presenceErrors.push("Study status is required.");
+    //     }
+    //     if (!data.entry_level_id) {
+    //         presenceErrors.push("Entry level is required.");
+    //     }
 
-        return presenceErrors.concat(validateSharedFields(data));
-    }
+    //     return presenceErrors.concat(validateSharedFields(data));
+    // }
 
-    //Format validation function for format checks when updating a student
-    function validateUpdateStudent(data) {
-        return validateSharedFields(data, { isUpdate: true });
-    }
+    // //Format validation function for format checks when updating a student
+    // function validateUpdateStudent(data) {
+    //     return validateSharedFields(data, { isUpdate: true });
+    // }
 
     // //Format validation function for updating student
     // function validateUpdateStudent(data) {
@@ -391,7 +393,7 @@ module.exports = function (db) {
         const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
 
         // Validation function to validate input data - mirrors client-side validation for extra layer of security
-        const validationErrors = validateNewStudent(req.body);
+        const validationErrors = validateStudenFields(req.body);
         if (validationErrors.length > 0) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
@@ -456,7 +458,7 @@ module.exports = function (db) {
         }
 
         // Validation function to validate input data - mirrors client-side validation for extra layer of security
-        const validationErrors = validateUpdateStudent(req.body);
+        const validationErrors = validateStudenFields(req.body, {isUpdate: true});
         if (validationErrors.length > 0) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
