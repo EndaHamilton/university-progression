@@ -58,12 +58,13 @@ module.exports = function (db) {
     //Format validation function for shared fields between adding and updating student
     //isUpdate check is needed as means if it is a PUT request it only checks for the fields that are being updated and not all fields
     //An optional nice to have on this later possibly is to implement helper functions to validate field types (e.g. names, numbers)
-    function validateStudenFields(data, { isUpdate = false } = {}) {
+    function validateStudentFields(data, { isUpdate = false } = {}) {
 
         const errors = [];
         const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
+        const shouldCheck = (field) => !isUpdate || field in data;
 
-        if ('student_number' in data || !isUpdate) {
+        if (shouldCheck('student_number' ) ){
             const val = data.student_number;
             if (!val || val.trim() === "") {
                 errors.push("Student number cannot be empty.");
@@ -78,7 +79,7 @@ module.exports = function (db) {
             }
         }
 
-        if ('first_name' in data || !isUpdate) {
+        if (shouldCheck('first_name')) {
             const val = data.first_name;
             if (!val || val.trim() === "") {
                 errors.push("First name cannot be empty.");
@@ -95,7 +96,7 @@ module.exports = function (db) {
             }
         }
 
-        if ('last_name' in data || !isUpdate) {
+        if (shouldCheck('last_name')) {
             const val = data.last_name;
             if (!val || val.trim() === "") {
                 errors.push("Last name cannot be empty.");
@@ -112,21 +113,21 @@ module.exports = function (db) {
             }
         }
 
-        if ('study_status_id' in data || !isUpdate) {
+        if (shouldCheck('study_status_id' )) {
             if (!data.study_status_id || data.study_status_id.trim() === "") {
                 errors.push("Study status cannot be empty.");
             } else if (!isPositiveInteger(data.study_status_id)) {
                 errors.push("Study status ID must be a positive whole number.");
             }
         }
-        if ('entry_level_id' in data || !isUpdate) {
+        if (shouldCheck('entry_level_id' )) {
             if (!data.entry_level_id || data.entry_level_id.trim() === "") {
                 errors.push("Entry level cannot be empty.");
             } else if (!isPositiveInteger(data.entry_level_id)) {
                 errors.push("Entry level ID must be a positive whole number.");
             }
         }
-        if ('pathway_id' in data || !isUpdate) {
+        if (shouldCheck('pathway_id')) {
             if (!data.pathway_id || data.pathway_id.trim() === "") {
                 errors.push("Pathway cannot be empty.");
             } else if (!isPositiveInteger(data.pathway_id)) {
@@ -393,7 +394,7 @@ module.exports = function (db) {
         const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
 
         // Validation function to validate input data - mirrors client-side validation for extra layer of security
-        const validationErrors = validateStudenFields(req.body);
+        const validationErrors = validateStudentFields(req.body);
         if (validationErrors.length > 0) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
@@ -458,7 +459,7 @@ module.exports = function (db) {
         }
 
         // Validation function to validate input data - mirrors client-side validation for extra layer of security
-        const validationErrors = validateStudenFields(req.body, {isUpdate: true});
+        const validationErrors = validateStudentFields(req.body, {isUpdate: true});
         if (validationErrors.length > 0) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
