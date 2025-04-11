@@ -120,6 +120,7 @@ module.exports = function (db) {
                 errors.push("Study status ID must be a positive whole number.");
             }
         }
+
         if (shouldCheck('entry_level_id' )) {
             if (!data.entry_level_id || data.entry_level_id.trim() === "") {
                 errors.push("Entry level cannot be empty.");
@@ -127,6 +128,7 @@ module.exports = function (db) {
                 errors.push("Entry level ID must be a positive whole number.");
             }
         }
+        
         if (shouldCheck('pathway_id')) {
             if (!data.pathway_id || data.pathway_id.trim() === "") {
                 errors.push("Pathway cannot be empty.");
