@@ -497,56 +497,98 @@ module.exports = function (db) {
             const isIdentical = Object.keys(req.body).every((key) => {
                 const newVal = req.body[key];
                 const existingVal = existingStudent[key];
-
-                // Convert both for comparison
+            
+                // Compare numeric fields as integers
+                if (["user_id", "pathway_id", "study_status_id", "entry_level_id"].includes(key)) {
+                    return parseInt(newVal) === existingVal;
+                }
+            
+                // Compare text fields as trimmed strings
                 const normalizedNew = (newVal === null || newVal === undefined) ? "" : String(newVal).trim();
                 const normalizedExisting = (existingVal === null || existingVal === undefined) ? "" : String(existingVal).trim();
-
+            
                 return normalizedNew === normalizedExisting;
-
             });
 
             if (isIdentical) {
                 return res.status(400).json({ error: 'No changes detected. Student data is identical.' });
             }
 
-            // Prepare the update query
+            // Only update the fields that differ
             const updateFields = [];
             const updateValues = [];
 
-            if (student_number) {
+            if (student_number && student_number.trim() !== existingStudent.student_number) {
                 updateFields.push("student_number = ?");
-                updateValues.push(student_number);
+                updateValues.push(student_number.trim());
             }
-            if (user_id) {
+            if (user_id && parseInt(user_id) !== existingStudent.user_id) {
                 updateFields.push("user_id = ?");
-                updateValues.push(user_id);
+                updateValues.push(parseInt(user_id));
             }
-            if (pathway_id) {
+            if (pathway_id && parseInt(pathway_id) !== existingStudent.pathway_id) {
                 updateFields.push("pathway_id = ?");
-                updateValues.push(pathway_id);
+                updateValues.push(parseInt(pathway_id));
             }
-            if (first_name) {
+            if (first_name && first_name.trim() !== existingStudent.first_name) {
                 updateFields.push("first_name = ?");
-                updateValues.push(first_name);
+                updateValues.push(first_name.trim());
             }
-            if (last_name) {
+            if (last_name && last_name.trim() !== existingStudent.last_name) {
                 updateFields.push("last_name = ?");
-                updateValues.push(last_name);
+                updateValues.push(last_name.trim());
             }
-            if (study_status_id) {
+            if (study_status_id && parseInt(study_status_id) !== existingStudent.study_status_id) {
                 updateFields.push("study_status_id = ?");
-                updateValues.push(study_status_id);
+                updateValues.push(parseInt(study_status_id));
             }
-            if (entry_level_id) {
+            if (entry_level_id && parseInt(entry_level_id) !== existingStudent.entry_level_id) {
                 updateFields.push("entry_level_id = ?");
-                updateValues.push(entry_level_id);
+                updateValues.push(parseInt(entry_level_id));
             }
-
-            // Add the student ID to the end of the updateValues array
-            updateValues.push(id);
-
+    
+            if (updateFields.length === 0) {
+                return res.status(400).json({ error: 'No changes detected. Student data is identical' });
+            }
+    
+            updateValues.push(id); // for WHERE clause
             const updateSQL = `UPDATE student SET ${updateFields.join(", ")} WHERE id = ?`;
+
+
+
+            // if (student_number) {
+            //     updateFields.push("student_number = ?");
+            //     updateValues.push(student_number);
+            // }
+            // if (user_id) {
+            //     updateFields.push("user_id = ?");
+            //     updateValues.push(user_id);
+            // }
+            // if (pathway_id) {
+            //     updateFields.push("pathway_id = ?");
+            //     updateValues.push(pathway_id);
+            // }
+            // if (first_name) {
+            //     updateFields.push("first_name = ?");
+            //     updateValues.push(first_name);
+            // }
+            // if (last_name) {
+            //     updateFields.push("last_name = ?");
+            //     updateValues.push(last_name);
+            // }
+            // if (study_status_id) {
+            //     updateFields.push("study_status_id = ?");
+            //     updateValues.push(study_status_id);
+            // }
+            // if (entry_level_id) {
+            //     updateFields.push("entry_level_id = ?");
+            //     updateValues.push(entry_level_id);
+            // }
+
+            // // Add the student ID to the end of the updateValues array
+            // updateValues.push(id);
+
+            // const updateSQL = `UPDATE student SET ${updateFields.join(", ")} WHERE id = ?`;
 
             db.query(updateSQL, updateValues, (err, result) => {
                 if (err) {
