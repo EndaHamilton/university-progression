@@ -88,10 +88,7 @@ module.exports = function (db) {
             const val = data.credits;
             if (!val || val.trim() === "") {
                 errors.push("Credits cannot be empty.");
-            } else if (!isPositiveInteger(val)) {
-                errors.push("Credits must be a positive whole number.");
-            }
-            else if (parseInt(val) < 0 || parseInt(val) > 120) {
+            } else if (parseInt(val) < 0 || parseInt(val) > 120) {
                 errors.push("Credits must be between 0 and 120.");
             }
         }
@@ -163,7 +160,128 @@ module.exports = function (db) {
 
 
 
-    ;
+    // PUT - Update a module - /module/:id
+    // This route should update an existing module in the database based on module id
+    router.put("/:id", async (req, res) => {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: "Invalid ID. Must be a number." });
+        }
+
+        const { subject_code, catalogue_code, title, credits, semester_id } = req.body;
+
+        const validationErrors = validateModuleFields(req.body, { isUpdate: true });
+        if (validationErrors.length > 0) {
+            return res.status(400).json({ error: validationErrors.join(", ") });
+        }
+
+        try {
+            // Get the existing module by ID
+            const [existingModules] = await db.promise().query(`SELECT * FROM module WHERE id = ?`, [id]);
+            if (existingModules.length === 0) {
+                return res.status(404).json({ error: "Module not found." });
+            }
+
+            const existingModule = existingModules[0];
+
+            // Check if the data being updated is the same as existing data
+            // Checks only for fields which are being passed in - doesn't check undefined fields that aren't being toucehd
+            const isIdentical = Object.keys(req.body).every((key) => {
+                const newVal = req.body[key];
+                const existingVal = existingModule[key];
+
+                if (["catalogue_code", "credits", "semester_id"].includes(key)) {
+                    return parseInt(newVal) === existingVal;
+                }
+
+                const normalizedNew = (newVal === null || newVal === undefined) ? "" : String(newVal).trim();
+                const normalizedExisting = (existingVal === null || existingVal === undefined) ? "" : String(existingVal).trim();
+
+                return normalizedNew === normalizedExisting;
+            });
+
+            if (isIdentical) {
+                return res.status(400).json({ error: "No changes detected. Module data is identical." });
+            }
+
+            // Unique constraint check: only if user is updating all 3 relevant fields
+            if (subject_code && catalogue_code && title) {
+                const [conflicts] = await db.promise().query(
+                    `SELECT * FROM module 
+                     WHERE subject_code = ? AND catalogue_code = ? AND title = ? AND id != ?`,
+                    [subject_code.trim(), parseInt(catalogue_code), title.trim(), id]
+                );
+
+                if (conflicts.length > 0) {
+                    return res.status(409).json({ error: "Another module with the same subject code, catalogue code, and title already exists." });
+                }
+            }
+
+            // Build update statement only with changed fields
+            const updateFields = [];
+            const updateValues = [];
+
+            if (subject_code && subject_code.trim() !== existingModule.subject_code) {
+                updateFields.push("subject_code = ?");
+                updateValues.push(subject_code.trim());
+            }
+            if (catalogue_code && parseInt(catalogue_code) !== existingModule.catalogue_code) {
+                updateFields.push("catalogue_code = ?");
+                updateValues.push(parseInt(catalogue_code));
+            }
+            if (title && title.trim() !== existingModule.title) {
+                updateFields.push("title = ?");
+                updateValues.push(title.trim());
+            }
+            if (credits && parseInt(credits) !== existingModule.credits) {
+                updateFields.push("credits = ?");
+                updateValues.push(parseInt(credits));
+            }
+            if (semester_id && parseInt(semester_id) !== existingModule.semester_id) {
+                updateFields.push("semester_id = ?");
+                updateValues.push(parseInt(semester_id));
+            }
+
+            if (updateFields.length === 0) {
+                return res.status(400).json({ error: "No changes detected." });
+            }
+
+            updateValues.push(id);
+            const updateSQL = `UPDATE module SET ${updateFields.join(", ")} WHERE id = ?`;
+
+            await db.promise().query(updateSQL, updateValues);
+
+            res.status(200).json({ message: "Module updated successfully." });
+
+        } catch (err) {
+            console.error("Error updating module:", err);
+            res.status(500).json({ error: "Server error", details: err.message });
+        }
+    });
+
+    // DELETE - Delete a module - /module/:id
+    // This route should delete a module from the database based on module id
+    router.delete("/:id", async (req, res) => {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: "Invalid ID. Must be a number." });
+        }
+    
+        try {
+            const [result] = await db.promise().query(`DELETE FROM module WHERE id = ?`, [id]);
+    
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: "Module not found." });
+            }
+    
+            res.status(200).json({ message: "Module deleted successfully.", moduleId: id });
+        } catch (err) {
+            console.error("Error deleting module:", err);
+            res.status(500).json({ error: "Failed to delete module.", details: err.message });
+        }
+    });
+
+
 
 
 

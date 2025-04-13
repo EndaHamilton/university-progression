@@ -466,7 +466,7 @@ module.exports = function (db) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
 
-        // First, retrieve the current data for comparison
+        // Retrieve the current data for comparison
         const selectSQL = `SELECT * FROM student WHERE id = ?`;
         db.query(selectSQL, [id], (err, rows) => {
             if (err) {
@@ -617,28 +617,28 @@ module.exports = function (db) {
 
     // DELETE a student by ID - /student/:id
     // This route should delete a student based on their ID
-    router.delete("/:id", (req, res) => {
+    router.delete("/:id", async (req, res) => {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid ID. Must be a number' });
         }
-
-        const deleteSQL = `DELETE FROM student WHERE id = ?`;
-
-        db.query(deleteSQL, [id], (err, result) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to delete student', details: err.message });
-            }
-
+    
+        try {
+            const [result] = await db.promise().query(`DELETE FROM student WHERE id = ?`, [id]);
+    
             if (result.affectedRows === 0) {
                 return res.status(404).json({ error: 'Student not found' });
             }
-
+    
             res.status(200).json({
                 message: "Student deleted successfully",
                 studentId: id
             });
-        });
+    
+        } catch (err) {
+            console.error("Failed to delete student", err);
+            res.status(500).json({ error: 'Failed to delete student', details: err.message });
+        }
     });
 
     return router;
