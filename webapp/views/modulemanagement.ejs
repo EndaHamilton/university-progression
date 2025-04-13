@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Management</title>
+    <title>Module Management</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/design.css">
 </head>
@@ -68,6 +68,19 @@
                 <!-- Flex Container for Heading and Buttons -->
                 <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
                     <h2>Module Management</h2>
+
+                    <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+                        <div class="alert alert-danger mt-3" role="alert">
+                            <%= errorMessage %>
+                        </div>
+                    <% } %>
+
+                    <div class="btn-group mr-2">
+                        <!-- Trigger button for Add Module Modal-->
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal"
+                            data-target="#addModuleModal">Add Module</button>
+                    </div>
+
                 </div>
 
                 <div class="table-responsive">
@@ -110,12 +123,71 @@
                 </div>
             </main>
         </div>
-
     </div>
 
+    <!-- Add Module Modal (activated by Add button) -->
+    <div class="modal fade" id="addModuleModal" tabindex="-1" role="dialog" aria-labelledby="addModuleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addModuleModalLabel">Add New Module</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="modulemanagement/add-module" method="POST">
+                        <div class="form-group">
+                            <label>Subject Code</label>
+                            <input type="text" class="form-control" name="subject_code" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Catalogue Code</label>
+                            <input type="number" class="form-control" name="catalogue_code" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" class="form-control" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Pathway</label>
+                            <select name="credits" class="form-control" required>
+                                <option value="" disabled selected>Select Credits</option>
+                                <% allowedCredits.forEach(credit=> { %>
+                                    <option value="<%= credit %>">
+                                        <%= credit %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Semester</label>
+                            <select name="semester_id" class="form-control" required>
+                                <option value="" disabled selected>Select a semester</option>
+                                <% semesters.forEach(s=> { %>
+                                    <option value="<%= s.id %>">
+                                        <%= s.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <!--Hidden error msg which appears once submit selected with invalid data-->
+                        <div id="addError" class="alert alert-danger d-none"></div>
+                        <!-- Success message container -->
+                        <div id="addSuccess" class="alert alert-success d-none"></div>
+                        <button type="submit" class="btn btn-primary">Add Module</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!--js behaviour source-->
-    <!-- <script src=""></script> -->
+    <script>
+        const ALLOWED_CREDIT_VALUES = <%- JSON.stringify(allowedCredits) %>;
+    </script>
+    <script src="/js/modulemanagement.js"></script>
 
 
     <!-- Bootstrap CDSN -->

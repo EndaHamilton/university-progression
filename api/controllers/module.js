@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const checkApiKey = require("../middleware/checkApiKey");
+const { ALLOWED_CREDIT_VALUES } = require('../utils/constants');
 
 router.use(checkApiKey) // Apply the API key check middleware to all routes in this router
 
@@ -61,6 +62,8 @@ module.exports = function (db) {
             const val = data.subject_code;
             if (!val || val.trim() === "") {
                 errors.push("Subject code cannot be empty.");
+            } else if (!isNaN(val)) {
+                errors.push("Subject code must not be numeric.");
             } else if (val.length !== 4) {
                 errors.push("Subject code must be 4 characters exactly.");
             }
@@ -88,8 +91,8 @@ module.exports = function (db) {
             const val = data.credits;
             if (!val || val.trim() === "") {
                 errors.push("Credits cannot be empty.");
-            } else if (parseInt(val) < 0 || parseInt(val) > 120) {
-                errors.push("Credits must be between 0 and 120.");
+            } else if (!ALLOWED_CREDIT_VALUES.includes(parseInt(val))) {
+                errors.push("Credits must be one of the following values: " + ALLOWED_CREDIT_VALUES.join(", ") + ".");
             }
         }
 
@@ -266,14 +269,14 @@ module.exports = function (db) {
         if (isNaN(id)) {
             return res.status(400).json({ error: "Invalid ID. Must be a number." });
         }
-    
+
         try {
             const [result] = await db.promise().query(`DELETE FROM module WHERE id = ?`, [id]);
-    
+
             if (result.affectedRows === 0) {
                 return res.status(404).json({ error: "Module not found." });
             }
-    
+
             res.status(200).json({ message: "Module deleted successfully.", moduleId: id });
         } catch (err) {
             console.error("Error deleting module:", err);
