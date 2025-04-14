@@ -11,6 +11,8 @@ function validateModuleForm(form, errorDiv) {
     const title = form.querySelector('[name="title"]').value.trim();
     const credits = form.querySelector('[name="credits"]').value.trim();
     const semesterId = form.querySelector('[name="semester_id"]').value.trim();
+    const pathwayIds = Array.from(form.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
+
 
     const isPositiveInteger = val => /^\d+$/.test(val);
 
@@ -20,6 +22,11 @@ function validateModuleForm(form, errorDiv) {
     if (!title) return showError('Title is required.');
     if (!credits) return showError('Credits is required.');
     if (!semesterId) return showError('Semester is required.');
+    if (!semesterId) return showError('Semester is required.');
+    if (!pathwayIds || pathwayIds.length === 0) return showError('Pathway is required.');
+
+
+
 
     // 2. Format check for individual fields
     if (subjectCode.length !== 4)
@@ -35,8 +42,14 @@ function validateModuleForm(form, errorDiv) {
     if (!ALLOWED_CREDIT_VALUES.includes(parseInt(credits))) {
         return showError(`Credits must be one of: ${ALLOWED_CREDIT_VALUES.join(", ")}`);
     }
-    if (semesterId < 1 || semesterId > 3)
+    if (semesterId < 1 || semesterId > 3) {
         return showError('Semester must be be one of: SPR, AUT, or FYR.');
+    }
+
+    const allowedPathwayIds = [1, 2];
+    if(!pathwayIds.every(id => allowedPathwayIds.includes(Number(id)))){
+        return showError('Pathway must be either 1 (Information Systems) or 2 (Business Data Analysis');
+    }
 
     return null; // No errors found
 
