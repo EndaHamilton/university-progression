@@ -147,6 +147,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 editForm.querySelector('[name="credits"]').value = module.credits;
                 editForm.querySelector('[name="semester_id"]').value = module.semester_id;
 
+                // Set selected pathways
+                const select = editForm.querySelector('[name="pathway_ids"]');
+                const selectedIds = module.pathway_ids || [];
+                Array.from(select.options).forEach(opt => {
+                    opt.selected = selectedIds.includes(parseInt(opt.value));
+                });
+
                 // Show modal
                 $('#editModuleModal').modal('show');
 
@@ -162,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const moduleId = editForm.getAttribute("data-id");
         const formData = new FormData(editForm);
 
-        const pathwayIds = Array.from(form.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
+        const pathwayIds = Array.from(editForm.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
 
         const payload = Object.fromEntries(formData.entries());
 
@@ -189,6 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             const data = await response.json();
+
 
             if (!response.ok) {
                 const status = response.status;

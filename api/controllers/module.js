@@ -41,12 +41,25 @@ module.exports = function (db) {
         }
 
         try {
-            const [rows] = await db.promise().query(moduleByIdSQL, [id]);
-            if (rows.length === 0) {
+            const [moduleRows] = await db.promise().query(moduleByIdSQL, [id]);
+            if (moduleRows.length === 0) {
                 return res.status(404).json({ error: 'Module not found' })
-            } else {
-                res.json(rows[0]);
             }
+
+            const module = moduleRows[0];
+
+            const [pathwayRows] = await db.promise().query(
+                `SELECT pathway_id FROM pathway_module WHERE module_id = ?`,
+                [id]
+            );
+            // Extract just the pathway_id values into an array
+            const pathway_ids = pathwayRows.map(row => row.pathway_id);
+
+            // Attach to module object
+            module.pathway_ids = pathway_ids;
+
+            res.json(module);
+
         } catch (err) {
             console.error("Database error", err);
             res.status(500).json({ error: "Failed to fetch module details" });
@@ -213,7 +226,22 @@ module.exports = function (db) {
 
             // Check if the data being updated is the same as existing data
             // Checks only for fields which are being passed in - doesn't check undefined fields that aren't being toucehd
-            const isIdentical = Object.keys(req.body).every((key) => {
+            // Fetch existing pathways from DB
+            const [existingPathwayRows] = await db.promise().query(
+                `SELECT pathway_id FROM pathway_module WHERE module_id = ?`,
+                [id]
+            );
+            const existingPathwayIds = existingPathwayRows.map(r => r.pathway_id).sort((a, b) => a - b);
+
+            // Get new pathway IDs from request and parse
+            const newPathwayIds = Array.isArray(req.body.pathway_ids)
+                ? req.body.pathway_ids.map(Number).sort((a, b) => a - b)
+                : req.body.pathway_ids
+                    ? [parseInt(req.body.pathway_ids)]
+                    : [];
+
+            // Compare fields in module table
+            const moduleFieldsUnchanged = Object.keys(req.body).every((key) => {
                 const newVal = req.body[key];
                 const existingVal = existingModule[key];
 
@@ -227,7 +255,19 @@ module.exports = function (db) {
                 return normalizedNew === normalizedExisting;
             });
 
-            if (isIdentical) {
+            console.log("Existing pathway IDs from DB:", existingPathwayIds);
+            console.log("New pathway IDs from req.body:", req.body.pathway_ids);
+            console.log("Parsed newPathwayIds:", newPathwayIds);
+
+
+            // Compare pathway IDs (unordered)
+            const pathwaysUnchanged = JSON.stringify(existingPathwayIds) === JSON.stringify(newPathwayIds);
+
+            console.log("moduleFieldsUnchanged:", moduleFieldsUnchanged);
+            console.log("pathwaysUnchanged:", pathwaysUnchanged);
+
+
+            if (moduleFieldsUnchanged && pathwaysUnchanged) {
                 return res.status(400).json({ error: "No changes detected. Module data is identical." });
             }
 
@@ -269,14 +309,24 @@ module.exports = function (db) {
                 updateValues.push(parseInt(semester_id));
             }
 
-            if (updateFields.length === 0) {
+            updateValues.push(id);
+
+            if (updateFields.length === 0 && pathwaysUnchanged) {
                 return res.status(400).json({ error: "No changes detected." });
             }
 
-            updateValues.push(id);
-            const updateSQL = `UPDATE module SET ${updateFields.join(", ")} WHERE id = ?`;
 
-            await db.promise().query(updateSQL, updateValues);
+            if (updateFields.length > 0) {
+                const updateSQL = `UPDATE module SET ${updateFields.join(", ")} WHERE id = ?`;
+                await db.promise().query(updateSQL, updateValues);
+            }
+            
+            
+
+            // updateValues.push(id);
+            // const updateSQL = `UPDATE module SET ${updateFields.join(", ")} WHERE id = ?`;
+
+            // await db.promise().query(updateSQL, updateValues);
 
             // Also update pathway_module junction table
             if ('pathway_ids' in req.body) {
@@ -289,7 +339,6 @@ module.exports = function (db) {
                 // Delete old mappings
                 await db.promise().query(`DELETE FROM pathway_module WHERE module_id = ?`, [id]);
 
-                console.log("Associating module", newModuleId || moduleId, "with pathways", pathwayIds);
 
 
                 // Insert new ones
