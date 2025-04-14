@@ -52,6 +52,10 @@ app.use('/entrylevel', entryLevelRoutes);
 const semesterRoutes = require('./controllers/semester')(db);
 app.use('/semester', semesterRoutes);
 
+// define a route on '/grades' that uses the entryLevelRoutes controller
+const gradesRoutes = require('./controllers/grades')(db);
+app.use('/grades', gradesRoutes);
+
 
 // start express server on port 4000
 app.listen(port, () => {
