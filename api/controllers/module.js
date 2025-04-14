@@ -10,12 +10,16 @@ module.exports = function (db) {
     router.get('/', (req, res) => {
 
         db.query(`
-            SELECT
-            module.*,
-            semester.name AS semester_name
+            SELECT 
+            module.*, 
+            semester.name AS semester_name,
+            GROUP_CONCAT(pathway.name SEPARATOR ', ') AS pathway_names
             FROM module
             INNER JOIN semester ON module.semester_id = semester.id
-            `, // SQL query to join module and semester tables
+            LEFT JOIN pathway_module ON module.id = pathway_module.module_id
+            LEFT JOIN pathway ON pathway_module.pathway_id = pathway.id
+            GROUP BY module.id;
+            `, // SQL query to get details from join tables module, semester and pathway_module
             (err, rows) => {
                 if (err) {
                     console.error('Error fetching modules:', err);
@@ -111,13 +115,22 @@ module.exports = function (db) {
     // POST a new module - /module
     // This route should create a new module in the database
     router.post("/", async (req, res) => {
-        const { subject_code, catalogue_code, title, credits, semester_id } = req.body;
+        const { subject_code, catalogue_code, title, credits, semester_id, pathway_ids } = req.body;
 
         // Validate the request body
         const validationErrors = validateModuleFields(req.body);
         if (validationErrors.length > 0) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
+
+        // Parse pathway_ids
+        const parsedPathways = Array.isArray(pathway_ids)
+            ? pathway_ids.map(id => parseInt(id))
+            : pathway_ids
+                ? [parseInt(pathway_ids)]
+                : [];
+
+
 
         try {
             // Check if module with same subject_code, catalogue_code, and title already exists - UQ in DB
@@ -145,14 +158,25 @@ module.exports = function (db) {
             ]);
 
             // Fetch the newly inserted module (to return full object incl. module_code)
-            const [newModule] = await db.promise().query(
-                `SELECT * FROM module WHERE id = ?`,
-                [result.insertId]
-            );
+            // const [newModule] = await db.promise().query(
+            //     `SELECT * FROM module WHERE id = ?`,
+            //     [result.insertId]
+            // );
+
+            const newModuleId = result.insertId;
+
+            // Insert into pathway_module
+            if (parsedPathways.length > 0) {
+                const insertPathways = parsedPathways.map(pathwayId => [pathwayId, newModuleId]);
+                await db.promise().query(
+                    `INSERT INTO pathway_module (pathway_id, module_id) VALUES ?`,
+                    [insertPathways]
+                );
+            }
 
             res.status(201).json({
                 message: "Module created successfully!",
-                module: newModule[0]
+                module: newModuleId
             });
 
         } catch (err) {
@@ -253,6 +277,30 @@ module.exports = function (db) {
             const updateSQL = `UPDATE module SET ${updateFields.join(", ")} WHERE id = ?`;
 
             await db.promise().query(updateSQL, updateValues);
+
+            // Also update pathway_module junction table
+            if ('pathway_ids' in req.body) {
+                const parsedPathways = Array.isArray(req.body.pathway_ids)
+                    ? req.body.pathway_ids.map(id => parseInt(id))
+                    : req.body.pathway_ids
+                        ? [parseInt(req.body.pathway_ids)]
+                        : [];
+
+                // Delete old mappings
+                await db.promise().query(`DELETE FROM pathway_module WHERE module_id = ?`, [id]);
+
+                console.log("Associating module", newModuleId || moduleId, "with pathways", pathwayIds);
+
+
+                // Insert new ones
+                if (parsedPathways.length > 0) {
+                    const insertPathways = parsedPathways.map(pid => [pid, id]);
+                    await db.promise().query(
+                        `INSERT INTO pathway_module (pathway_id, module_id) VALUES ?`,
+                        [insertPathways]
+                    );
+                }
+            }
 
             res.status(200).json({ message: "Module updated successfully." });
 

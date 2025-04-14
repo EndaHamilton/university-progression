@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector("#addModuleModal form");
 
     console.log("Form element:", form);
-    
+
     if (form) {
         form.addEventListener("submit", async function (e) {
             e.preventDefault();
@@ -71,7 +71,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             const formData = new FormData(form);
+
+            // Manually extract pathway_ids as an array
+            const pathwayIds = Array.from(form.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
+
             const payload = Object.fromEntries(formData.entries());
+            payload.pathway_ids = pathwayIds; // overwrite if already there
             console.log("Submitting form with payload: ", payload);
 
 
@@ -156,7 +161,12 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         const moduleId = editForm.getAttribute("data-id");
         const formData = new FormData(editForm);
+
+        const pathwayIds = Array.from(form.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
+
         const payload = Object.fromEntries(formData.entries());
+
+        payload.pathway_ids = pathwayIds; // overwrite if already there
 
         // Clear previous feedback
         const errorDiv = document.getElementById("editError");

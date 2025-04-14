@@ -92,7 +92,8 @@
                             <th>Credits (CATS) </th>
                             <th>Semester</th>
                             <th>Module Code</th>
-                            <th> </th>
+                            <th>Pathway(s)</th>
+                            <th>Actions</th>
                         </thead>
                         <tbody>
                             <% modules.forEach(module=> { %>
@@ -114,6 +115,9 @@
                                     </td>
                                     <td>
                                         <%= module.module_code %>
+                                    </td>
+                                    <td>
+                                        <%= module.pathway_names %>
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-sm btn-outline-secondary edit-btn"
@@ -158,7 +162,7 @@
                             <input type="text" class="form-control" name="title" required>
                         </div>
                         <div class="form-group">
-                            <label>Pathway</label>
+                            <label>Credits</label>
                             <select name="credits" class="form-control" required>
                                 <option value="" disabled selected>Select Credits</option>
                                 <% allowedCredits.forEach(credit=> { %>
@@ -178,6 +182,19 @@
                                     </option>
                                     <% }) %>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Pathways</label>
+                            <select name="pathway_ids" multiple class="form-control" required>
+                                <option value="" disabled selected>Select Pathway(s)</option>
+                                <% pathways.forEach(p=> { %>
+                                    <option value="<%= p.id %>">
+                                        <%= p.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                            <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple
+                                pathways.</small>
                         </div>
                         <!--Hidden error msg which appears once submit selected with invalid data-->
                         <div id="addError" class="alert alert-danger d-none"></div>
@@ -234,6 +251,17 @@
                                 <% semesters.forEach(s=> { %>
                                     <option value="<%= s.id %>">
                                         <%= s.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Pathway</label>
+                            <select name="pathway_id" class="form-control" required>
+                                <option value="" disabled>Select a pathway</option>
+                                <% pathways.forEach(p=> { %>
+                                    <option value="<%= p.id %>">
+                                        <%= p.name %>
                                     </option>
                                     <% }) %>
                             </select>
