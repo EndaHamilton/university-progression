@@ -34,6 +34,10 @@ app.use('/', signInRoutes);
 const studentProfileRoutes = require("./controllers/studentProfile");
 app.use('/studentprofile', studentProfileRoutes);
 
+// Grade Management page route
+const gradeManagementRoutes = require("./controllers/gradeManagement");
+app.use('/grademanagement', gradeManagementRoutes);
+
 app.listen(3000, (err) => {
     if (err) console.log(err);
     console.log("Academics Progression is listening on http://localhost:3000");
