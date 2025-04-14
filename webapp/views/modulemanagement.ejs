@@ -69,17 +69,17 @@
                 <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
                     <h2>Module Management</h2>
 
-                    <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+                    <% if (typeof errorMessage !=='undefined' && errorMessage) { %>
                         <div class="alert alert-danger mt-3" role="alert">
                             <%= errorMessage %>
                         </div>
-                    <% } %>
+                        <% } %>
 
-                    <div class="btn-group mr-2">
-                        <!-- Trigger button for Add Module Modal-->
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal"
-                            data-target="#addModuleModal">Add Module</button>
-                    </div>
+                            <div class="btn-group mr-2">
+                                <!-- Trigger button for Add Module Modal-->
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal"
+                                    data-target="#addModuleModal">Add Module</button>
+                            </div>
 
                 </div>
 
@@ -92,6 +92,7 @@
                             <th>Credits (CATS) </th>
                             <th>Semester</th>
                             <th>Module Code</th>
+                            <th> </th>
                         </thead>
                         <tbody>
                             <% modules.forEach(module=> { %>
@@ -113,6 +114,12 @@
                                     </td>
                                     <td>
                                         <%= module.module_code %>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary edit-btn"
+                                            data-id="<%= module.id %>">Edit</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+                                            data-id="<%= module.id %>">Delete</button>
                                     </td>
                                 </tr>
                                 <% }) %>
@@ -164,7 +171,7 @@
                         <div class="form-group">
                             <label>Semester</label>
                             <select name="semester_id" class="form-control" required>
-                                <option value="" disabled selected>Select a semester</option>
+                                <option value="" disabled selected>Select a Semester</option>
                                 <% semesters.forEach(s=> { %>
                                     <option value="<%= s.id %>">
                                         <%= s.name %>
@@ -183,10 +190,67 @@
         </div>
     </div>
 
+    <!-- Edit Module Modal -->
+    <div class="modal fade" id="editModuleModal" tabindex="-1" role="dialog" aria-labelledby="editModuleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModuleModalLabel">Edit Module</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editModuleForm">
+                        <input type="hidden" name="module_id" id="edit-module-id" />
+                        <div class="form-group">
+                            <label>Subject Code</label>
+                            <input type="text" class="form-control" name="subject_code" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Catalogue Code</label>
+                            <input type="number" class="form-control" name="catalogue_code">
+                        </div>
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" class="form-control" name="title">
+                        </div>
+                        <div class="form-group">
+                            <label>Credits</label>
+                            <select name="credits" class="form-control" required>
+                                <option value="" disabled>Select Credits</option>
+                                <% allowedCredits.forEach(credit=> { %>
+                                    <option value="<%= credit %>">
+                                        <%= credit %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Semester</label>
+                            <select name="semester_id" class="form-control" required>
+                                <option value="" disabled>Select a Semester</option>
+                                <% semesters.forEach(s=> { %>
+                                    <option value="<%= s.id %>">
+                                        <%= s.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <div id="editError" class="alert alert-danger d-none"></div>
+                        <div id="editSuccess" class="alert alert-success d-none"></div>
+                        <button type="submit" class="btn btn-success">Update Module</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--Load constants first-->
+    <script src="/js/constants.js"></script>
+
     <!--js behaviour source-->
-    <script>
-        const ALLOWED_CREDIT_VALUES = <%- JSON.stringify(allowedCredits) %>;
-    </script>
     <script src="/js/modulemanagement.js"></script>
 
 

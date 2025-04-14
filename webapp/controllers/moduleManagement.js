@@ -42,6 +42,27 @@ router.get('/', async (req, res) => {
 
 });
 
+// Get Module by ID Route - Fetching Data from API
+router.get('/module/:id', async (req, res) => {
+    try {
+        const moduleId = req.params.id;
+        const getModuleEp = `http://localhost:4000/module/${moduleId}`;
+        const response = await axios.get(getModuleEp, config);
+        console.log("Response from API: ", response.data);
+        return res.status(200).json(response.data);
+    } catch (error) {
+
+        const status = error.response?.status || 500;
+        const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
+        console.error('Error message from API:', errorMessage);
+        console.error('Status code from API:', status);
+        // Handle the error response dynamically
+
+        return res.status(status).json({ error: errorMessage });
+    }
+
+});
+
 // Add Module Route - Posting Data to API
 router.post('/add-module', async (req, res) => {
 

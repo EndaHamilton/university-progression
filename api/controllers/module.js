@@ -30,14 +30,14 @@ module.exports = function (db) {
     // This route should return a single module by ID
     router.get("/:id", async (req, res) => {
         const id = parseInt(req.params.id);
-        const studentByIdSQL = `SELECT * FROM module WHERE id = ?`;
+        const moduleByIdSQL = `SELECT * FROM module WHERE id = ?`;
 
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid ID. Must be a number' });
         }
 
         try {
-            const [rows] = await db.promise().query(studentByIdSQL, [id]);
+            const [rows] = await db.promise().query(moduleByIdSQL, [id]);
             if (rows.length === 0) {
                 return res.status(404).json({ error: 'Module not found' })
             } else {

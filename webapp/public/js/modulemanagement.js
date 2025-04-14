@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const formData = new FormData(form);
             const payload = Object.fromEntries(formData.entries());
-            console.log("Submitting form with payload:", payload);
+            console.log("Submitting form with payload: ", payload);
 
 
             try {
@@ -119,4 +119,92 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+});
+
+//Edit Module Modal
+document.addEventListener("DOMContentLoaded", function () {
+    const editForm = document.querySelector("#editModuleForm");
+
+    //Attach click handlers to Edit buttons
+    document.querySelectorAll(".edit-btn").forEach(button => {
+        button.addEventListener("click", async function () {
+            const moduleId = this.getAttribute("data-id");
+
+            try {
+                const response = await fetch(`/modulemanagement/module/${moduleId}`);
+                const module = await response.json();
+
+                // Fill form with student data
+                editForm.setAttribute("data-id", module.id);
+                editForm.querySelector('[name="subject_code"]').value = module.subject_code;
+                editForm.querySelector('[name="catalogue_code"]').value = module.catalogue_code;
+                editForm.querySelector('[name="title"]').value = module.title;
+                editForm.querySelector('[name="credits"]').value = module.credits;
+                editForm.querySelector('[name="semester_id"]').value = module.semester_id;
+
+                // Show modal
+                $('#editModuleModal').modal('show');
+
+            } catch (err) {
+                console.error("Failed to fetch module for editing", err);
+            }
+        });
+    });
+
+    // 2. Submit handler for Edit Form
+    editForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const moduleId = editForm.getAttribute("data-id");
+        const formData = new FormData(editForm);
+        const payload = Object.fromEntries(formData.entries());
+
+        // Clear previous feedback
+        const errorDiv = document.getElementById("editError");
+        const successDiv = document.getElementById("editSuccess");
+        errorDiv.classList.add("d-none");
+        errorDiv.textContent = "";
+        successDiv.classList.add("d-none");
+        successDiv.textContent = "";
+
+        const error = validateModuleForm(editForm, errorDiv);
+        if (error) return; // If validation fails, show error and return
+
+        try {
+            const response = await fetch(`/modulemanagement/edit-module/${moduleId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const status = response.status;
+                const errorMessage = data.error ||
+                    (status === 400 ? "Invalid input." :
+                        status === 404 ? "Module not found." :
+                            status === 409 ? "Module with same subj code, title and catalogue code already exists.." :
+                                "An unexpected error occurred."
+                    );
+                errorDiv.textContent = errorMessage;
+                errorDiv.classList.remove("d-none");
+
+                return;
+            }
+
+            successDiv.textContent = data.message || "Module updated successfully!";
+            successDiv.classList.remove("d-none");
+
+            setTimeout(() => {
+                window.location.href = "/modulemanagement";
+            }, 2000);
+
+        } catch (err) {
+            console.error("Error submitting update:", err);
+            errorDiv.textContent = "A network error occurred.";
+            errorDiv.classList.remove("d-none");
+        }
+    });
 });
