@@ -113,7 +113,7 @@ router.put('/edit-module/:id', async (req, res) => {
     }
 });
 
-// Delete Student Route - Deleting Data from API
+// Delete Module Route - Deleting Data from API
 router.delete('/delete-module/:id', async (req, res) => {
 
     try {

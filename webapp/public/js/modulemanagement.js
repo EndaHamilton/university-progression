@@ -208,3 +208,34 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+// Delete Module functionality
+document.querySelectorAll(".delete-btn").forEach(button => {
+
+    button.addEventListener("click", async function () {
+        const moduleId = this.getAttribute("data-id");
+
+        if (!confirm("Are you sure you want to delete this module?")) {
+            return; // User cancelled
+        }
+
+        try {
+            const response = await fetch(`/modulemanagement/delete-module/${moduleId}`, {
+                method: "DELETE"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.error || "An error occurred while deleting the module.");
+                return;
+            }
+
+            alert(data.message || "Module deleted successfully!");
+            window.location.href = "/modulemanagement"; // Redirect to student management page
+        } catch (err) {
+            console.error("Error deleting module:", err);
+            alert("A network error occurred while deleting the module.");
+        }
+    });
+});
