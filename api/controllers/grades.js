@@ -116,5 +116,184 @@ module.exports = function (db) {
 
     });
 
+    function validateGradeFields(data, { isUpdate = false } = {}) {
+        const errors = [];
+        const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
+        const shouldCheck = (field) => !isUpdate || field in data;
+        const isValidResult = (val) => ['pass', 'fail', 'pass capped', 'excused', 'absent'].includes((val || '').toLowerCase());
+
+
+        if (shouldCheck('student_id')) {
+            const val = data.student_id;
+            if (!val || val.trim() === "") {
+                errors.push("Student ID cannot be empty.");
+            } else if (!isPositiveInteger(val)) {
+                errors.push("Student ID must be a whole positive number.");
+            }
+        }
+
+        if (shouldCheck('module_id')) {
+            const val = data.module_id;
+            if (!val || val.trim() === "") {
+                errors.push("Module ID cannot be empty.");
+            } else if (!isPositiveInteger(val)) {
+                errors.push("Module ID must be a whole positive number.");
+            }
+        }
+
+        if (shouldCheck('academic_year_id')) {
+            const val = data.academic_year_id;
+            if (!val || val.trim() === "") {
+                errors.push("Academic Year ID cannot be empty.");
+            } else if (!isPositiveInteger(val)) {
+                errors.push("Academic Year ID must be a whole positive number.");
+            }
+        }
+
+        if (shouldCheck('entry_level_id')) {
+            const val = data.entry_level_id;
+            if (!val || val.trim() === "") {
+                errors.push("Entry Level ID cannot be empty.");
+            } else if (!isPositiveInteger(val)) {
+                errors.push("Entry Level ID must be a whole positive number.");
+            }
+        }
+
+        if (shouldCheck('study_status_id')) {
+            const val = data.study_status_id;
+            if (!val || val.trim() === "") {
+                errors.push("Study Status ID cannot be empty.");
+            } else if (!isPositiveInteger(val)) {
+                errors.push("Study Status ID must be a whole positive number.");
+            }
+        }
+
+        if (shouldCheck('first_grade')) {
+            const val = data.first_grade;
+            if (!val || val.trim() === "") {
+                errors.push("First grade cannot be empty.");
+            } else if (!isPositiveInteger(val)) {
+                errors.push("First grade must be must be a whole positive number between 0 - 100.");
+            }
+            else if (val < 0 || val > 100) {
+                errors.push("First grade must be must be a whole positive number between 0 - 100.");
+            }
+        }
+
+        if (shouldCheck('grade_result')) {
+            const val = data.grade_result;
+            if (!val || val.trim() === "") {
+                errors.push("First grade result cannot be empty.");
+            } else if (!isValidResult(val)) {
+                errors.push("Invalid first grade result.")
+            }
+        }
+
+        if (shouldCheck('resit_grade')) {
+            const val = data.resit_grade;
+            if (val && !isPositiveInteger(val)) {
+                errors.push("Resit grade must be must be a whole positive number between 0 - 100.");
+            } else if (val < 0 || val > 100) {
+                errors.push("Resit grade must be must be a whole positive number between 0 - 100.");
+            }
+        }
+
+        if (shouldCheck('resit_result')) {
+            const val = data.resit_result;
+            if (val && !isValidResult(val)) {
+                errors.push("Invalid resit grade result.")
+            }
+        }
+
+        return errors;
+
+
+    }
+
+    // Utility function to check if an ID exists in a table
+    async function checkIfExists(db, table, id) {
+        const [rows] = await db.promise().query(`SELECT id FROM ${table} WHERE id = ?`, [id]);
+        return rows.length > 0;
+    }
+
+
+    //POST a new Student Grade - /grades
+    router.post("/", async (req, res) => {
+        const {
+            student_id,
+            module_id,
+            academic_year_id,
+            entry_level_id,
+            study_status_id,
+            first_grade,
+            grade_result,
+            resit_grade,
+            resit_result
+        } = req.body;
+
+        // Validate the request body
+        const validationErrors = validateGradeFields(req.body);
+        if (validationErrors.length > 0) {
+            return res.status(400).json({ error: validationErrors.join(", ") });
+        }
+
+        try {
+
+            // Foreign key existence checks
+            const checks = await Promise.all([
+                checkIfExists(db, 'student', student_id),
+                checkIfExists(db, 'module', module_id),
+                checkIfExists(db, 'acad_year', academic_year_id),
+                checkIfExists(db, 'entry_level', entry_level_id),
+                checkIfExists(db, 'study_status', study_status_id),
+            ]);
+
+            const [studentExists, moduleExists, yearExists, levelExists, statusExists] = checks;
+
+            if (!studentExists) return res.status(400).json({ error: "Student does not exist." });
+            if (!moduleExists) return res.status(400).json({ error: "Module does not exist." });
+            if (!yearExists) return res.status(400).json({ error: "Academic year does not exist." });
+            if (!levelExists) return res.status(400).json({ error: "Entry level does not exist." });
+            if (!statusExists) return res.status(400).json({ error: "Study status does not exist." });
+
+            // Check for duplicate: same student + module + academic year
+            const [existing] = await db.promise().query(`
+                SELECT * FROM student_module 
+                WHERE student_id = ? AND module_id = ? AND academic_year_id = ?
+            `, [student_id, module_id, academic_year_id]);
+
+            if (existing.length > 0) {
+                return res.status(409).json({ error: "This student already has a grade for that module and academic year." });
+            }
+
+            // Insert into student_module
+            const [result] = await db.promise().query(`
+                INSERT INTO student_module (
+                    student_id, module_id, academic_year_id,
+                    first_grade, grade_result,
+                    resit_grade, resit_result,
+                    entry_level_id, study_status_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [
+                parseInt(student_id),
+                parseInt(module_id),
+                parseInt(academic_year_id),
+                parseInt(first_grade),
+                grade_result.toLowerCase(),
+                resit_grade ? parseInt(resit_grade) : null,
+                resit_result ? resit_result.toLowerCase() : null,
+                parseInt(entry_level_id),
+                parseInt(study_status_id)
+            ]);
+
+            res.status(201).json({ message: "Grade added successfully!", insertId: result.insertId });
+
+        } catch (err) {
+            console.error("Error adding grade:", err);
+            res.status(500).json({ error: "Server error", details: err.message });
+        }
+        
+    });
+
     return router;
 }

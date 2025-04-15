@@ -85,6 +85,36 @@ router.get('/by-module', async (req, res) => {
 
 });
 
+// Add Grade Route - Posting Data to API
+router.post('/add-grade', async (req, res) => {
+
+    const gradeData = { ...req.body };
+
+    console.log("Incoming POST body: ", req.body);
+
+
+    try {
+        const addGradeEp = "http://localhost:4000/grades";
+        const response = await axios.post(addGradeEp, gradeData, config);
+
+        //passing through response from API to the frontend
+        console.log("Response from API: ", response.data);
+
+        return res.status(200).json(response.data);
+
+    } catch (error) {
+        console.error('Error adding grade:', error.message);
+
+        const status = error.response?.status || 500; // Default to 500 if status is not available
+        const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
+        console.error('Error message from API:', errorMessage);
+        console.error('Status code from API:', status);
+
+        return res.status(status).json({ error: errorMessage }); // updated to handle error response dynamically - not just 409
+
+    }
+});
+
 
 
 module.exports = router;

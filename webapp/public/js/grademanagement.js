@@ -89,12 +89,11 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!payload.resit_result || payload.resit_result === "Select Result" || payload.resit_result === "") delete payload.resit_result;
 
             console.log("Form is valid! Payload would be:", payload);
-            showSuccess("Form is valid! Data logged to console.");
 
             console.log("Submitting grade with payload:", payload);
 
             try {
-                const response = await fetch("/grades", {
+                const response = await fetch("/grademanagement/add-grade", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
@@ -118,8 +117,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 successDiv.textContent = data.message || "Grade added successfully!";
                 successDiv.classList.remove("d-none");
 
+                const currentPath = window.location.pathname;
+
                 setTimeout(() => {
-                    window.location.href = "/grademanagement"; // or reload for consistency
+                    if (currentPath.includes("/by-module")) {
+                        window.location.href = "/grademanagement/by-module";
+                    } else {
+                        window.location.href = "/grademanagement";
+                    }
                 }, 2000);
 
             } catch (err) {
