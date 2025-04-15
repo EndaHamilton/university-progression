@@ -22,7 +22,6 @@ function validateModuleForm(form, errorDiv) {
     if (!title) return showError('Title is required.');
     if (!credits) return showError('Credits is required.');
     if (!semesterId) return showError('Semester is required.');
-    if (!semesterId) return showError('Semester is required.');
     if (!pathwayIds || pathwayIds.length === 0) return showError('Pathway is required.');
 
 

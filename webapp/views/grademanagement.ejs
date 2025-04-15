@@ -159,7 +159,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    
+
                                                     <% module.students.forEach(s=> { %>
                                                         <tr>
                                                             <td class="module-col">
@@ -198,7 +198,7 @@
 
     </div>
 
-   <!--Add Grade Modal--> 
+    <!--Add Grade Modal-->
     <div class="modal fade" id="addGradeModal" tabindex="-1" role="dialog" aria-labelledby="addGradeModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -290,12 +290,12 @@
 
                         <div class="form-group">
                             <label>Resit Grade</label>
-                            <input type="number" name="resit_grade" class="form-control" min="0" max="100" required>
+                            <input type="number" name="resit_grade" class="form-control" min="0" max="100">
                         </div>
 
                         <div class="form-group">
                             <label>Resit Result</label>
-                            <select name="resit_result" class="form-control" required>
+                            <select name="resit_result" class="form-control">
                                 <option disabled selected>Select Result</option>
                                 <option value="pass">Pass</option>
                                 <option value="fail">Fail</option>
@@ -321,7 +321,7 @@
 
 
     <!--js behaviour source-->
-    <script src=""></script>
+    <script src="/js/grademanagement.js"></script>
 
 
     <!-- Bootstrap CDSN -->
