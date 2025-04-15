@@ -29,7 +29,7 @@ module.exports = function (db) {
       ORDER BY s.last_name, ay.name
       `);
 
-            // Group results by student in JS
+            // Group results by student
             const grouped = {};
             rows.forEach(row => {
                 if (!grouped[row.student_id]) {

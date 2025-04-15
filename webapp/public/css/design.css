@@ -88,9 +88,28 @@ body {
     box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
   } */
   
-  /*
-   * Utilities
-   */
   
   .border-top { border-top: 1px solid #e5e5e5; }
   .border-bottom { border-bottom: 1px solid #e5e5e5; }
+
+  /* Grades table design */
+  .grade-table th,
+  .grade-table td {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .grade-table th.module-col,
+  .grade-table td.module-col {
+    width: 30%;
+  }
+
+  .grade-table th.year-col,
+  .grade-table td.year-col {
+    width: 15%;
+  }
+
+  .grade-table th.small-col,
+  .grade-table td.small-col {
+    width: 10%;
+  }
