@@ -51,9 +51,8 @@ router.get('/by-module', async (req, res) => {
     try {
 
         //GET request to different API endpoints for all data gradeManagement page uses
-
         const [gradeRes, studentRes, moduleRes, acadYearRes, entryLevelRes, studyStatusRes] = await Promise.all([
-            axios.get("http://localhost:4000/grades", config),
+            axios.get("http://localhost:4000/grades/by-module", config),
             axios.get("http://localhost:4000/student", config),
             axios.get("http://localhost:4000/module", config),
             axios.get("http://localhost:4000/acadyear", config),
