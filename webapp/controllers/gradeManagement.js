@@ -9,7 +9,20 @@ const config = getApiConfig(); //default JSON
 router.get('/', async (req, res) => {
 
     try {
-        const gradeRes = await axios.get('http://localhost:4000/grades', config);
+        //GET request to different API endpoints for all data gradeManagement page uses
+
+        const [gradeRes, studentRes, moduleRes, acadYearRes, entryLevelRes, studyStatusRes] = await Promise.all([
+            axios.get("http://localhost:4000/grades", config),
+            axios.get("http://localhost:4000/student", config),
+            axios.get("http://localhost:4000/module", config),
+            axios.get("http://localhost:4000/acadyear", config),
+            axios.get("http://localhost:4000/entrylevel", config),
+            axios.get("http://localhost:4000/studystatus", config),
+
+        ]);
+
+
+        // const gradeRes = await axios.get('http://localhost:4000/grades', config);
 
         res.render('grademanagement', {
             user: {
@@ -17,7 +30,12 @@ router.get('/', async (req, res) => {
                 email: req.session.email
             },
             groupBy: 'student',
-            groupedByStudent: gradeRes.data
+            groupedByStudent: gradeRes.data,
+            students: studentRes.data,
+            modules: moduleRes.data,
+            academicYears: acadYearRes.data,
+            entryLevels: entryLevelRes.data,
+            studyStatuses: studyStatusRes.data
         });
 
     } catch (err) {
@@ -31,7 +49,21 @@ router.get('/', async (req, res) => {
 router.get('/by-module', async (req, res) => {
 
     try {
-        const gradeRes = await axios.get('http://localhost:4000/grades/by-module', config);
+
+        //GET request to different API endpoints for all data gradeManagement page uses
+
+        const [gradeRes, studentRes, moduleRes, acadYearRes, entryLevelRes, studyStatusRes] = await Promise.all([
+            axios.get("http://localhost:4000/grades", config),
+            axios.get("http://localhost:4000/student", config),
+            axios.get("http://localhost:4000/module", config),
+            axios.get("http://localhost:4000/acadyear", config),
+            axios.get("http://localhost:4000/entrylevel", config),
+            axios.get("http://localhost:4000/studystatus", config),
+
+        ]);
+
+        // const gradeRes = await axios.get('http://localhost:4000/grades/by-module', config);
+
 
         res.render('grademanagement', {
             user: {
@@ -39,7 +71,12 @@ router.get('/by-module', async (req, res) => {
                 email: req.session.email
             },
             groupBy: 'module',
-            groupedByModule: gradeRes.data
+            groupedByModule: gradeRes.data,
+            students: studentRes.data,
+            modules: moduleRes.data,
+            academicYears: acadYearRes.data,
+            entryLevels: entryLevelRes.data,
+            studyStatuses: studyStatusRes.data
         });
 
     } catch (err) {

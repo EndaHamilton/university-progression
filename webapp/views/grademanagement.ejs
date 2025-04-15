@@ -78,6 +78,12 @@
                             by Module</a>
                     </div>
 
+                    <div class="btn-group mr-2">
+                        <!-- Trigger button for Add Student Grade Modal-->
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal"
+                            data-target="#addGradeModal">Add Student Grade</button>
+                    </div>
+
                 </div>
 
                 <% if (groupBy==='student' && groupedByStudent && groupedByStudent.length> 0) { %>
@@ -191,7 +197,124 @@
 
     </div>
 
+    Add Grade Modal
+    <div class="modal fade" id="addGradeModal" tabindex="-1" role="dialog" aria-labelledby="addGradeModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="addGradeForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addGradeModalLabel">Add Student Grade</h5>
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    </div>
 
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="student_id">Student</label>
+                            <select name="student_id" class="form-control" required>
+                                <option disabled selected>Select a Student</option>
+                                <% students.forEach(s=> { %>
+                                    <option value="<%= s.id %>">
+                                        <%= s.first_name %>
+                                            <%= s.last_name %> (<%= s.student_number %>)
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="module_id">Module</label>
+                            <select name="module_id" class="form-control" required>
+                                <option disabled selected>Select a Module</option>
+                                <% modules.forEach(m=> { %>
+                                    <option value="<%= m.id %>">
+                                        <%= m.title %> (<%= m.module_code %>)
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="academic_year_id">Academic Year</label>
+                            <select name="academic_year_id" class="form-control" required>
+                                <option disabled selected>Select an Academic Year</option>
+                                <% academicYears.forEach(ay=> { %>
+                                    <option value="<%= ay.id %>">
+                                        <%= ay.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="entry_level_id">Entry Level</label>
+                            <select name="entry_level_id" class="form-control" required>
+                                <option disabled selected>Select Entry Level</option>
+                                <% entryLevels.forEach(level=> { %>
+                                    <option value="<%= level.id %>">
+                                        <%= level.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="study_status_id">Study Status</label>
+                            <select name="study_status_id" class="form-control" required>
+                                <option disabled selected>Select Study Status</option>
+                                <% studyStatuses.forEach(status=> { %>
+                                    <option value="<%= status.id %>">
+                                        <%= status.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>First Grade</label>
+                            <input type="number" name="first_grade" class="form-control" min="0" max="100" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>First Result</label>
+                            <select name="grade_result" class="form-control" required>
+                                <option disabled selected>Select Result</option>
+                                <option value="pass">Pass</option>
+                                <option value="fail">Fail</option>
+                                <option value="pass capped">Pass Capped</option>
+                                <option value="excused">Excused</option>
+                                <option value="absent">Absent</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Resit Grade</label>
+                            <input type="number" name="resit_grade" class="form-control" min="0" max="100" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Resit Result</label>
+                            <select name="resit_result" class="form-control" required>
+                                <option disabled selected>Select Result</option>
+                                <option value="pass">Pass</option>
+                                <option value="fail">Fail</option>
+                                <option value="pass capped">Pass Capped</option>
+                                <option value="excused">Excused</option>
+                                <option value="absent">Absent</option>
+                            </select>
+                        </div>
+
+                        <div id="addGradeError" class="alert alert-danger d-none"></div>
+                        <div id="addGradeSuccess" class="alert alert-success d-none"></div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Add Grade</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 
 
