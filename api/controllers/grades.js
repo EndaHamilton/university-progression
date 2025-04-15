@@ -172,10 +172,7 @@ module.exports = function (db) {
             const val = data.first_grade;
             if (!val || val.trim() === "") {
                 errors.push("First grade cannot be empty.");
-            } else if (!isPositiveInteger(val)) {
-                errors.push("First grade must be must be a whole positive number between 0 - 100.");
-            }
-            else if (val < 0 || val > 100) {
+            } else if (val < 0 || val > 100) {
                 errors.push("First grade must be must be a whole positive number between 0 - 100.");
             }
         }
@@ -191,9 +188,7 @@ module.exports = function (db) {
 
         if (shouldCheck('resit_grade')) {
             const val = data.resit_grade;
-            if (val && !isPositiveInteger(val)) {
-                errors.push("Resit grade must be must be a whole positive number between 0 - 100.");
-            } else if (val < 0 || val > 100) {
+            if (val < 0 || val > 100) {
                 errors.push("Resit grade must be must be a whole positive number between 0 - 100.");
             }
         }
@@ -292,8 +287,183 @@ module.exports = function (db) {
             console.error("Error adding grade:", err);
             res.status(500).json({ error: "Server error", details: err.message });
         }
-        
+
     });
+
+    // PUT - Update a grade - /grades/:id
+    router.put("/:id", async (req, res) => {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: "Invalid ID. Must be a number." });
+        }
+
+        const {
+            student_id,
+            module_id,
+            academic_year_id,
+            entry_level_id,
+            study_status_id,
+            first_grade,
+            grade_result,
+            resit_grade,
+            resit_result
+        } = req.body;
+
+        // Validate fields
+        const validationErrors = validateGradeFields(req.body, { isUpdate: true });
+        if (validationErrors.length > 0) {
+            return res.status(400).json({ error: validationErrors.join(", ") });
+        }
+
+        try {
+            // Check if grade record exists
+            const [existingRows] = await db.promise().query(`SELECT * FROM student_module WHERE id = ?`, [id]);
+            if (existingRows.length === 0) {
+                return res.status(404).json({ error: "Grade record not found." });
+            }
+
+            const existing = existingRows[0];
+
+            //Normalising null int values before comparison
+            function parseIntOrNull(val) {
+                if (val === null || val === undefined || val === "") return null;
+                return parseInt(val);
+            }
+            //Check if existing fields are unchanged
+            // Compare fields in module table
+            const gradeFieldsUnchanged = Object.keys(req.body).every((key) => {
+                const newVal = req.body[key];
+                const existingVal = existing[key];
+
+                console.log(`[COMPARE] ${key}: new=${newVal}, existing=${existingVal}`);
+
+                if (["student_id", "module_id", "academic_year_id", "entry_level_id", "study_status_id", "first_grade", "resit_grade"].includes(key)) {
+                    return parseIntOrNull(newVal) === parseIntOrNull(existingVal);
+                }
+
+                const normalizedNew = (newVal === null || newVal === undefined) ? "" : String(newVal).trim().toLowerCase();
+                const normalizedExisting = (existingVal === null || existingVal === undefined) ? "" : String(existingVal).trim().toLowerCase();
+
+                return normalizedNew === normalizedExisting;
+            });
+
+            if (gradeFieldsUnchanged) {
+                return res.status(400).json({ error: "No changes detected. Student grade data is identical." });
+            }
+
+            // Check for duplicates if student/module/year combo is being updated
+            if (
+                student_id && module_id && academic_year_id &&
+                (
+                    parseInt(existing.student_id) !== parseInt(student_id) ||
+                    parseInt(existing.module_id) !== parseInt(module_id) ||
+                    parseInt(existing.academic_year_id) !== parseInt(academic_year_id)
+                )
+            ) {
+                const [conflicts] = await db.promise().query(`
+                SELECT * FROM student_module 
+                WHERE student_id = ? AND module_id = ? AND academic_year_id = ? AND id != ?
+            `, [student_id, module_id, academic_year_id, id]);
+
+                if (conflicts.length > 0) {
+                    return res.status(409).json({ error: "Another grade entry exists for that student, module, and academic year." });
+                }
+            }
+
+            // Build update query only with changed fields
+            const updateFields = [];
+            const updateValues = [];
+
+            //Helper function to normalize for comparison
+            function normalize(val) {
+                if (val === undefined || val === "") return null;
+                if (!isNaN(val)) return parseInt(val);
+                return String(val).trim().toLowerCase();
+            }
+
+            const fieldsToCheck = [
+                "student_id", "module_id", "academic_year_id", "entry_level_id",
+                "study_status_id", "first_grade", "grade_result", "resit_grade", "resit_result"
+            ];
+
+            //Loop through fields in an easier way
+            fieldsToCheck.forEach(key => {
+                if (key in req.body) {
+                    const newVal = normalize(req.body[key]);
+                    const existingVal = normalize(existing[key]);
+                    if (newVal !== existingVal) {
+                        updateFields.push(`${key} = ?`);
+                        updateValues.push(newVal);
+                    }
+                }
+            });
+
+
+            // if (student_id && parseInt(student_id) !== existing.student_id) {
+            //     updateFields.push("student_id = ?");
+            //     updateValues.push(parseInt(student_id));
+            // }
+            // if (module_id && parseInt(module_id) !== existing.module_id) {
+            //     updateFields.push("module_id = ?");
+            //     updateValues.push(parseInt(module_id));
+            // }
+            // if (academic_year_id && parseInt(academic_year_id) !== existing.academic_year) {
+            //     updateFields.push("academic_year_id = ?");
+            //     updateValues.push(parseInt(academic_year_id));
+            // }
+            // if (entry_level_id && parseInt(entry_level_id) !== existing.entry_level_id) {
+            //     updateFields.push("entry_level_id = ?");
+            //     updateValues.push(parseInt(entry_level_id));
+            // }
+            // if (study_status_id && parseInt(study_status_id) !== existing.study_status_id) {
+            //     updateFields.push("study_status_id = ?");
+            //     updateValues.push(parseInt(study_status_id));
+            // }
+            // if (first_grade && parseInt(first_grade) !== existing.first_grade) {
+            //     updateFields.push("first_grade = ?");
+            //     updateValues.push(parseInt(first_grade));
+            // }
+
+            // if (grade_result && grade_result.trim().toLowerCase() !== existing.grade_result) {
+            //     updateFields.push("grade_result = ?");
+            //     updateValues.push(grade_result.trim().toLowerCase());
+            // }
+
+            // // Separate check for non-required fields
+            // if ('resit_grade' in req.body) {
+            //     const newVal = parseInt(resit_grade);
+            //     const existingVal = parseInt(existing.resit_grade);
+            //     if (newVal !== existingVal) {
+            //         updateFields.push("resit_grade = ?");
+            //         updateValues.push(newVal);
+            //     }
+            // }
+            // if ('resit_result' in req.body) {
+            //     const newVal = resit_result?.trim().toLowerCase() || null;
+            //     const existingVal = existing.resit_result?.toLowerCase() || null;
+            //     if (newVal !== existingVal) {
+            //         updateFields.push("resit_result = ?");
+            //         updateValues.push(newVal);
+            //     }
+            // }
+
+
+
+            updateValues.push(id); // for WHERE clause
+
+            if (updateFields.length > 0) {
+                const updateSQL = `UPDATE student_module SET ${updateFields.join(", ")} WHERE id = ?`;
+                await db.promise().query(updateSQL, updateValues);
+            }
+
+            res.status(200).json({ message: "Grade updated successfully!" });
+
+        } catch (err) {
+            console.error("Error updating grade:", err);
+            res.status(500).json({ error: "Server error", details: err.message });
+        }
+    });
+
 
     return router;
 }
