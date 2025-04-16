@@ -125,7 +125,8 @@ module.exports = function (db) {
 
         if (shouldCheck('student_id')) {
             const val = data.student_id;
-            if (!val || val.trim() === "") {
+            const valStr = String(val);
+            if (!val || valStr.trim() === "") {
                 errors.push("Student ID cannot be empty.");
             } else if (!isPositiveInteger(val)) {
                 errors.push("Student ID must be a whole positive number.");
@@ -134,7 +135,8 @@ module.exports = function (db) {
 
         if (shouldCheck('module_id')) {
             const val = data.module_id;
-            if (!val || val.trim() === "") {
+            const valStr = String(val);
+            if (!val || valStr.trim() === "") {
                 errors.push("Module ID cannot be empty.");
             } else if (!isPositiveInteger(val)) {
                 errors.push("Module ID must be a whole positive number.");
@@ -143,7 +145,8 @@ module.exports = function (db) {
 
         if (shouldCheck('academic_year_id')) {
             const val = data.academic_year_id;
-            if (!val || val.trim() === "") {
+            const valStr = String(val);
+            if (!val || valStr.trim() === "") {
                 errors.push("Academic Year ID cannot be empty.");
             } else if (!isPositiveInteger(val)) {
                 errors.push("Academic Year ID must be a whole positive number.");
@@ -152,7 +155,8 @@ module.exports = function (db) {
 
         if (shouldCheck('entry_level_id')) {
             const val = data.entry_level_id;
-            if (!val || val.trim() === "") {
+            const valStr = String(val);
+            if (!val || valStr.trim() === "") {
                 errors.push("Entry Level ID cannot be empty.");
             } else if (!isPositiveInteger(val)) {
                 errors.push("Entry Level ID must be a whole positive number.");
@@ -161,7 +165,8 @@ module.exports = function (db) {
 
         if (shouldCheck('study_status_id')) {
             const val = data.study_status_id;
-            if (!val || val.trim() === "") {
+            const valStr = String(val);
+            if (!val || valStr.trim() === "") {
                 errors.push("Study Status ID cannot be empty.");
             } else if (!isPositiveInteger(val)) {
                 errors.push("Study Status ID must be a whole positive number.");
@@ -170,7 +175,8 @@ module.exports = function (db) {
 
         if (shouldCheck('first_grade')) {
             const val = data.first_grade;
-            if (!val || val.trim() === "") {
+            const valStr = String(val);
+            if (!val || valStr.trim() === "") {
                 errors.push("First grade cannot be empty.");
             } else if (val < 0 || val > 100) {
                 errors.push("First grade must be must be a whole positive number between 0 - 100.");
@@ -329,7 +335,7 @@ module.exports = function (db) {
             //     if (val === null || val === undefined || val === "") return null;
             //     return parseInt(val);
             // }
-            
+
             // //Check if existing fields are unchanged
             // // Compare fields in module table
             // const gradeFieldsUnchanged = Object.keys(req.body).every((key) => {
@@ -371,90 +377,51 @@ module.exports = function (db) {
                 }
             }
 
-            //Helper function to normalize for comparison
-            function normalize(val) {
-                if (val === undefined || val === "" || val === null) return null;
-                if (!isNaN(val)) return parseInt(val);
-                return String(val).trim().toLowerCase();
-            }
+            // //Helper function to normalize for comparison
+            // function normalize(val) {
+            //     if (val === undefined || val === "" || val === null) return null;
+            //     if (!isNaN(val)) return parseInt(val);
+            //     return String(val).trim().toLowerCase();
+            // }
+
+            // const fieldsToCheck = [
+            //     "student_id", "module_id", "academic_year_id", "entry_level_id",
+            //     "study_status_id", "first_grade", "grade_result", "resit_grade", "resit_result"
+            // ];
+
+            // // Build update query only with changed fields
+            // const updateFields = [];
+            // const updateValues = [];
+
+            // //Loop through fields in an easier way
+            // fieldsToCheck.forEach(key => {
+            //     if (key in req.body) {
+            //         const newVal = (req.body[key]);
+            //         const existingVal = (existing[key]);
+
+            //         const normalizedNew = normalize(newVal);
+            //         const normalizedExisting = normalize(existingVal);
+
+            //         console.log(`[COMPARE] ${key}: new=${normalizedNew}, existing=${normalizedExisting}`);
+            //         if (normalizedNew !== normalizedExisting) {
+            //             updateFields.push(`${key} = ?`);
+            //             updateValues.push(newVal);
+            //         }
+            //     }
+            // });
+
+            const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
             const fieldsToCheck = [
                 "student_id", "module_id", "academic_year_id", "entry_level_id",
                 "study_status_id", "first_grade", "grade_result", "resit_grade", "resit_result"
             ];
 
-            // Build update query only with changed fields
-            const updateFields = [];
-            const updateValues = [];
-
-            //Loop through fields in an easier way
-            fieldsToCheck.forEach(key => {
-                if (key in req.body) {
-                    const newVal = normalize(req.body[key]);
-                    const existingVal = normalize(existing[key]);
-                    console.log(`[COMPARE] ${key}: new=${newVal}, existing=${existingVal}`);
-                    if (newVal !== existingVal) {
-                        updateFields.push(`${key} = ?`);
-                        updateValues.push(newVal);
-                    }
-                }
-            });
+            const { updateFields, updateValues } = getUpdatedFields(req.body, existing, fieldsToCheck);
 
             if (updateFields.length === 0) {
                 return res.status(400).json({ error: "No changes detected. Student grade data is identical." });
             }
-
-
-
-            // if (student_id && parseInt(student_id) !== existing.student_id) {
-            //     updateFields.push("student_id = ?");
-            //     updateValues.push(parseInt(student_id));
-            // }
-            // if (module_id && parseInt(module_id) !== existing.module_id) {
-            //     updateFields.push("module_id = ?");
-            //     updateValues.push(parseInt(module_id));
-            // }
-            // if (academic_year_id && parseInt(academic_year_id) !== existing.academic_year) {
-            //     updateFields.push("academic_year_id = ?");
-            //     updateValues.push(parseInt(academic_year_id));
-            // }
-            // if (entry_level_id && parseInt(entry_level_id) !== existing.entry_level_id) {
-            //     updateFields.push("entry_level_id = ?");
-            //     updateValues.push(parseInt(entry_level_id));
-            // }
-            // if (study_status_id && parseInt(study_status_id) !== existing.study_status_id) {
-            //     updateFields.push("study_status_id = ?");
-            //     updateValues.push(parseInt(study_status_id));
-            // }
-            // if (first_grade && parseInt(first_grade) !== existing.first_grade) {
-            //     updateFields.push("first_grade = ?");
-            //     updateValues.push(parseInt(first_grade));
-            // }
-
-            // if (grade_result && grade_result.trim().toLowerCase() !== existing.grade_result) {
-            //     updateFields.push("grade_result = ?");
-            //     updateValues.push(grade_result.trim().toLowerCase());
-            // }
-
-            // // Separate check for non-required fields
-            // if ('resit_grade' in req.body) {
-            //     const newVal = parseInt(resit_grade);
-            //     const existingVal = parseInt(existing.resit_grade);
-            //     if (newVal !== existingVal) {
-            //         updateFields.push("resit_grade = ?");
-            //         updateValues.push(newVal);
-            //     }
-            // }
-            // if ('resit_result' in req.body) {
-            //     const newVal = resit_result?.trim().toLowerCase() || null;
-            //     const existingVal = existing.resit_result?.toLowerCase() || null;
-            //     if (newVal !== existingVal) {
-            //         updateFields.push("resit_result = ?");
-            //         updateValues.push(newVal);
-            //     }
-            // }
-
-
 
             updateValues.push(id); // for WHERE clause
 

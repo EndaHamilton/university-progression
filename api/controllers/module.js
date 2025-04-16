@@ -291,9 +291,6 @@ module.exports = function (db) {
             // console.log("New pathway IDs from req.body:", req.body.pathway_ids);
             // console.log("Parsed newPathwayIds:", newPathwayIds);
 
-
-
-
             // console.log("moduleFieldsUnchanged:", moduleFieldsUnchanged);
             // console.log("pathwaysUnchanged:", pathwaysUnchanged);
 
@@ -318,60 +315,52 @@ module.exports = function (db) {
                 }
             }
 
-            //Helper function to normalize for comparison
-            function normalize(val) {
-                if (val === undefined || val === "" || val === null) return null;
-                if (!isNaN(val)) return parseInt(val);
-                return String(val).trim().toLowerCase();
-            }
+            // //Helper function to normalize for comparison
+            // function normalize(val) {
+            //     if (val === undefined || val === "" || val === null) return null;
+            //     if (!isNaN(val)) return parseInt(val);
+            //     return String(val).trim().toLowerCase();
+            // }
+
+            // const fieldsToCheck = [
+            //     "subject_code", "catalogue_code", "title", "credits",
+            //     "semester_id",
+            // ];
+
+            // // Build update statement only with changed fields
+            // const updateFields = [];
+            // const updateValues = [];
+
+            // //Loop through fields in an easier way
+            // fieldsToCheck.forEach(key => {
+            //     if (key in req.body) {
+            //         const newVal = (req.body[key]);
+            //         const existingVal = (existingModule[key]);
+
+            //         const normalizedNew = normalize(newVal);
+            //         const normalizedExisting = normalize(existingVal);
+
+            //         console.log(`[COMPARE] ${key}: new=${normalizedNew}, existing=${normalizedExisting}`);
+            //         if (normalizedNew !== normalizedExisting) {
+            //             updateFields.push(`${key} = ?`);
+            //             updateValues.push(newVal);
+            //         }
+            //     }
+            // });
+
+            const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
             const fieldsToCheck = [
                 "subject_code", "catalogue_code", "title", "credits",
                 "semester_id",
             ];
 
-            // Build update statement only with changed fields
-            const updateFields = [];
-            const updateValues = [];
-
-            //Loop through fields in an easier way
-            fieldsToCheck.forEach(key => {
-                if (key in req.body) {
-                    const newVal = normalize(req.body[key]);
-                    const existingVal = normalize(existingModule[key]);
-                    console.log(`[COMPARE] ${key}: new=${newVal}, existing=${existingVal}`);
-                    if (newVal !== existingVal) {
-                        updateFields.push(`${key} = ?`);
-                        updateValues.push(newVal);
-                    }
-                }
-            });
-
-            // if (subject_code && subject_code.trim() !== existingModule.subject_code) {
-            //     updateFields.push("subject_code = ?");
-            //     updateValues.push(subject_code.trim());
-            // }
-            // if (catalogue_code && parseInt(catalogue_code) !== existingModule.catalogue_code) {
-            //     updateFields.push("catalogue_code = ?");
-            //     updateValues.push(parseInt(catalogue_code));
-            // }
-            // if (title && title.trim() !== existingModule.title) {
-            //     updateFields.push("title = ?");
-            //     updateValues.push(title.trim());
-            // }
-            // if (credits && parseInt(credits) !== existingModule.credits) {
-            //     updateFields.push("credits = ?");
-            //     updateValues.push(parseInt(credits));
-            // }
-            // if (semester_id && parseInt(semester_id) !== existingModule.semester_id) {
-            //     updateFields.push("semester_id = ?");
-            //     updateValues.push(parseInt(semester_id));
-            // }
+            const { updateFields, updateValues } = getUpdatedFields(req.body, existingModule, fieldsToCheck);
 
             updateValues.push(id);
 
             if (updateFields.length === 0 && pathwaysUnchanged) {
-                return res.status(400).json({ error: "No changes detected." });
+                return res.status(400).json({ error: "No changes detected. Module data is identical" });
             }
 
 

@@ -483,39 +483,52 @@ module.exports = function (db) {
                 }
             };
 
-            //Helper function to normalize for comparison
-            function normalize(val) {
-                if (val === undefined || val === "" || val === null) return null;
-                if (!isNaN(val)) return parseInt(val);
-                return String(val).trim().toLowerCase();
-            };
+            // //Helper function to normalize for comparison
+            // function normalize(val) {
+            //     if (val === undefined || val === "" || val === null) return null;
+            //     if (!isNaN(val)) return parseInt(val);
+            //     return String(val).trim().toLowerCase();
+            // };
+
+            // const fieldsToCheck = [
+            //     "student_number", "user_id", "pathway_id", "first_name", "last_name", "study_status_id", "entry_level_id"
+            // ];
+
+            // // Only update the fields that differ
+            // const updateFields = [];
+            // const updateValues = [];
+
+            // //Loop through fields in an easier way
+            // fieldsToCheck.forEach(key => {
+            //     if (key in req.body) {
+            //         const newVal = (req.body[key]);
+            //         const existingVal = (existingStudent[key]);
+
+            //         const normalizedNew = normalize(newVal);
+            //         const normalizedExisting = normalize(existingVal);
+
+            //         console.log(`[COMPARE] ${key}: new=${normalizedNew}, existing=${normalizedExisting}`); // compare normalized values only for direct comparison
+
+            //         if (normalizedNew !== normalizedExisting) {
+            //             updateFields.push(`${key} = ?`);
+            //             updateValues.push(newVal); // when pushing, insert original value as is (e.g. prevents entries converting to lower case)
+            //         }
+            //     }
+            // });
+
+            const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
             const fieldsToCheck = [
                 "student_number", "user_id", "pathway_id", "first_name", "last_name", "study_status_id", "entry_level_id"
             ];
 
-            // Only update the fields that differ
-            const updateFields = [];
-            const updateValues = [];
+            const { updateFields, updateValues } = getUpdatedFields(req.body, existingStudent, fieldsToCheck);
 
-            //Loop through fields in an easier way
-            fieldsToCheck.forEach(key => {
-                if (key in req.body) {
-                    const newVal = normalize(req.body[key]);
-                    const existingVal = normalize(existingStudent[key]);
-                    console.log(`[COMPARE] ${key}: new=${newVal}, existing=${existingVal}`);
-                    if (newVal !== existingVal) {
-                        updateFields.push(`${key} = ?`);
-                        updateValues.push(newVal);
-                    }
-                }
-            });
+            updateValues.push(id); // for WHERE clause
 
             if (updateFields.length === 0) {
                 return res.status(400).json({ error: 'No changes detected. Student data is identical' });
             }
-
-            updateValues.push(id); // for WHERE clause
 
             if (updateFields.length > 0) {
                 const updateSQL = `UPDATE student SET ${updateFields.join(", ")} WHERE id = ?`;
