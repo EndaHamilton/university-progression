@@ -324,32 +324,33 @@ module.exports = function (db) {
 
             const existing = existingRows[0];
 
-            //Normalising null int values before comparison
-            function parseIntOrNull(val) {
-                if (val === null || val === undefined || val === "") return null;
-                return parseInt(val);
-            }
-            //Check if existing fields are unchanged
-            // Compare fields in module table
-            const gradeFieldsUnchanged = Object.keys(req.body).every((key) => {
-                const newVal = req.body[key];
-                const existingVal = existing[key];
+            // //Normalising null int values before comparison
+            // function parseIntOrNull(val) {
+            //     if (val === null || val === undefined || val === "") return null;
+            //     return parseInt(val);
+            // }
+            
+            // //Check if existing fields are unchanged
+            // // Compare fields in module table
+            // const gradeFieldsUnchanged = Object.keys(req.body).every((key) => {
+            //     const newVal = req.body[key];
+            //     const existingVal = existing[key];
 
-                console.log(`[COMPARE] ${key}: new=${newVal}, existing=${existingVal}`);
+            //     console.log(`[COMPARE] ${key}: new=${newVal}, existing=${existingVal}`);
 
-                if (["student_id", "module_id", "academic_year_id", "entry_level_id", "study_status_id", "first_grade", "resit_grade"].includes(key)) {
-                    return parseIntOrNull(newVal) === parseIntOrNull(existingVal);
-                }
+            //     if (["student_id", "module_id", "academic_year_id", "entry_level_id", "study_status_id", "first_grade", "resit_grade"].includes(key)) {
+            //         return parseIntOrNull(newVal) === parseIntOrNull(existingVal);
+            //     }
 
-                const normalizedNew = (newVal === null || newVal === undefined) ? "" : String(newVal).trim().toLowerCase();
-                const normalizedExisting = (existingVal === null || existingVal === undefined) ? "" : String(existingVal).trim().toLowerCase();
+            //     const normalizedNew = (newVal === null || newVal === undefined) ? "" : String(newVal).trim().toLowerCase();
+            //     const normalizedExisting = (existingVal === null || existingVal === undefined) ? "" : String(existingVal).trim().toLowerCase();
 
-                return normalizedNew === normalizedExisting;
-            });
+            //     return normalizedNew === normalizedExisting;
+            // })
 
-            if (gradeFieldsUnchanged) {
-                return res.status(400).json({ error: "No changes detected. Student grade data is identical." });
-            }
+            // if (gradeFieldsUnchanged) {
+            //     return res.status(400).json({ error: "No changes detected. Student grade data is identical." });
+            // }
 
             // Check for duplicates if student/module/year combo is being updated
             if (
@@ -370,13 +371,9 @@ module.exports = function (db) {
                 }
             }
 
-            // Build update query only with changed fields
-            const updateFields = [];
-            const updateValues = [];
-
             //Helper function to normalize for comparison
             function normalize(val) {
-                if (val === undefined || val === "") return null;
+                if (val === undefined || val === "" || val === null) return null;
                 if (!isNaN(val)) return parseInt(val);
                 return String(val).trim().toLowerCase();
             }
@@ -386,17 +383,27 @@ module.exports = function (db) {
                 "study_status_id", "first_grade", "grade_result", "resit_grade", "resit_result"
             ];
 
+            // Build update query only with changed fields
+            const updateFields = [];
+            const updateValues = [];
+
             //Loop through fields in an easier way
             fieldsToCheck.forEach(key => {
                 if (key in req.body) {
                     const newVal = normalize(req.body[key]);
                     const existingVal = normalize(existing[key]);
+                    console.log(`[COMPARE] ${key}: new=${newVal}, existing=${existingVal}`);
                     if (newVal !== existingVal) {
                         updateFields.push(`${key} = ?`);
                         updateValues.push(newVal);
                     }
                 }
             });
+
+            if (updateFields.length === 0) {
+                return res.status(400).json({ error: "No changes detected. Student grade data is identical." });
+            }
+
 
 
             // if (student_id && parseInt(student_id) !== existing.student_id) {
