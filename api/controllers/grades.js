@@ -438,6 +438,28 @@ module.exports = function (db) {
         }
     });
 
+    // DELETE - Delete a student grade - /grades/:id
+    // This route should delete a grade from the database based on student_module id
+    router.delete("/:id", async (req, res) => {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: "Invalid ID. Must be a number." });
+        }
+
+        try {
+            const [result] = await db.promise().query(`DELETE FROM student_module WHERE id = ?`, [id]);
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: "Grade not found." });
+            }
+
+            res.status(200).json({ message: "Grade deleted successfully.", moduleId: id });
+        } catch (err) {
+            console.error("Error deleting grade:", err);
+            res.status(500).json({ error: "Failed to delete grade.", details: err.message });
+        }
+    });
+
 
     return router;
 }
