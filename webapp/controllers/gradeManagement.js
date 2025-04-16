@@ -156,6 +156,27 @@ router.put('/edit-grade/:id', async (req, res) => {
     }
 });
 
+// Delete Grade Route - Deleting Data from API
+router.delete('/delete-grade/:id', async (req, res) => {
+
+    try {
+        const gradeId = req.params.id;
+        const deleteGradeEp = `http://localhost:4000/grades/${gradeId}`;
+        const response = await axios.delete(deleteGradeEp, config);
+        console.log("Response from API: ", response.data);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        const status = error.response?.status || 500;
+        const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
+        console.error('Error message from API:', errorMessage);
+        console.error('Status code from API:', status);
+        // Handle the error response dynamically
+
+        return res.status(status).json({ error: errorMessage });
+    }
+
+});
+
 
 
 module.exports = router;

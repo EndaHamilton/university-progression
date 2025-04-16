@@ -248,3 +248,43 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+// Delete Grade functionality
+document.querySelectorAll(".delete-btn").forEach(button => {
+
+    button.addEventListener("click", async function () {
+        const gradeId = this.getAttribute("data-id");
+
+        if (!confirm("Are you sure you want to delete this grade?")) {
+            return; // User cancelled
+        }
+
+        try {
+            const response = await fetch(`/grademanagement/delete-grade/${gradeId}`, {
+                method: "DELETE"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.error || "An error occurred while deleting the grade.");
+                return;
+            }
+
+             //Gets view user had before opening modal - i.e. grouped by module or by student
+             const currentPath = window.location.pathname;
+
+            alert(data.message || "Grade deleted successfully!");
+
+            if (currentPath.includes("/by-module")) {
+                window.location.href = "/grademanagement/by-module";
+            } else {
+                window.location.href = "/grademanagement";
+            }
+
+        } catch (err) {
+            console.error("Error deleting module:", err);
+            alert("A network error occurred while deleting the module.");
+        }
+    });
+});
+
