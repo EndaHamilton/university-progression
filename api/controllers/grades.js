@@ -11,7 +11,7 @@ module.exports = function (db) {
         try {
             const [rows] = await db.promise().query(`
         SELECT 
-        sm.id AS student_module_id,
+        sm.id AS id,
         s.id AS student_id,
         s.student_number,
         s.first_name,
@@ -42,6 +42,7 @@ module.exports = function (db) {
                     };
                 }
                 grouped[row.student_id].grades.push({
+                    id: row.id,
                     module_title: row.module_title,
                     academic_year: row.academic_year,
                     first_grade: row.first_grade,
@@ -62,7 +63,7 @@ module.exports = function (db) {
         try {
             const [rows] = await db.promise().query(`
             SELECT 
-                sm.id AS student_module_id,
+                sm.id AS id,
                 m.id AS module_id,
                 m.title AS module_title,
                 m.module_code,
@@ -96,6 +97,7 @@ module.exports = function (db) {
                 }
 
                 grouped[row.module_id].students.push({
+                    id: row.id,
                     student_id: row.student_id,
                     student_number: row.student_number,
                     first_name: row.first_name,
@@ -114,6 +116,30 @@ module.exports = function (db) {
             res.status(500).json({ message: 'Failed to retrieve grades' });
         }
 
+    });
+
+    // GET a single grade by ID - /grades/:id
+    router.get("/:id", async (req, res) => {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: "Invalid ID. Must be a number." });
+        }
+
+        try {
+            const [rows] = await db.promise().query(
+                `SELECT * FROM student_module WHERE id = ?`,
+                [id]
+            );
+
+            if (rows.length === 0) {
+                return res.status(404).json({ error: "Grade not found." });
+            }
+
+            res.status(200).json(rows[0]);
+        } catch (err) {
+            console.error("Error fetching grade by ID:", err);
+            res.status(500).json({ error: "Failed to fetch grade", details: err.message });
+        }
     });
 
     function validateGradeFields(data, { isUpdate = false } = {}) {

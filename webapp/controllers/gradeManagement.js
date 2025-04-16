@@ -85,6 +85,27 @@ router.get('/by-module', async (req, res) => {
 
 });
 
+// Get Grade by ID Route - Fetching Data from API
+router.get('/:id', async (req, res) => {
+    try {
+        const moduleId = req.params.id;
+        const getModuleEp = `http://localhost:4000/grades/${moduleId}`;
+        const response = await axios.get(getModuleEp, config);
+        console.log("Response from API: ", response.data);
+        return res.status(200).json(response.data);
+    } catch (error) {
+
+        const status = error.response?.status || 500;
+        const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
+        console.error('Error message from API:', errorMessage);
+        console.error('Status code from API:', status);
+        // Handle the error response dynamically
+
+        return res.status(status).json({ error: errorMessage });
+    }
+
+});
+
 // Add Grade Route - Posting Data to API
 router.post('/add-grade', async (req, res) => {
 
@@ -112,6 +133,26 @@ router.post('/add-grade', async (req, res) => {
 
         return res.status(status).json({ error: errorMessage }); // updated to handle error response dynamically - not just 409
 
+    }
+});
+
+// Edit Grade Route - Putting Data to API
+router.put('/edit-grade/:id', async (req, res) => {
+    try {
+        const gradeId = req.params.id;
+        const editGradeEp = `http://localhost:4000/grades/${gradeId}`;
+        const response = await axios.put(editGradeEp, req.body, config);
+        console.log("Response from API: ", response.data);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+
+        const status = error.response?.status || 500;
+        const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
+        console.error('Error message from API:', errorMessage);
+        console.error('Status code from API:', status);
+        // Handle the error response dynamically
+
+        return res.status(status).json({ error: errorMessage });
     }
 });
 

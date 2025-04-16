@@ -60,6 +60,13 @@ function validateGradeForm(form, errorDiv) {
     }
 }
 
+// Helper function for dealing with nullable fields
+function cleanOptionalFields(payload){
+    if (payload.resit_grade === "") payload.resit_grade = null;
+    if (payload.resit_result === "" || payload.resit_result === "Select Result") payload.resit_result = null;
+    return payload;
+}
+
 // Add Student Grade Modal
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector("#addGradeForm");
@@ -82,11 +89,11 @@ document.addEventListener("DOMContentLoaded", function () {
             if (error) return;
 
             const formData = new FormData(form);
-            const payload = Object.fromEntries(formData.entries());
+            const payload = cleanOptionalFields(Object.fromEntries(formData.entries()));
 
-            // Remove optional resit fields if empty
-            if (!payload.resit_grade || payload.resit_grade === "") delete payload.resit_grade;
-            if (!payload.resit_result || payload.resit_result === "Select Result" || payload.resit_result === "") delete payload.resit_result;
+            // // Convert optional fields to null if empty
+            // if (!payload.resit_grade || payload.resit_grade === "") payload.resit_grade = null;
+            // if (!payload.resit_result || payload.resit_result === "Select Result" || payload.resit_result === "") payload.resit_result = null;
 
             console.log("Form is valid! Payload would be:", payload);
 
@@ -135,3 +142,109 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+// Edit Grade Modal
+document.addEventListener("DOMContentLoaded", function () {
+    const editForm = document.querySelector("#editGradeForm");
+
+    // Attach click handlers to Edit buttons
+    document.querySelectorAll(".edit-btn").forEach(button => {
+        button.addEventListener("click", async function () {
+            const gradeId = this.getAttribute("data-id");
+
+            try {
+                const response = await fetch(`/grademanagement/${gradeId}`);
+                const grade = await response.json();
+
+                // Fill form with grade data
+                editForm.setAttribute("data-id", grade.id);
+                editForm.querySelector('[name="student_id"]').value = grade.student_id;
+                editForm.querySelector('[name="module_id"]').value = grade.module_id;
+                editForm.querySelector('[name="academic_year_id"]').value = grade.academic_year_id;
+                editForm.querySelector('[name="entry_level_id"]').value = grade.entry_level_id;
+                editForm.querySelector('[name="study_status_id"]').value = grade.study_status_id;
+                editForm.querySelector('[name="first_grade"]').value = grade.first_grade;
+                editForm.querySelector('[name="grade_result"]').value = grade.grade_result;
+                editForm.querySelector('[name="resit_grade"]').value = grade.resit_grade || "";
+                editForm.querySelector('[name="resit_result"]').value = grade.resit_result || "";
+
+                // Show the modal
+                $('#editGradeModal').modal('show');
+
+            } catch (err) {
+                console.error("Failed to fetch grade for editing:", err);
+            }
+        });
+    });
+
+    // Submit handler for Edit Grade Form
+    editForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const gradeId = editForm.getAttribute("data-id");
+        const formData = new FormData(editForm);
+        const payload = cleanOptionalFields(Object.fromEntries(formData.entries()));
+
+        // // Convert optional fields to null if empty
+        // if (!payload.resit_grade || payload.resit_grade === "") payload.resit_grade = null;
+        // if (!payload.resit_result || payload.resit_result === "Select Result" || payload.resit_result === "") payload.resit_result = null;
+
+
+        // Clear previous feedback
+        const errorDiv = document.getElementById("editGradeError");
+        const successDiv = document.getElementById("editGradeSuccess");
+        errorDiv.classList.add("d-none");
+        errorDiv.textContent = "";
+        successDiv.classList.add("d-none");
+        successDiv.textContent = "";
+
+        const error = validateGradeForm(editForm, errorDiv);
+        if (error) return;
+
+        try {
+            const response = await fetch(`/grademanagement/edit-grade/${gradeId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const status = response.status;
+                const errorMessage = data.error ||
+                    (status === 400 ? "Invalid input." :
+                        status === 404 ? "Grade not found." :
+                            status === 409 ? "This student already has a grade for that module and academic year." :
+                                status === 500 ? 'Server error. Please try again later.' :
+                                    "An unexpected error occurred."
+                    );
+                errorDiv.textContent = errorMessage
+                errorDiv.classList.remove("d-none");
+                return;
+            }
+
+            successDiv.textContent = data.message || "Grade updated successfully!";
+            successDiv.classList.remove("d-none");
+
+            //Gets view user had before opening modal - i.e. grouped by module or by student
+            const currentPath = window.location.pathname;
+
+            setTimeout(() => {
+                if (currentPath.includes("/by-module")) {
+                    window.location.href = "/grademanagement/by-module";
+                } else {
+                    window.location.href = "/grademanagement";
+                }
+            }, 2000);
+
+        } catch (err) {
+            console.error("Error submitting grade update:", err);
+            errorDiv.textContent = "A network error occurred.";
+            errorDiv.classList.remove("d-none");
+        }
+    });
+});
+
