@@ -411,10 +411,10 @@ module.exports = function (db) {
         // Validate that student_number is unique if all other validaton passes above
 
         try {
-            const [existingStudentId] = await db.promise().query(`SELECT * FROM student WHERE student_number = ?`, [student_number]
+            const [existingStudentNumber] = await db.promise().query(`SELECT * FROM student WHERE student_number = ?`, [student_number]
 
             );
-            if (existingStudentId.length > 0) {
+            if (existingStudentNumber.length > 0) {
                 return res.status(409).json({ error: 'Student Number already exists' });
             }
 
@@ -441,7 +441,7 @@ module.exports = function (db) {
 
     // PUT (Update) a student by ID - /student/:id
     // This route should update a student's details based on their ID
-    router.put("/:id", (req, res) => {
+    router.put("/:id", async (req, res) => {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid ID. Must be a number' });
@@ -460,76 +460,35 @@ module.exports = function (db) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
 
-        // Retrieve the current data for comparison
-        const selectSQL = `SELECT * FROM student WHERE id = ?`;
-        db.query(selectSQL, [id], (err, rows) => {
-            if (err) {
-                return res.status(500).json({ error: 'Failed to fetch existing student data', details: err.message });
-            }
-
+        try {
+            // Get the existing student by ID
+            const [rows] = await db.promise().query(`SELECT * FROM student WHERE id = ?`, [id]);
             if (rows.length === 0) {
-                return res.status(404).json({ error: 'Student not found' });
+                return res.status(404).json({ error: "Student not found." });
             }
 
             const existingStudent = rows[0];
 
-            // // Check if the data being updated is the same as existing data
-            // // Checks only for fields which are being passed in - doesn't check undefined fields that aren't being toucehd
-            // const isIdentical = Object.keys(req.body).every((key) => {
-            //     const newVal = req.body[key];
-            //     const existingVal = existingStudent[key];
+            // Check if student with same student number already exists
+            if ('student_number' in req.body) {
+                if (student_number !== existingStudent.student_number) {
+                    const [conflicts] = await db.promise().query(
+                        `SELECT id FROM student WHERE student_number = ? AND id != ?`,
+                        [student_number, id]
+                    );
 
-            //     // Compare numeric fields as integers
-            //     if (["user_id", "pathway_id", "study_status_id", "entry_level_id"].includes(key)) {
-            //         return parseInt(newVal) === existingVal;
-            //     }
-
-            //     // Compare text fields as trimmed strings
-            //     const normalizedNew = (newVal === null || newVal === undefined) ? "" : String(newVal).trim();
-            //     const normalizedExisting = (existingVal === null || existingVal === undefined) ? "" : String(existingVal).trim();
-
-            //     return normalizedNew === normalizedExisting;
-            // });
-
-            // if (isIdentical) {
-            //     return res.status(400).json({ error: 'No changes detected. Student data is identical.' });
-            // }
-
-            // if (student_number && student_number.trim() !== existingStudent.student_number) {
-            //     updateFields.push("student_number = ?");
-            //     updateValues.push(student_number.trim());
-            // }
-            // if (user_id && parseInt(user_id) !== existingStudent.user_id) {
-            //     updateFields.push("user_id = ?");
-            //     updateValues.push(parseInt(user_id));
-            // }
-            // if (pathway_id && parseInt(pathway_id) !== existingStudent.pathway_id) {
-            //     updateFields.push("pathway_id = ?");
-            //     updateValues.push(parseInt(pathway_id));
-            // }
-            // if (first_name && first_name.trim() !== existingStudent.first_name) {
-            //     updateFields.push("first_name = ?");
-            //     updateValues.push(first_name.trim());
-            // }
-            // if (last_name && last_name.trim() !== existingStudent.last_name) {
-            //     updateFields.push("last_name = ?");
-            //     updateValues.push(last_name.trim());
-            // }
-            // if (study_status_id && parseInt(study_status_id) !== existingStudent.study_status_id) {
-            //     updateFields.push("study_status_id = ?");
-            //     updateValues.push(parseInt(study_status_id));
-            // }
-            // if (entry_level_id && parseInt(entry_level_id) !== existingStudent.entry_level_id) {
-            //     updateFields.push("entry_level_id = ?");
-            //     updateValues.push(parseInt(entry_level_id));
-            // }
+                    if (conflicts.length > 0) {
+                        return res.status(409).json({ error: 'Student Number already exists' });
+                    }
+                }
+            };
 
             //Helper function to normalize for comparison
             function normalize(val) {
                 if (val === undefined || val === "" || val === null) return null;
                 if (!isNaN(val)) return parseInt(val);
                 return String(val).trim().toLowerCase();
-            }
+            };
 
             const fieldsToCheck = [
                 "student_number", "user_id", "pathway_id", "first_name", "last_name", "study_status_id", "entry_level_id"
@@ -557,33 +516,115 @@ module.exports = function (db) {
             }
 
             updateValues.push(id); // for WHERE clause
-            const updateSQL = `UPDATE student SET ${updateFields.join(", ")} WHERE id = ?`;
+
+            if (updateFields.length > 0) {
+                const updateSQL = `UPDATE student SET ${updateFields.join(", ")} WHERE id = ?`;
+                await db.promise().query(updateSQL, updateValues);
+            }
+
+            res.status(200).json({ message: "Student updated successfully." });
 
 
-            db.query(updateSQL, updateValues, (err, result) => {
-                if (err) {
-                    if (err.code === 'ER_DUP_ENTRY') {
-                        const message = err.message || err.sqlMessage || '';
-                        if (message.includes('unique_student_number')) { // name of unique constraint in db
-                            return res.status(409).json({ error: 'Student Number already exists' });
-                        } else {
-                            return res.status(409).json({ error: 'Duplicate entry. A unique field already exists' }); // ensuring is scalable for addition of unique fields later
-                        }
-                    }
-                    return res.status(500).json({ error: 'Failed to update student data', details: err.message });
-                }
+        } catch (err) {
+            console.error("Error updating student:", err);
+            res.status(500).json({ error: "Server error", details: err.message });
+        }
 
-                if (result.affectedRows === 0) {
-                    return res.status(404).json({ error: 'Student not found' });
-                }
-
-                res.status(201).json({
-                    message: "Student updated successfully!!!",
-                    studentId: id
-                });
-            });
-        });
     });
+
+    //     // Retrieve the current data for comparison
+    //     const selectSQL = `SELECT * FROM student WHERE id = ?`;
+    //     db.query(selectSQL, [id], (err, rows) => {
+    //         if (err) {
+    //             return res.status(500).json({ error: 'Failed to fetch existing student data', details: err.message });
+    //         }
+
+    //         if (rows.length === 0) {
+    //             return res.status(404).json({ error: 'Student not found' });
+    //         }
+
+    //         const existingStudent = rows[0];
+
+
+
+    //         // // Check if the data being updated is the same as existing data
+    //         // // Checks only for fields which are being passed in - doesn't check undefined fields that aren't being toucehd
+    //         // const isIdentical = Object.keys(req.body).every((key) => {
+    //         //     const newVal = req.body[key];
+    //         //     const existingVal = existingStudent[key];
+
+    //         //     // Compare numeric fields as integers
+    //         //     if (["user_id", "pathway_id", "study_status_id", "entry_level_id"].includes(key)) {
+    //         //         return parseInt(newVal) === existingVal;
+    //         //     }
+
+    //         //     // Compare text fields as trimmed strings
+    //         //     const normalizedNew = (newVal === null || newVal === undefined) ? "" : String(newVal).trim();
+    //         //     const normalizedExisting = (existingVal === null || existingVal === undefined) ? "" : String(existingVal).trim();
+
+    //         //     return normalizedNew === normalizedExisting;
+    //         // });
+
+    //         // if (isIdentical) {
+    //         //     return res.status(400).json({ error: 'No changes detected. Student data is identical.' });
+    //         // }
+
+    //         // if (student_number && student_number.trim() !== existingStudent.student_number) {
+    //         //     updateFields.push("student_number = ?");
+    //         //     updateValues.push(student_number.trim());
+    //         // }
+    //         // if (user_id && parseInt(user_id) !== existingStudent.user_id) {
+    //         //     updateFields.push("user_id = ?");
+    //         //     updateValues.push(parseInt(user_id));
+    //         // }
+    //         // if (pathway_id && parseInt(pathway_id) !== existingStudent.pathway_id) {
+    //         //     updateFields.push("pathway_id = ?");
+    //         //     updateValues.push(parseInt(pathway_id));
+    //         // }
+    //         // if (first_name && first_name.trim() !== existingStudent.first_name) {
+    //         //     updateFields.push("first_name = ?");
+    //         //     updateValues.push(first_name.trim());
+    //         // }
+    //         // if (last_name && last_name.trim() !== existingStudent.last_name) {
+    //         //     updateFields.push("last_name = ?");
+    //         //     updateValues.push(last_name.trim());
+    //         // }
+    //         // if (study_status_id && parseInt(study_status_id) !== existingStudent.study_status_id) {
+    //         //     updateFields.push("study_status_id = ?");
+    //         //     updateValues.push(parseInt(study_status_id));
+    //         // }
+    //         // if (entry_level_id && parseInt(entry_level_id) !== existingStudent.entry_level_id) {
+    //         //     updateFields.push("entry_level_id = ?");
+    //         //     updateValues.push(parseInt(entry_level_id));
+    //         // }
+
+
+
+
+    //         db.query(updateSQL, updateValues, (err, result) => {
+    //             if (err) {
+    //                 if (err.code === 'ER_DUP_ENTRY') {
+    //                     const message = err.message || err.sqlMessage || '';
+    //                     if (message.includes('unique_student_number')) { // name of unique constraint in db
+    //                         return res.status(409).json({ error: 'Student Number already exists' });
+    //                     } else {
+    //                         return res.status(409).json({ error: 'Duplicate entry. A unique field already exists' }); // ensuring is scalable for addition of unique fields later
+    //                     }
+    //                 }
+    //                 return res.status(500).json({ error: 'Failed to update student data', details: err.message });
+    //             }
+
+    //             if (result.affectedRows === 0) {
+    //                 return res.status(404).json({ error: 'Student not found' });
+    //             }
+
+    //             res.status(200).json({
+    //                 message: "Student updated successfully!!!",
+    //                 studentId: id
+    //             });
+    //         });
+    //     });
+    // });
 
     // DELETE a student by ID - /student/:id
     // This route should delete a student based on their ID
