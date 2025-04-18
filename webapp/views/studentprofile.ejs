@@ -14,7 +14,8 @@
     <div class="bg-light">
         <!-- Navigation Bar -->
         <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
-            <a class="navbar-brand col-sm-3 col-md-2 ms-2" href="#"><img class="logo" src="/img/QUB-logo.png" alt="">Generic University Name</a>
+            <a class="navbar-brand col-sm-3 col-md-2 ms-2" href="#"><img class="logo" src="/img/QUB-logo.png"
+                    alt="">Generic University Name</a>
             <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">  -->
             <ul class="navbar-nav px-3">
                 <li class="nav-item text-nowrap">
@@ -53,9 +54,11 @@
                                 <div class="col-lg-3 border-end">
                                     <div class="p-4">
                                         <div class="nav flex-column nav-pills">
-                                            <a class="nav-link active" href="#"><i class="fa-solid fa-user-graduate me-2"></i>Personal
+                                            <a class="nav-link active" href="#"><i
+                                                    class="fa-solid fa-user-graduate me-2"></i>Personal
                                                 Info</a>
-                                            <a class="nav-link" href="#"><i class="fa-solid fa-chart-line me-2"></i>Module Grades</a>
+                                            <a class="nav-link" href="#"><i
+                                                    class="fa-solid fa-chart-line me-2"></i>Module Grades</a>
                                             <a class="nav-link" href="#"><i
                                                     class="fa fa-university me-2"></i>Progression Statistics</a>
                                             <a class="nav-link" href="#"><i
@@ -65,38 +68,45 @@
                                 </div>
 
                                 <!-- Content Area -->
+
                                 <div class="col-lg-9">
                                     <div class="p-4">
                                         <!-- Personal Information -->
                                         <div class="mb-4">
                                             <h5 class="mb-4">Personal Information</h5>
+                                            <form id="editStudentProfile"></form>
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">First Name</label>
-                                                    <input type="text" class="form-control" value="Hector">
+                                                    <input type="text" class="form-control" value="Hector" readonly>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Last Name</label>
-                                                    <input type="text" class="form-control" value="Salamanca">
+                                                    <input type="text" class="form-control" value="Salamanca" readonly>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Primary Email</label>
-                                                    <input type="text" class="form-control" value="hector@qub.co.uk">
+                                                    <input type="text" class="form-control" value="hector@qub.co.uk"
+                                                        readonly>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Phone</label>
-                                                    <input type="tel" class="form-control" value="+1 (555) 123-4567">
+                                                    <input type="tel" class="form-control" value="+1 (555) 123-4567"
+                                                        readonly>
                                                 </div>
-                                                
+
                                                 <div class="col-md-6">
                                                     <label class="form-label">Secondary Email</label>
                                                     <input type="text" class="form-control" value="hector@gmail.com">
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Address</label>
-                                                    <input type="tel" class="form-control" value="8 Los Pollos Way, Albequerque, New Mexico, 4800">
+                                                    <input type="tel" class="form-control"
+                                                        value="8 Los Pollos Way, Albequerque, New Mexico, 4800">
                                                 </div>
                                             </div>
+                                            <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
