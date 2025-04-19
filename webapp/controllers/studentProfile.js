@@ -1,14 +1,32 @@
-const express = require("express");
-const router = express.Router();
-const requireStudent = require("../middleware/requireStudent");
+const axios = require("axios");
 
-router.get('/', requireStudent, (req, res) => {
-  res.render('studentprofile', {
-    user: {
-      id: req.session.userID,
-      email: req.session.email
-    }
-  });
+const router = require("../utils/studentOnlyRouter")(); // wrapped router - middleware to check if user is student
+
+const getApiConfig = require('../utils/apiConfig');
+const config = getApiConfig(); //default JSON
+
+//GET all students profile details
+router.get('/', async (req, res) => {
+
+  try {
+
+    const userId = req.session.userID;
+
+    const profileRes = await axios.get(`http://localhost:4000/student/by-user/${userId}`, config);
+
+    res.render('studentprofile', {
+      user: {
+        id: req.session.userID,
+        email: req.session.email
+      },
+      student: profileRes.data
+    });
+
+  } catch (error) {
+    console.error("Error fetching profile data:", error.message);
+    res.status(500).send("Error loading profile.");
+  }
+
 });
 
 module.exports = router;
