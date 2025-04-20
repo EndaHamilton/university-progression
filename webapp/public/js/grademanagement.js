@@ -288,3 +288,103 @@ document.querySelectorAll(".delete-btn").forEach(button => {
     });
 });
 
+// Modal to display grades for each student
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".view-grades-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const studentId = btn.dataset.id;
+  
+        try {
+          const response = await fetch(`/grademanagement/student/${studentId}`);
+          const data = await response.json();
+  
+          if (!response.ok) {
+            alert(data.error || "Error fetching student grades");
+            return;
+          }
+  
+          // Show student info
+          const s = data.student;
+          document.getElementById("modalStudentInfo").innerHTML = `
+            <strong>${s.first_name} ${s.last_name}</strong> (${s.student_number})<br>
+            Pathway: ${s.pathway_name}<br>
+            Entry Level: ${s.entry_level}, Study Status: ${s.study_status}
+          `;
+  
+          // Populate grades
+          const tbody = document.getElementById("modalGradeTableBody");
+          tbody.innerHTML = "";
+  
+          data.studentGrades.forEach(g => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${g.module_title} (${g.module_code})</td>
+              <td>${g.academic_year}</td>
+              <td><input type="number" class="form-control form-control-sm" value="${g.first_grade}" data-id="${g.id}" data-type="first_grade"></td>
+              <td>
+                <select class="form-control form-control-sm" data-id="${g.id}" data-type="grade_result">
+                  ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
+                    `<option value="${opt}" ${opt === g.grade_result ? "selected" : ""}>${opt}</option>`
+                  ).join("")}
+                </select>
+              </td>
+              <td><input type="number" class="form-control form-control-sm" value="${g.resit_grade || ""}" data-id="${g.id}" data-type="resit_grade"></td>
+              <td>
+                <select class="form-control form-control-sm" data-id="${g.id}" data-type="resit_result">
+                  <option value=""></option>
+                  ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
+                    `<option value="${opt}" ${opt === g.resit_result ? "selected" : ""}>${opt}</option>`
+                  ).join("")}
+                </select>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-success save-grade-btn" data-id="${g.id}">Save</button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+  
+          $('#studentGradeModal').modal('show');
+        } catch (err) {
+          console.error("Error fetching grades:", err);
+          alert("Something went wrong loading student grades.");
+        }
+      });
+    });
+  
+    // Handle save clicks
+    document.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("save-grade-btn")) {
+        const gradeId = e.target.dataset.id;
+        const row = e.target.closest("tr");
+  
+        const payload = {
+          first_grade: row.querySelector('[data-type="first_grade"]').value,
+          grade_result: row.querySelector('[data-type="grade_result"]').value,
+          resit_grade: row.querySelector('[data-type="resit_grade"]').value || null,
+          resit_result: row.querySelector('[data-type="resit_result"]').value || null
+        };
+  
+        try {
+          const response = await fetch(`/grademanagement/edit-grade/${gradeId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+  
+          const result = await response.json();
+  
+          if (response.ok) {
+            alert("Grade updated!");
+          } else {
+            alert("Update failed: " + result.error);
+          }
+        } catch (err) {
+          console.error("Failed to save grade:", err);
+          alert("Something went wrong while saving.");
+        }
+      }
+    });
+  });
+

@@ -9,6 +9,38 @@
     <link rel="stylesheet" href="/css/design.css">
 </head>
 
+<!-- Student Grade Modal -->
+<div class="modal fade" id="studentGradeModal" tabindex="-1" role="dialog" aria-labelledby="studentGradeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Student Grades</h5>
+          <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <!-- Student Info -->
+          <div id="modalStudentInfo" class="mb-3"></div>
+  
+          <!-- Grades Table -->
+          <table class="table table-sm table-striped">
+            <thead class="thead-light">
+              <tr>
+                <th>Module</th>
+                <th>Year</th>
+                <th>1st Grade</th>
+                <th>1st Result</th>
+                <th>Resit Grade</th>
+                <th>Resit Result</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="modalGradeTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <body>
 
     <!-- Navigation Bar -->
@@ -82,7 +114,7 @@
                 <% if (students.length > 0) { %>
                     <div class="row">
                       <% students.forEach(s => { %>
-                        <div class="col-md-6 col-lg-4 student-card">
+                        <div class="col-md-6 col-lg-3 student-card">
                           <div class="card mb-4 shadow-sm">
                             <div class="card-body">
                               <h5 class="card-title"><%= s.first_name %> <%= s.last_name %></h5>

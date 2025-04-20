@@ -5,7 +5,7 @@ const router = require("../utils/adminOnlyRouter")(); // wrapped router - middle
 const getApiConfig = require('../utils/apiConfig');
 const config = getApiConfig(); //default JSON
 
-//GET all students
+//GET all students - /student/details - this is to present the grid for all students - each one clickable to display individual grade details
 router.get('/', async (req, res) => {
 
     try {
@@ -16,13 +16,38 @@ router.get('/', async (req, res) => {
                 id: req.session.userID,
                 email: req.session.email
             },
-            students : studentRes.data
+            students: studentRes.data
         });
-    } catch (err){
+    } catch (err) {
         console.error("Error loading students:", err.message);
         res.status(500).send("Error loading students");
     }
 
+});
+
+// GET all grades for a specific student
+router.get('/student/:studentId', async (req, res) => {
+    const studentId = parseInt(req.params.studentId);
+    if (isNaN(studentId)) {
+        return res.status(400).json({ error: 'Invalid student ID' });
+    }
+
+    try {
+        const [studentGradesRes, studentRes] = await Promise.all([
+            axios.get(`http://localhost:4000/grades/student/${studentId}`, config),
+            axios.get(`http://localhost:4000/student/details/${studentId}`, config)
+        ]);
+
+        return res.status(200).json({
+            studentGrades: studentGradesRes.data,
+            student: studentRes.data
+        });
+    } catch (error) {
+        console.error("Error fetching student grades:", error.message);
+        const status = error.response?.status || 500;
+        const errorMessage = error.response?.data?.error || "Failed to retrieve student grades";
+        return res.status(status).json({ error: errorMessage });
+    }
 });
 
 // //GET all grades grouped by student

@@ -6,6 +6,38 @@ router.use(checkApiKey) // Apply the API key check middleware to all routes in t
 
 module.exports = function (db) {
 
+    //GET all grades by student
+    router.get('/student/:studentId', async (req, res) => {
+        const studentId = parseInt(req.params.studentId);
+        if (isNaN(studentId)) {
+            return res.status(400).json({ error: 'Invalid student ID. Must be a number' });
+        }
+    
+        try {
+            const [rows] = await db.promise().query(`
+                SELECT 
+                    sm.id,
+                    m.title AS module_title,
+                    m.module_code,
+                    ay.name AS academic_year,
+                    sm.first_grade,
+                    sm.grade_result,
+                    sm.resit_grade,
+                    sm.resit_result
+                FROM student_module sm
+                JOIN module m ON sm.module_id = m.id
+                JOIN acad_year ay ON sm.academic_year_id = ay.id
+                WHERE sm.student_id = ?
+                ORDER BY ay.name DESC
+            `, [studentId]);
+    
+            return res.status(200).json(rows);
+        } catch (err) {
+            console.error("Error fetching grades for student:", err);
+            return res.status(500).json({ error: "Failed to fetch student grades" });
+        }
+    });
+
     // GET: All grades grouped by student
     router.get('/', async (req, res) => {
         try {
@@ -313,7 +345,7 @@ module.exports = function (db) {
                 parseInt(study_status_id)
             ]);
 
-            res.status(201).json({ message: "Grade added successfully!", insertId: result.insertId });
+            res.status(200).json({ message: "Grade added successfully!", insertId: result.insertId });
 
         } catch (err) {
             console.error("Error adding grade:", err);

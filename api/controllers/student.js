@@ -273,6 +273,34 @@ module.exports = function (db) {
 
     });
 
+    // GET student details by ID
+    // This route should return a single student and all FK details by ID
+    // Get All Students with Related foreign key data(JOIN Query)
+    // - student/details
+    router.get("/details/:id", async (req, res) => {
+        const id = parseInt(req.params.id);
+        const allStudentsDetailsSQL = `
+            SELECT 
+                s.*, 
+                p.name AS pathway_name, 
+                ss.name AS study_status, 
+                el.name AS entry_level
+            FROM student s
+            INNER JOIN pathway p ON s.pathway_id = p.id
+            INNER JOIN study_status ss ON s.study_status_id = ss.id
+            INNER JOIN entry_level el ON s.entry_level_id = el.id
+            WHERE s.id = ?
+            `;
+
+        try {
+            const [rows] = await db.promise().query(allStudentsDetailsSQL, [id]);
+            res.json(rows[0]);
+        } catch (err) {
+            console.error("Database error", err);
+            res.status(500).json({ error: "Failed to fetch student details" });
+        }
+    });
+
     // POST a new student - /student
     // This route should add a new student to the database
 
