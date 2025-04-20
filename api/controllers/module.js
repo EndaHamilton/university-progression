@@ -12,9 +12,11 @@ module.exports = function (db) {
         db.query(`
             SELECT 
             module.*, 
+            subject.code AS subject_code,
             semester.name AS semester_name,
             GROUP_CONCAT(pathway.name SEPARATOR ', ') AS pathway_names
             FROM module
+            INNER JOIN subject ON module.subject_id = subject.id
             INNER JOIN semester ON module.semester_id = semester.id
             LEFT JOIN pathway_module ON module.id = pathway_module.module_id
             LEFT JOIN pathway ON pathway_module.pathway_id = pathway.id

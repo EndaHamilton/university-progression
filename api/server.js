@@ -10,9 +10,9 @@ app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-enco
 //create a mySQL connection 
 const db = mysql.createConnection({
     host: "localhost",
-    user: "root",       // Replace with your MySQL username
-    password: "root",       // Replace with your MySQL password
-    database: "academics"    // Name of the database
+    user: "root",       //  MySQL username
+    password: "root",       // MySQL password
+    database: "acad_progression_new"    // Name of the database
 });
 
 //connect to mySQL
