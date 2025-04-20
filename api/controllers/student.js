@@ -11,49 +11,6 @@ module.exports = function (db) {
         res.send("Student route is working!");
     });
 
-    // //Format validation function for adding student
-    // function validateNewStudent(data) {
-    //     const errors = [];
-
-    //     const {
-    //         student_number,
-    //         user_id,
-    //         pathway_id,
-    //         first_name,
-    //         last_name,
-    //         study_status_id,
-    //         entry_level_id
-    //     } = data;
-
-    //     //1. Presence check for required fields
-    //     if (!student_number) {
-    //         errors.push("Student number is required.");
-    //     }
-
-    //     if (!first_name) {
-    //         errors.push("First name is required.");
-    //     }
-
-    //     if (!last_name) {
-    //         errors.push("Last name is required.");
-    //     }
-
-    //     if (!pathway_id) {
-    //         errors.push("Pathway is required.");
-    //     }
-
-    //     if (!study_status_id) {
-    //         errors.push("Study status is required.");
-    //     }
-
-    //     if (!entry_level_id) {
-    //         errors.push("Entry level is required.");
-    //     }
-
-    //     return errors.concat(validateSharedFields(data));
-
-
-    // }
 
     //Format validation function for shared fields between adding and updating student
     //isUpdate check is needed as means if it is a PUT request it only checks for the fields that are being updated and not all fields
@@ -249,82 +206,6 @@ module.exports = function (db) {
 
     // }
 
-    // //Format validation function
-    // function validateStudentInput(data) {
-    //     const {
-    //         student_number,
-    //         user_id,
-    //         pathway_id,
-    //         first_name,
-    //         last_name,
-    //         study_status_id,
-    //         entry_level_id
-    //     } = data;
-
-    //     const errors = [];
-
-    //     //1. Presence check for required fields
-    //     if (!student_number) {
-    //         errors.push("Student number is required.");
-    //     }
-
-    //     if (!first_name) {
-    //         errors.push("First name is required.");
-    //     }
-
-    //     if (!last_name) {
-    //         errors.push("Last name is required.");
-    //     }
-
-    //     if (!pathway_id) {
-    //         errors.push("Pathway is required.");
-    //     }
-
-    //     if (!study_status_id) {
-    //         errors.push("Study status is required.");
-    //     }
-
-    //     if (!entry_level_id) {
-    //         errors.push("Entry level is required.");
-    //     }
-
-    //     //2. Format checks for fields
-    //     const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
-
-    //     if (student_number && (student_number.length < 5 || student_number.length > 15 || !isPositiveInteger(student_number))) {
-    //         errors.push("Student number must be a whole number between 5 and 15 characters.");
-    //     }
-    //     if (user_id && (!isPositiveInteger(user_id))) {
-    //         errors.push("User ID must be a positive whole number.");
-    //     }
-    //     if (first_name && (!isNaN(first_name))) {
-    //         errors.push("First name entries must not be numeric.");
-    //     }
-    //     if (first_name && (first_name.length < 2)) {
-    //         errors.push("First name entries must be more than 1 character long.");
-    //     }
-    //     if (first_name && (first_name.length > 50)) {
-    //         errors.push("First name entries must be less than 50 characters long.");
-    //     }
-    //     if (last_name && (!isNaN(last_name))) {
-    //         errors.push("Last name entries must not be numeric.");
-    //     }
-    //     if (last_name && (last_name.length < 2)) {
-    //         errors.push("Last name entries must be more than 1 character long.");
-    //     }
-    //     if (last_name && (last_name.length > 50)) {
-    //         errors.push("First name entries must be less than 50 characters long.");
-    //     }
-    //     if (study_status_id && (!isPositiveInteger(study_status_id))) {
-    //         errors.push("Study status ID must be a positive whole number.");
-    //     }
-    //     if (entry_level_id && (!isPositiveInteger(entry_level_id))) {
-    //         errors.push("Entry level ID must be a positive whole number.");
-    //     }
-
-    //     return errors;
-
-    // }
 
 
     // GET all students - /student
