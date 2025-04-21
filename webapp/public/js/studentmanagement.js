@@ -3,28 +3,30 @@ console.log("Student Management JS loaded.");
 
 function validateStudentForm(form, errorDiv) {
 
-    const studentNumber = form.querySelector('[name="student_number"]').value.trim();
+    // const studentNumber = form.querySelector('[name="student_number"]').value.trim();
     const userId = form.querySelector('[name="user_id"]').value.trim();
     const pathwayId = form.querySelector('[name="pathway_id"]').value.trim();
     const firstName = form.querySelector('[name="first_name"]').value.trim();
     const lastName = form.querySelector('[name="last_name"]').value.trim();
     const studyStatusId = form.querySelector('[name="study_status_id"]').value.trim();
     const entryLevelId = form.querySelector('[name="entry_level_id"]').value.trim();
+    const enrollmentYear = form.querySelector('[name="enrollment_year"]').value.trim();
 
     //query for checking positive integers
     const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
 
     // 1. Presence check for all fields
-    if (!studentNumber) return showError('Student number is required.');
+    // if (!studentNumber) return showError('Student number is required.');
     if (!pathwayId) return showError('Please select a pathway.');
     if (!firstName) return showError('First name is required.');
     if (!lastName) return showError('Last name is required.');
     if (!studyStatusId) return showError('Study Status ID is required.');
     if (!entryLevelId) return showError('Entry Level ID is required.');
+    if (!enrollmentYear) return showError('Enrollment Year is required.');
 
     // 2. Format check for individual fields
-    if (studentNumber.length < 5 || studentNumber.length > 15)
-        return showError('Student number must be between 5 and 15 characters.');
+    // if (studentNumber.length < 5 || studentNumber.length > 15)
+    //     return showError('Student number must be between 5 and 15 characters.');
     if (userId && !isPositiveInteger(userId))
         return showError('User ID must be a positive whole number.');
     if (!isNaN(firstName) || !isNaN(lastName))
@@ -37,6 +39,10 @@ function validateStudentForm(form, errorDiv) {
         return showError('Please select a valid Study Status.');
     if (!isPositiveInteger(entryLevelId))
         return showError('Please select a valid Entry Level.');
+    if (!isPositiveInteger(enrollmentYear))
+        return showError('Enrollment Year must be a positive whole number');
+    if (parseInt(enrollmentYear) < 2000 || parseInt(enrollmentYear) > 3000)
+        return showError('Enrollment Year must be a valid year (between 2000 and 3000).');
 
     return null; // No errors found
 

@@ -15,15 +15,15 @@ module.exports = function (db) {
         const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
         const shouldCheck = (field) => !isUpdate || field in data;
 
-        if (shouldCheck('student_number')) {
-            const val = data.student_number;
-            const valStr = String(val);
-            if (!val || valStr.trim() === "") {
-                errors.push("Student number cannot be empty.");
-            } else if (valStr.length < 5 || valStr.length > 15) {
-                errors.push("Student number must be between 5 to 15 characters.");
-            }
-        }
+        // if (shouldCheck('student_number')) {
+        //     const val = data.student_number;
+        //     const valStr = String(val);
+        //     if (!val || valStr.trim() === "") {
+        //         errors.push("Student number cannot be empty.");
+        //     } else if (valStr.length < 5 || valStr.length > 15) {
+        //         errors.push("Student number must be between 5 to 15 characters.");
+        //     }
+        // }
 
         if ('user_id' in data && data.user_id !== null && data.user_id !== "") {
             if (!isPositiveInteger(data.user_id)) {
@@ -94,6 +94,19 @@ module.exports = function (db) {
                 errors.push("Pathway ID must be a positive whole number.");
             }
         }
+
+        if (shouldCheck('enrollment_year')) {
+            const val = data.enrollment_year;
+            const valStr = String(val);
+            if (!val || valStr.trim() === "") {
+                errors.push("Enrollment year cannot be empty.");
+            } else if (!isPositiveInteger(val)) {
+                errors.push("Enrollment year must be a positive whole number.");
+            } else if (parseInt(val) < 2000 || parseInt(val) > 3000) {
+                errors.push("Enrollment year must be a valid year (between 2000 - 3000).");
+            }
+        }
+
         return errors;
 
     }
@@ -195,7 +208,7 @@ module.exports = function (db) {
     //adding callback function to handle separate error handling for duplicate student number
 
     router.post("/", async (req, res) => {
-        const { student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id } = req.body;
+        const { student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year } = req.body;
 
         const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
 
@@ -208,23 +221,46 @@ module.exports = function (db) {
         // Validate that student_number is unique if all other validaton passes above
 
         try {
-            const [existingStudentNumber] = await db.promise().query(`SELECT * FROM student WHERE student_number = ?`, [student_number]
 
+            // Get pathway code
+            const [pathwayRows] = await db.promise().query(`SELECT code FROM pathway WHERE id = ?`, [pathway_id]);
+            if (pathwayRows.length === 0) {
+                return res.status(400).json({ error: "Invalid pathway ID" });
+            }
+            const pathwayCode = pathwayRows[0].code;
+
+            const currentYear = new Date().getFullYear();
+            const yearNum = String(enrollment_year).slice(-2);
+
+            // Generate sequential number — count how many existing students share the same year + pathway code prefix
+            const pattern = `${yearNum}-${pathwayCode}-%`;
+            const [existingCountRows] = await db.promise().query(
+                `SELECT COUNT(*) AS count FROM student WHERE student_number LIKE ?`,
+                [pattern]
             );
+
+            const sequenceNumber = existingCountRows[0].count + 1;
+            const paddedSequence = String(sequenceNumber).padStart(6, "0"); // e.g., 7 → '000007
+
+            const studentNumber = `${yearNum}-${pathwayCode}-${paddedSequence}`;
+
+            const [existingStudentNumber] = await db.promise().query(`SELECT * FROM student WHERE student_number = ?`, [studentNumber]
+            );
+
             if (existingStudentNumber.length > 0) {
                 return res.status(409).json({ error: 'Student Number already exists' });
             }
 
-            const insertStudentSQL = `INSERT INTO student (student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?)`;
+            const insertStudentSQL = `INSERT INTO student (student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
-            db.query(insertStudentSQL, [student_number, parsedUserId, parseInt(pathway_id), first_name, last_name, parseInt(study_status_id), parseInt(entry_level_id)], (err, result) => {
+            db.query(insertStudentSQL, [studentNumber, parsedUserId, parseInt(pathway_id), first_name, last_name, parseInt(study_status_id), parseInt(entry_level_id), parseInt(enrollment_year)], (err, result) => {
                 if (err) {
 
                     return res.status(500).json({ error: 'Failed to connect to database', details: err.message });
 
                 } else {
-                    res.status(200).json({ message: "Student created successfully", studentId: result.insertId, student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id });
+                    res.status(200).json({ message: "Student created successfully", studentId: result.insertId, student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year });
                 }
             });
 
@@ -340,25 +376,25 @@ module.exports = function (db) {
 
     router.get("/by-user/:user_id", async (req, res) => {
         const userId = parseInt(req.params.user_id);
-      
+
         if (isNaN(userId)) {
-          return res.status(400).json({ error: 'Invalid user ID' });
+            return res.status(400).json({ error: 'Invalid user ID' });
         }
-      
+
         try {
-          const [rows] = await db.promise().query(`SELECT * FROM student WHERE user_id = ?`, [userId]);
-      
-          if (rows.length === 0) {
-            return res.status(404).json({ error: 'Student not found for this user' });
-          }
-      
-          res.json(rows[0]);
-      
+            const [rows] = await db.promise().query(`SELECT * FROM student WHERE user_id = ?`, [userId]);
+
+            if (rows.length === 0) {
+                return res.status(404).json({ error: 'Student not found for this user' });
+            }
+
+            res.json(rows[0]);
+
         } catch (err) {
-          console.error("Database error", err);
-          res.status(500).json({ error: "Failed to fetch student by user ID" });
+            console.error("Database error", err);
+            res.status(500).json({ error: "Failed to fetch student by user ID" });
         }
-      });
+    });
 
     return router;
 };

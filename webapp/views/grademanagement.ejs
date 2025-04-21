@@ -9,41 +9,41 @@
   <link rel="stylesheet" href="/css/design.css">
 </head>
 
-<!-- Student Grade Modal -->
-<div class="modal fade" id="studentGradeModal" tabindex="-1" role="dialog" aria-labelledby="studentGradeModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog modal-xl-custom" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Student Grades</h5>
-        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-      </div>
-      <div class="modal-body">
-        <!-- Student Info -->
-        <div id="modalStudentInfo" class="mb-3"></div>
-        <div style="overflow-x: auto;">
-          <!-- Grades Table -->
-          <table class="table table-sm table-striped">
-            <thead class="thead-light">
-              <tr>
-                <th>Module</th>
-                <th>Year</th>
-                <th>1st Grade</th>
-                <th>1st Result</th>
-                <th>Resit Grade</th>
-                <th>Resit Result</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="modalGradeTableBody"></tbody>
-          </table>
+<body>
+
+  <!-- Student Grade Modal -->
+  <div class="modal fade" id="studentGradeModal" tabindex="-1" role="dialog" aria-labelledby="studentGradeModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl-custom" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Student Grades</h5>
+          <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <!-- Student Info -->
+          <div id="modalStudentInfo" class="mb-3"></div>
+          <div style="overflow-x: auto;">
+            <!-- Grades Table -->
+            <table class="table table-sm table-striped">
+              <thead class="thead-light">
+                <tr>
+                  <th>Module</th>
+                  <th>Year</th>
+                  <th>1st Grade</th>
+                  <th>1st Result</th>
+                  <th>Resit Grade</th>
+                  <th>Resit Result</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="modalGradeTableBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-
-<body>
 
   <!-- Navigation Bar -->
   <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
@@ -120,9 +120,8 @@
           <div class="col-sm-4">
             <select id="pathwayFilter" class="form-control">
               <option value="all">All Pathways</option>
-              <% const uniquePathways=[...new Set(students.map(s=> s.pathway_name))]; // using Set to get pathway names from students already passed to page
-                uniquePathways.forEach(p => {
-                %>
+              <% const uniquePathways=[...new Set(students.map(s=> s.pathway_name))] %>
+               <% uniquePathways.forEach(p => {%>
                 <option value="<%= p %>">
                   <%= p %>
                 </option>
@@ -130,6 +129,7 @@
             </select>
           </div>
         </div>
+
 
         <div class="form-group row mb-4">
           <label for="studentSearch" class="col-sm-2 col-form-label font-weight-bold">Search Students:</label>
