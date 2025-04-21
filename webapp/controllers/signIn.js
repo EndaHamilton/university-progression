@@ -3,7 +3,7 @@ const router = express.Router();
 const axios = require("axios");
 
 const getApiConfig = require("../utils/apiConfig"); // Import the API config function
-const configForm = getApiConfig('application/x-www-form-urlencoded'); // Get the config for login
+const configForm = getApiConfig('application/x-www-form-urlencoded'); // Get the config for login - different from config for all other pages
 
 router.get('/', (req, res) => {
     const showError = req.query.error; // Check if error query parameter is present

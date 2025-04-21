@@ -88,36 +88,6 @@ router.post('/add-student', async (req, res) => {
 
         return res.status(status).json({ error: errorMessage }); // updated to handle error response dynamically - not just 409
 
-        // let students = [], pathways = [], studyStatuses = [], entryLevels = [];;
-
-        // try {
-        //     const [studentsRes, pathwaysRes, studyStatusRes, entryLevelRes] = await Promise.all([
-        //         axios.get("http://localhost:4000/student/details"),
-        //         axios.get("http://localhost:4000/pathway"),
-        //         axios.get("http://localhost:4000/studystatus"),
-        //         axios.get("http://localhost:4000/entrylevel")
-        //     ]);
-
-        //     // Fallback to fetch data for rendering the page in case of error
-        //     // This is to ensure that the user still sees the data even if the add operation fails
-        //     students = studentsRes.data;
-        //     pathways = pathwaysRes.data;
-        //     studyStatuses = studyStatusRes.data;
-        //     entryLevels = entryLevelRes.data;
-
-        // } catch (fetchErr) {
-        //     console.error('Error fetching students for fallback:', fetchErr.message);
-        // }
-
-        // const errorMessage = (error.response && error.response.data?.error) || 'An unknown error occurred.';
-
-        // res.status(400).render('studentmanagement', {
-        //     students,
-        //     pathways,
-        //     studyStatuses,
-        //     entryLevels,
-        //     errorMessage
-        // });
 
     }
 });
@@ -183,10 +153,5 @@ router.delete('/delete-student/:id', async (req, res) => {
     }
 
 });
-
-
-
-
-
 
 module.exports = router;

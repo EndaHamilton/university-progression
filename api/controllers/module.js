@@ -21,7 +21,7 @@ module.exports = function (db) {
             LEFT JOIN pathway_module ON module.id = pathway_module.module_id
             LEFT JOIN pathway ON pathway_module.pathway_id = pathway.id
             GROUP BY module.id;
-            `, // SQL query to get details from join tables module, semester and pathway_module
+            `, 
             (err, rows) => {
                 if (err) {
                     console.error('Error fetching modules:', err);
@@ -221,7 +221,7 @@ module.exports = function (db) {
                 );
             }
 
-            res.status(201).json({
+            res.status(200).json({
                 message: "Module created successfully!",
                 module: newModuleId
             });
@@ -274,33 +274,6 @@ module.exports = function (db) {
                     ? [parseInt(req.body.pathway_ids)]
                     : [];
 
-            // // Compare fields in module table
-            // const moduleFieldsUnchanged = Object.keys(req.body).every((key) => {
-            //     const newVal = req.body[key];
-            //     const existingVal = existingModule[key];
-
-            //     if (["catalogue_code", "credits", "semester_id"].includes(key)) {
-            //         return parseInt(newVal) === existingVal;
-            //     }
-
-            //     const normalizedNew = (newVal === null || newVal === undefined) ? "" : String(newVal).trim();
-            //     const normalizedExisting = (existingVal === null || existingVal === undefined) ? "" : String(existingVal).trim();
-
-            //     return normalizedNew === normalizedExisting;
-            // });
-
-            // console.log("Existing pathway IDs from DB:", existingPathwayIds);
-            // console.log("New pathway IDs from req.body:", req.body.pathway_ids);
-            // console.log("Parsed newPathwayIds:", newPathwayIds);
-
-            // console.log("moduleFieldsUnchanged:", moduleFieldsUnchanged);
-            // console.log("pathwaysUnchanged:", pathwaysUnchanged);
-
-
-            // if (moduleFieldsUnchanged && pathwaysUnchanged) {
-            //     return res.status(400).json({ error: "No changes detected. Module data is identical." });
-            // }
-
             // // Compare pathway IDs (unordered)
             const pathwaysUnchanged = JSON.stringify(existingPathwayIds) === JSON.stringify(newPathwayIds);
 
@@ -316,39 +289,6 @@ module.exports = function (db) {
                     return res.status(409).json({ error: "Another module with the same subject code, catalogue code, and title already exists." });
                 }
             }
-
-            // //Helper function to normalize for comparison
-            // function normalize(val) {
-            //     if (val === undefined || val === "" || val === null) return null;
-            //     if (!isNaN(val)) return parseInt(val);
-            //     return String(val).trim().toLowerCase();
-            // }
-
-            // const fieldsToCheck = [
-            //     "subject_code", "catalogue_code", "title", "credits",
-            //     "semester_id",
-            // ];
-
-            // // Build update statement only with changed fields
-            // const updateFields = [];
-            // const updateValues = [];
-
-            // //Loop through fields in an easier way
-            // fieldsToCheck.forEach(key => {
-            //     if (key in req.body) {
-            //         const newVal = (req.body[key]);
-            //         const existingVal = (existingModule[key]);
-
-            //         const normalizedNew = normalize(newVal);
-            //         const normalizedExisting = normalize(existingVal);
-
-            //         console.log(`[COMPARE] ${key}: new=${normalizedNew}, existing=${normalizedExisting}`);
-            //         if (normalizedNew !== normalizedExisting) {
-            //             updateFields.push(`${key} = ?`);
-            //             updateValues.push(newVal);
-            //         }
-            //     }
-            // });
 
             const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
@@ -371,13 +311,6 @@ module.exports = function (db) {
                 await db.promise().query(updateSQL, updateValues);
             }
 
-
-
-            // updateValues.push(id);
-            // const updateSQL = `UPDATE module SET ${updateFields.join(", ")} WHERE id = ?`;
-
-            // await db.promise().query(updateSQL, updateValues);
-
             // Also update pathway_module junction table
             if ('pathway_ids' in req.body) {
                 const parsedPathways = Array.isArray(req.body.pathway_ids)
@@ -388,7 +321,6 @@ module.exports = function (db) {
 
                 // Delete old mappings
                 await db.promise().query(`DELETE FROM pathway_module WHERE module_id = ?`, [id]);
-
 
 
                 // Insert new ones

@@ -6,12 +6,6 @@ router.use(checkApiKey) // Apply the API key check middleware to all routes in t
 
 module.exports = function (db) {
 
-    // Test route to confirm it's working
-    router.get('/test', (req, res) => {
-        res.send("Student route is working!");
-    });
-
-
     //Format validation function for shared fields between adding and updating student
     //isUpdate check is needed as means if it is a PUT request it only checks for the fields that are being updated and not all fields
     //An optional nice to have on this later possibly is to implement helper functions to validate field types (e.g. names, numbers)
@@ -104,110 +98,6 @@ module.exports = function (db) {
 
     }
 
-    // //Format validation function for presence checks for required fields when adding a new student
-    // function validateNewStudent(data) {
-    //     const presenceErrors = [];
-
-    //     if (!data.student_number) {
-    //         presenceErrors.push("Student number is required.");
-    //     }
-    //     if (!data.first_name) {
-    //         presenceErrors.push("First name is required.");
-    //     }
-    //     if (!data.last_name) {
-    //         presenceErrors.push("Last name is required.");
-    //     }
-    //     if (!data.pathway_id) {
-    //         presenceErrors.push("Pathway is required.");
-    //     }
-    //     if (!data.study_status_id) {
-    //         presenceErrors.push("Study status is required.");
-    //     }
-    //     if (!data.entry_level_id) {
-    //         presenceErrors.push("Entry level is required.");
-    //     }
-
-    //     return presenceErrors.concat(validateSharedFields(data));
-    // }
-
-    // //Format validation function for format checks when updating a student
-    // function validateUpdateStudent(data) {
-    //     return validateSharedFields(data, { isUpdate: true });
-    // }
-
-    // //Format validation function for updating student
-    // function validateUpdateStudent(data) {
-    //     const errors = [];
-
-    //     const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
-
-    //     // Conditionally validate only if the field is included in request body
-    //     if ('student_number' in data) {
-    //         if (!data.student_number || data.first_name.trim() === "") {
-    //             errors.push("Student number cannot be empty.");
-    //         } else if (data.student_number.length < 5 || data.student_number.length > 15) {
-    //             errors.push("Student number must be numeric and between 5 to 15 characters.");
-    //         }
-    //     }
-
-    //     if ('user_id' in data && data.user_id !== null && data.user_id !== "") {
-    //         if (!isPositiveInteger(data.user_id)) {
-    //             errors.push("User ID must be a positive whole number.");
-    //         }
-    //     }
-
-    //     if ('first_name' in data) {
-    //         if (!data.first_name || data.first_name.trim() === "") {
-    //             errors.push("First name cannot be empty.");
-    //         } else {
-    //             if ((!isNaN(data.first_name))) {
-    //                 errors.push("First name must not be numeric.");
-    //             }
-    //             if (data.first_name.length < 2) {
-    //                 errors.push("First name must be at least 2 characters.");
-    //             }
-    //             if (data.first_name.length > 50) {
-    //                 errors.push("First name must be less than 50 characters.");
-    //             }
-    //         }
-    //     }
-
-    //     if ('last_name' in data) {
-    //         if (!data.last_name) {
-    //             errors.push("Last name cannot be empty.");
-    //         } else {
-    //             if ((!isNaN(data.last_name))) {
-    //                 errors.push("Last name must not be numeric.");
-    //             }
-    //             if (data.last_name.length < 2) {
-    //                 errors.push("Last name must be at least 2 characters.");
-    //             }
-    //             if (data.last_name.length > 50) {
-    //                 errors.push("Last name must be less than 50 characters.");
-    //             }
-    //         }
-    //     }
-
-    //     if ('study_status_id' in data && !isPositiveInteger(data.study_status_id)) {
-    //         errors.push("Study status ID must be a positive whole number.");
-    //     }
-
-    //     if ('entry_level_id' in data && !isPositiveInteger(data.entry_level_id)) {
-    //         errors.push("Entry level ID must be a positive whole number.");
-    //     }
-
-    //     if ('pathway_id' in data && !isPositiveInteger(data.pathway_id)) {
-    //         errors.push("Pathway ID must be a positive whole number.");
-    //     }
-
-    //     return errors;
-
-
-
-    // }
-
-
-
     // GET all students - /student
     // This route should return all students in the database
     router.get("/", async (req, res) => {
@@ -275,8 +165,6 @@ module.exports = function (db) {
 
     // GET student details by ID
     // This route should return a single student and all FK details by ID
-    // Get All Students with Related foreign key data(JOIN Query)
-    // - student/details
     router.get("/details/:id", async (req, res) => {
         const id = parseInt(req.params.id);
         const allStudentsDetailsSQL = `
@@ -447,6 +335,8 @@ module.exports = function (db) {
             res.status(500).json({ error: 'Failed to delete student', details: err.message });
         }
     });
+
+    // GETs a student details based on their user id - used primarily for populating student-side views once a student user logs in - user their id from the session
 
     router.get("/by-user/:user_id", async (req, res) => {
         const userId = parseInt(req.params.user_id);

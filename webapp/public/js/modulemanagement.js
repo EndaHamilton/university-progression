@@ -262,7 +262,7 @@ document.querySelectorAll(".delete-btn").forEach(button => {
             }
 
             alert(data.message || "Module deleted successfully!");
-            window.location.href = "/modulemanagement"; // Redirect to student management page
+            window.location.href = "/modulemanagement"; // Redirect to module management page
         } catch (err) {
             console.error("Error deleting module:", err);
             alert("A network error occurred while deleting the module.");

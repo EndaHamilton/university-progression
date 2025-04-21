@@ -4,8 +4,6 @@ function validateGradeForm(form, errorDiv) {
     const studentId = form.querySelector('[name="student_id"]').value.trim();
     const moduleId = form.querySelector('[name="module_id"]').value.trim();
     const academicYearId = form.querySelector('[name="academic_year_id"]').value.trim();
-    const entryLevelId = form.querySelector('[name="entry_level_id"]').value.trim();
-    const studyStatusId = form.querySelector('[name="study_status_id"]').value.trim();
 
     const firstGrade = form.querySelector('[name="first_grade"]').value.trim();
     const gradeResult = form.querySelector('[name="grade_result"]').value.trim();
@@ -20,8 +18,6 @@ function validateGradeForm(form, errorDiv) {
     if (!studentId) return showError("Student is required.");
     if (!moduleId) return showError("Module is required.");
     if (!academicYearId) return showError("Academic year is required.");
-    if (!entryLevelId) return showError("Entry level is required.");
-    if (!studyStatusId) return showError("Study status is required.");
     if (!firstGrade) return showError("First grade is required.");
     if (!gradeResult) return showError("First result is required.");
 
@@ -30,8 +26,6 @@ function validateGradeForm(form, errorDiv) {
     if (!isPositiveInteger(studentId)) return showError('Invalid student.');
     if (!isPositiveInteger(moduleId)) return showError('Invalid module.');
     if (!isPositiveInteger(academicYearId)) return showError('Invalid academic year.');
-    if (!isPositiveInteger(entryLevelId)) return showError('Invalid entry level.');
-    if (!isPositiveInteger(studyStatusId)) return showError('Invalid study status.');
 
     const gradeVal = Number(firstGrade);
     if (isNaN(gradeVal) || gradeVal < 0 || gradeVal > 100) {
@@ -89,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (error) return;
 
             const formData = new FormData(form);
-            const payload = cleanOptionalFields(Object.fromEntries(formData.entries()));
+            const payload = cleanOptionalFields(Object.fromEntries(formData.entries())); // convers optional fields to null if empty
 
             // // Convert optional fields to null if empty
             // if (!payload.resit_grade || payload.resit_grade === "") payload.resit_grade = null;
@@ -128,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 setTimeout(() => {
                     if (currentPath.includes("/by-module")) {
-                        window.location.href = "/grademanagement/by-module";
+                        window.location.href = "/grademanagement/";
                     } else {
                         window.location.href = "/grademanagement";
                     }
@@ -161,8 +155,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 editForm.querySelector('[name="student_id"]').value = grade.student_id;
                 editForm.querySelector('[name="module_id"]').value = grade.module_id;
                 editForm.querySelector('[name="academic_year_id"]').value = grade.academic_year_id;
-                editForm.querySelector('[name="entry_level_id"]').value = grade.entry_level_id;
-                editForm.querySelector('[name="study_status_id"]').value = grade.study_status_id;
                 editForm.querySelector('[name="first_grade"]').value = grade.first_grade;
                 editForm.querySelector('[name="grade_result"]').value = grade.grade_result;
                 editForm.querySelector('[name="resit_grade"]').value = grade.resit_grade || "";

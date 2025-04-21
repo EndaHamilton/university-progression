@@ -9,14 +9,22 @@ const config = getApiConfig(); //default JSON
 router.get('/', async (req, res) => {
 
     try {
-        const studentRes = await axios.get("http://localhost:4000/student/details", config);
+        const [studentRes, moduleRes, acadYearRes, gradeRes] = await Promise.all([
+            axios.get("http://localhost:4000/student/details", config),
+            axios.get("http://localhost:4000/module", config),
+            axios.get("http://localhost:4000/acadyear", config),
+            axios.get("http://localhost:4000/grades", config)
+        ]);
 
         res.render('grademanagement', {
             user: {
                 id: req.session.userID,
                 email: req.session.email
             },
-            students: studentRes.data
+            students: studentRes.data,
+            modules: moduleRes.data,
+            academicYears: acadYearRes.data,
+            grades: gradeRes.data
         });
     } catch (err) {
         console.error("Error loading students:", err.message);

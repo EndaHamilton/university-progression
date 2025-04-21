@@ -5,7 +5,7 @@ const router = require("../utils/studentOnlyRouter")(); // wrapped router - midd
 const getApiConfig = require('../utils/apiConfig');
 const config = getApiConfig(); //default JSON
 
-//GET all students profile details
+//GET all profile details of specific student - based on user ID
 router.get('/', async (req, res) => {
 
   try {
