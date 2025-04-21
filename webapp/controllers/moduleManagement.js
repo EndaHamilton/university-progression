@@ -10,9 +10,6 @@ const { ALLOWED_CREDIT_VALUES } = require("../../api/utils/constants");
 // Fetch all module details
 router.get('/', async (req, res) => {
 
-    if(!req.session.userID) {
-        return res.redirect('/'); // Redirect to sign-in page if user is not authenticated
-    }
 
     try {
         //GET request to different API endpoints for all data moduleManagement page uses

@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Fill form with student data
                 editForm.setAttribute("data-id", module.id);
                 editForm.querySelector('[name="subject_code"]').value = module.subject_code;
-                editForm.querySelector('[name="catalogue_code"]').value = module.catalogue_code;
+                editForm.querySelector('[name="subject_module_number"]').value = module.subject_module_number;
                 editForm.querySelector('[name="title"]').value = module.title;
                 editForm.querySelector('[name="credits"]').value = module.credits;
                 editForm.querySelector('[name="semester_id"]').value = module.semester_id;

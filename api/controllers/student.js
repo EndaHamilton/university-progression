@@ -101,11 +101,11 @@ module.exports = function (db) {
             if (!val || valStr.trim() === "") {
                 errors.push("Enrollment year cannot be empty.");
             } else if (!isPositiveInteger(val)) {
-                errors.push("Enrollment year must be a positive whole number.");
-            } else if (parseInt(val) < 2000 || parseInt(val) > 3000) {
-                errors.push("Enrollment year must be a valid year (between 2000 - 3000).");
+                errors.push("Enrollment year must be a valid year (between 2000 - 2099).");
+            } else if (parseInt(val) < 2000 || parseInt(val) > 2099) {
+                errors.push("Enrollment year must be a valid year (between 2000 - 2099).");
             }
-        }
+        } // could adjust year range in future if app were to be used beyond this. Just didn't want to confuse between 2022 and 2122 for example.
 
         return errors;
 
@@ -208,7 +208,7 @@ module.exports = function (db) {
     //adding callback function to handle separate error handling for duplicate student number
 
     router.post("/", async (req, res) => {
-        const { student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year } = req.body;
+        const {user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year } = req.body;
 
         const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
 
@@ -267,7 +267,7 @@ module.exports = function (db) {
                     return res.status(500).json({ error: 'Failed to connect to database', details: err.message });
 
                 } else {
-                    res.status(200).json({ message: "Student created successfully", studentId: result.insertId, student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year });
+                    res.status(200).json({ message: "Student created successfully", studentId: result.insertId, studentNumber, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year });
                 }
             });
 

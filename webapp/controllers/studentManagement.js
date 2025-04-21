@@ -20,9 +20,6 @@ const config = getApiConfig(); //default JSON
 // Fetch all student details
 router.get('/', async (req, res) => {
 
-    if(!req.session.userID) {
-        return res.redirect('/'); // Redirect to sign-in page if user is not authenticated
-    }
 
     try {
         //GET request to different API endpoints for all data studentManagement page uses

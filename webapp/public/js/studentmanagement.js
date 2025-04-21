@@ -41,8 +41,8 @@ function validateStudentForm(form, errorDiv) {
         return showError('Please select a valid Entry Level.');
     if (!isPositiveInteger(enrollmentYear))
         return showError('Enrollment Year must be a positive whole number');
-    if (parseInt(enrollmentYear) < 2000 || parseInt(enrollmentYear) > 3000)
-        return showError('Enrollment Year must be a valid year (between 2000 and 3000).');
+    if (parseInt(enrollmentYear) < 2000 || parseInt(enrollmentYear) > 2099)
+        return showError('Enrollment Year must be a valid year (between 2000 and 2099).');
 
     return null; // No errors found
 

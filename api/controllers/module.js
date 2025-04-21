@@ -21,7 +21,7 @@ module.exports = function (db) {
             LEFT JOIN pathway_module ON module.id = pathway_module.module_id
             LEFT JOIN pathway ON pathway_module.pathway_id = pathway.id
             GROUP BY module.id;
-            `, 
+            `,
             (err, rows) => {
                 if (err) {
                     console.error('Error fetching modules:', err);
@@ -36,7 +36,19 @@ module.exports = function (db) {
     // This route should return a single module by ID
     router.get("/:id", async (req, res) => {
         const id = parseInt(req.params.id);
-        const moduleByIdSQL = `SELECT * FROM module WHERE id = ?`;
+
+        const moduleByIdSQL = `SELECT 
+            module.*, 
+            subject.code AS subject_code,
+            semester.name AS semester_name,
+            GROUP_CONCAT(pathway.name SEPARATOR ', ') AS pathway_names
+            FROM module
+            INNER JOIN subject ON module.subject_id = subject.id
+            INNER JOIN semester ON module.semester_id = semester.id
+            LEFT JOIN pathway_module ON module.id = pathway_module.module_id
+            LEFT JOIN pathway ON pathway_module.pathway_id = pathway.id
+            WHERE module.id = ?;
+            `;
 
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid ID. Must be a number' });
@@ -79,27 +91,62 @@ module.exports = function (db) {
 
         // Ensure all cases of trim, values are converted to String
 
-        if (shouldCheck('subject_code')) {
-            const val = data.subject_code;
+        // if (shouldCheck('subject_code')) {
+        //     const val = data.subject_code;
+        //     const valStr = String(val);
+        //     if (!val || valStr.trim() === "") {
+        //         errors.push("Subject code cannot be empty.");
+        //     } else if (!isNaN(valStr)) {
+        //         errors.push("Subject code must not be numeric.");
+        //     } else if (valStr.length !== 4) {
+        //         errors.push("Subject code must be 4 characters exactly.");
+        //     }
+        // }
+
+        if (shouldCheck("subject_id")) {
+            const val = data.subject_id;
             const valStr = String(val);
             if (!val || valStr.trim() === "") {
-                errors.push("Subject code cannot be empty.");
-            } else if (!isNaN(valStr)) {
-                errors.push("Subject code must not be numeric.");
-            } else if (valStr.length !== 4) {
-                errors.push("Subject code must be 4 characters exactly.");
+                errors.push("Subject ID cannot be empty.");
+            }
+            else if (!isPositiveInteger(val)) {
+                errors.push("Subject ID must be a whole positive number");
             }
         }
 
-        if (shouldCheck('catalogue_code')) {
-            const val = data.catalogue_code;
+        if (shouldCheck("default_program_level")) {
+            const val = data.default_program_level;
             const valStr = String(val);
             if (!val || valStr.trim() === "") {
-                errors.push("Catalogue code cannot be empty.");
-            } else if (valStr.length !== 3) {
-                errors.push("Catalogue code must be 3 characters exactly.");
+                errors.push("Default Program Level cannot be empty.");
             }
+        } else if (![1, 2].includes(Number(val))) {
+            errors.push("Default Program Level must be either 1 or 2"); // would be extended to further levels - but our system only deals with 1 and 2 currently
         }
+
+
+        // if (shouldCheck('subject_code')) {
+        //     const val = data.subject_code;
+        //     const valStr = String(val);
+        //     if (!val || valStr.trim() === "") {
+        //         errors.push("Subject code cannot be empty.");
+        //     } else if (!isNaN(valStr)) {
+        //         errors.push("Subject code must not be numeric.");
+        //     } else if (valStr.length !== 4) {
+        //         errors.push("Subject code must be 4 characters exactly.");
+        //     }
+        // }
+
+
+        // if (shouldCheck('catalogue_code')) {
+        //     const val = data.catalogue_code;
+        //     const valStr = String(val);
+        //     if (!val || valStr.trim() === "") {
+        //         errors.push("Catalogue code cannot be empty.");
+        //     } else if (valStr.length !== 3) {
+        //         errors.push("Catalogue code must be 3 characters exactly.");
+        //     }
+        // }
 
         if (shouldCheck('title')) {
             const val = data.title;
@@ -162,7 +209,8 @@ module.exports = function (db) {
     // POST a new module - /module
     // This route should create a new module in the database
     router.post("/", async (req, res) => {
-        const { subject_code, catalogue_code, title, credits, semester_id, pathway_ids } = req.body;
+
+        const { subject_id, default_program_level, title, credits, semester_id, pathway_ids } = req.body;
 
         // Validate the request body
         const validationErrors = validateModuleFields(req.body);
