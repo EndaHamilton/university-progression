@@ -1,324 +1,324 @@
 
 // Validate add/edit Student Grade form
 function validateGradeForm(form, errorDiv) {
-    const studentId = form.querySelector('[name="student_id"]').value.trim();
-    const moduleId = form.querySelector('[name="module_id"]').value.trim();
-    const academicYearId = form.querySelector('[name="academic_year_id"]').value.trim();
+  const studentId = form.querySelector('[name="student_id"]').value.trim();
+  const moduleId = form.querySelector('[name="module_id"]').value.trim();
+  const academicYearId = form.querySelector('[name="academic_year_id"]').value.trim();
 
-    const firstGrade = form.querySelector('[name="first_grade"]').value.trim();
-    const gradeResult = form.querySelector('[name="grade_result"]').value.trim();
-    const resitGrade = form.querySelector('[name="resit_grade"]').value.trim();
-    const resitResult = form.querySelector('[name="resit_result"]').value.trim();
+  const firstGrade = form.querySelector('[name="first_grade"]').value.trim();
+  const gradeResult = form.querySelector('[name="grade_result"]').value.trim();
+  const resitGrade = form.querySelector('[name="resit_grade"]').value.trim();
+  const resitResult = form.querySelector('[name="resit_result"]').value.trim();
 
-    // Helpers
-    const isPositiveInteger = val => /^\d+$/.test(val);
-    const allowedResults = ['pass', 'fail', 'pass capped', 'excused', 'absent'];
+  // Helpers
+  const isPositiveInteger = val => /^\d+$/.test(val);
+  const allowedResults = ['pass', 'fail', 'pass capped', 'excused', 'absent'];
 
-    //1. Presence checks
-    if (!studentId) return showError("Student is required.");
-    if (!moduleId) return showError("Module is required.");
-    if (!academicYearId) return showError("Academic year is required.");
-    if (!firstGrade) return showError("First grade is required.");
-    if (!gradeResult) return showError("First result is required.");
+  //1. Presence checks
+  if (!studentId) return showError("Student is required.");
+  if (!moduleId) return showError("Module is required.");
+  if (!academicYearId) return showError("Academic year is required.");
+  if (!firstGrade) return showError("First grade is required.");
+  if (!gradeResult) return showError("First result is required.");
 
 
-    //2. Format checks for individual fields
-    if (!isPositiveInteger(studentId)) return showError('Invalid student.');
-    if (!isPositiveInteger(moduleId)) return showError('Invalid module.');
-    if (!isPositiveInteger(academicYearId)) return showError('Invalid academic year.');
+  //2. Format checks for individual fields
+  if (!isPositiveInteger(studentId)) return showError('Invalid student.');
+  if (!isPositiveInteger(moduleId)) return showError('Invalid module.');
+  if (!isPositiveInteger(academicYearId)) return showError('Invalid academic year.');
 
-    const gradeVal = Number(firstGrade);
-    if (isNaN(gradeVal) || gradeVal < 0 || gradeVal > 100) {
-        return showError('First grade must be a number between 0 and 100.');
-    }
+  const gradeVal = Number(firstGrade);
+  if (isNaN(gradeVal) || gradeVal < 0 || gradeVal > 100) {
+    return showError('First grade must be a number between 0 and 100.');
+  }
 
-    if (!allowedResults.includes(gradeResult.toLowerCase())) {
-        return showError('Invalid first result.');
-    }
+  if (!allowedResults.includes(gradeResult.toLowerCase())) {
+    return showError('Invalid first result.');
+  }
 
-    // 3. Optional resit fields
-    if (resitGrade && (isNaN(resitGrade) || resitGrade < 0 || resitGrade > 100)) {
-        return showError('Resit grade must be a number between 0 and 100.');
-    }
+  // 3. Optional resit fields
+  if (resitGrade && (isNaN(resitGrade) || resitGrade < 0 || resitGrade > 100)) {
+    return showError('Resit grade must be a number between 0 and 100.');
+  }
 
-    if (resitResult && resitResult !== "Select Result" && !allowedResults.includes(resitResult.toLowerCase())) {
-        return showError('Invalid resit result.');
-    }
+  if (resitResult && resitResult !== "Select Result" && !allowedResults.includes(resitResult.toLowerCase())) {
+    return showError('Invalid resit result.');
+  }
 
-    return null;
+  return null;
 
-    function showError(msg) {
-        errorDiv.textContent = msg;
-        errorDiv.classList.remove("d-none");
-        return msg;
-    }
+  function showError(msg) {
+    errorDiv.textContent = msg;
+    errorDiv.classList.remove("d-none");
+    return msg;
+  }
 }
 
 // Helper function for dealing with nullable fields
-function cleanOptionalFields(payload){
-    if (payload.resit_grade === "") payload.resit_grade = null;
-    if (payload.resit_result === "" || payload.resit_result === "Select Result") payload.resit_result = null;
-    return payload;
+function cleanOptionalFields(payload) {
+  if (payload.resit_grade === "") payload.resit_grade = null;
+  if (payload.resit_result === "" || payload.resit_result === "Select Result") payload.resit_result = null;
+  return payload;
 }
 
 // Add Student Grade Modal
 document.addEventListener("DOMContentLoaded", function () {
-    const form = document.querySelector("#addGradeForm");
+  const form = document.querySelector("#addGradeForm");
 
-    if (form) {
-        form.addEventListener("submit", async function (e) {
-            e.preventDefault();
-            console.log("Intercepted grade form submission");
+  if (form) {
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      console.log("Intercepted grade form submission");
 
-            const errorDiv = document.getElementById("addGradeError");
-            const successDiv = document.getElementById("addGradeSuccess");
+      const errorDiv = document.getElementById("addGradeError");
+      const successDiv = document.getElementById("addGradeSuccess");
 
-            // Clear previous feedback
-            errorDiv.classList.add("d-none");
-            errorDiv.textContent = "";
-            successDiv.classList.add("d-none");
-            successDiv.textContent = "";
+      // Clear previous feedback
+      errorDiv.classList.add("d-none");
+      errorDiv.textContent = "";
+      successDiv.classList.add("d-none");
+      successDiv.textContent = "";
 
-            const error = validateGradeForm(form, errorDiv);
-            if (error) return;
+      const error = validateGradeForm(form, errorDiv);
+      if (error) return;
 
-            const formData = new FormData(form);
-            const payload = cleanOptionalFields(Object.fromEntries(formData.entries())); // convers optional fields to null if empty
+      const formData = new FormData(form);
+      const payload = cleanOptionalFields(Object.fromEntries(formData.entries())); // convers optional fields to null if empty
 
-            // // Convert optional fields to null if empty
-            // if (!payload.resit_grade || payload.resit_grade === "") payload.resit_grade = null;
-            // if (!payload.resit_result || payload.resit_result === "Select Result" || payload.resit_result === "") payload.resit_result = null;
+      // // Convert optional fields to null if empty
+      // if (!payload.resit_grade || payload.resit_grade === "") payload.resit_grade = null;
+      // if (!payload.resit_result || payload.resit_result === "Select Result" || payload.resit_result === "") payload.resit_result = null;
 
-            console.log("Form is valid! Payload would be:", payload);
+      console.log("Form is valid! Payload would be:", payload);
 
-            console.log("Submitting grade with payload:", payload);
+      console.log("Submitting grade with payload:", payload);
 
-            try {
-                const response = await fetch("/grademanagement/add-grade", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-                console.log("Response:", data);
-
-                if (!response.ok) {
-                    const status = response.status;
-                    const errorMessage = data.error ||
-                        (status === 400 ? "Invalid input data." :
-                            status === 409 ? "This student already has a grade for that module and academic year." :
-                                status === 500 ? 'Server error. Please try again later.' :
-                                    'An unknown error occurred.');
-                    errorDiv.textContent = errorMessage;
-                    errorDiv.classList.remove("d-none");
-                    return;
-                }
-
-                successDiv.textContent = data.message || "Grade added successfully!";
-                successDiv.classList.remove("d-none");
-
-                const currentPath = window.location.pathname;
-
-                setTimeout(() => {
-                    if (currentPath.includes("/by-module")) {
-                        window.location.href = "/grademanagement/";
-                    } else {
-                        window.location.href = "/grademanagement";
-                    }
-                }, 2000);
-
-            } catch (err) {
-                console.error("Error submitting grade:", err);
-                errorDiv.textContent = "A network error occurred.";
-                errorDiv.classList.remove("d-none");
-            }
+      try {
+        const response = await fetch("/grademanagement/add-grade", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         });
-    }
+
+        const data = await response.json();
+        console.log("Response:", data);
+
+        if (!response.ok) {
+          const status = response.status;
+          const errorMessage = data.error ||
+            (status === 400 ? "Invalid input data." :
+              status === 409 ? "This student already has a grade for that module and academic year." :
+                status === 500 ? 'Server error. Please try again later.' :
+                  'An unknown error occurred.');
+          errorDiv.textContent = errorMessage;
+          errorDiv.classList.remove("d-none");
+          return;
+        }
+
+        successDiv.textContent = data.message || "Grade added successfully!";
+        successDiv.classList.remove("d-none");
+
+        const currentPath = window.location.pathname;
+
+        setTimeout(() => {
+          if (currentPath.includes("/by-module")) {
+            window.location.href = "/grademanagement/";
+          } else {
+            window.location.href = "/grademanagement";
+          }
+        }, 2000);
+
+      } catch (err) {
+        console.error("Error submitting grade:", err);
+        errorDiv.textContent = "A network error occurred.";
+        errorDiv.classList.remove("d-none");
+      }
+    });
+  }
 });
 
 // Edit Grade Modal
 document.addEventListener("DOMContentLoaded", function () {
-    const editForm = document.querySelector("#editGradeForm");
+  const editForm = document.querySelector("#editGradeForm");
 
-    // Attach click handlers to Edit buttons
-    document.querySelectorAll(".edit-btn").forEach(button => {
-        button.addEventListener("click", async function () {
-            const gradeId = this.getAttribute("data-id");
+  // Attach click handlers to Edit buttons
+  document.querySelectorAll(".edit-btn").forEach(button => {
+    button.addEventListener("click", async function () {
+      const gradeId = this.getAttribute("data-id");
 
-            try {
-                const response = await fetch(`/grademanagement/${gradeId}`);
-                const grade = await response.json();
+      try {
+        const response = await fetch(`/grademanagement/${gradeId}`);
+        const grade = await response.json();
 
-                // Fill form with grade data
-                editForm.setAttribute("data-id", grade.id);
-                editForm.querySelector('[name="student_id"]').value = grade.student_id;
-                editForm.querySelector('[name="module_id"]').value = grade.module_id;
-                editForm.querySelector('[name="academic_year_id"]').value = grade.academic_year_id;
-                editForm.querySelector('[name="first_grade"]').value = grade.first_grade;
-                editForm.querySelector('[name="grade_result"]').value = grade.grade_result;
-                editForm.querySelector('[name="resit_grade"]').value = grade.resit_grade || "";
-                editForm.querySelector('[name="resit_result"]').value = grade.resit_result || "";
+        // Fill form with grade data
+        editForm.setAttribute("data-id", grade.id);
+        editForm.querySelector('[name="student_id"]').value = grade.student_id;
+        editForm.querySelector('[name="module_id"]').value = grade.module_id;
+        editForm.querySelector('[name="academic_year_id"]').value = grade.academic_year_id;
+        editForm.querySelector('[name="first_grade"]').value = grade.first_grade;
+        editForm.querySelector('[name="grade_result"]').value = grade.grade_result;
+        editForm.querySelector('[name="resit_grade"]').value = grade.resit_grade || "";
+        editForm.querySelector('[name="resit_result"]').value = grade.resit_result || "";
 
-                // Show the modal
-                $('#editGradeModal').modal('show');
+        // Show the modal
+        $('#editGradeModal').modal('show');
 
-            } catch (err) {
-                console.error("Failed to fetch grade for editing:", err);
-            }
-        });
+      } catch (err) {
+        console.error("Failed to fetch grade for editing:", err);
+      }
     });
+  });
 
-    // Submit handler for Edit Grade Form
-    editForm.addEventListener("submit", async function (e) {
-        e.preventDefault();
+  // Submit handler for Edit Grade Form
+  editForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-        const gradeId = editForm.getAttribute("data-id");
-        const formData = new FormData(editForm);
-        const payload = cleanOptionalFields(Object.fromEntries(formData.entries()));
+    const gradeId = editForm.getAttribute("data-id");
+    const formData = new FormData(editForm);
+    const payload = cleanOptionalFields(Object.fromEntries(formData.entries()));
 
-        // // Convert optional fields to null if empty
-        // if (!payload.resit_grade || payload.resit_grade === "") payload.resit_grade = null;
-        // if (!payload.resit_result || payload.resit_result === "Select Result" || payload.resit_result === "") payload.resit_result = null;
+    // // Convert optional fields to null if empty
+    // if (!payload.resit_grade || payload.resit_grade === "") payload.resit_grade = null;
+    // if (!payload.resit_result || payload.resit_result === "Select Result" || payload.resit_result === "") payload.resit_result = null;
 
 
-        // Clear previous feedback
-        const errorDiv = document.getElementById("editGradeError");
-        const successDiv = document.getElementById("editGradeSuccess");
-        errorDiv.classList.add("d-none");
-        errorDiv.textContent = "";
-        successDiv.classList.add("d-none");
-        successDiv.textContent = "";
+    // Clear previous feedback
+    const errorDiv = document.getElementById("editGradeError");
+    const successDiv = document.getElementById("editGradeSuccess");
+    errorDiv.classList.add("d-none");
+    errorDiv.textContent = "";
+    successDiv.classList.add("d-none");
+    successDiv.textContent = "";
 
-        const error = validateGradeForm(editForm, errorDiv);
-        if (error) return;
+    const error = validateGradeForm(editForm, errorDiv);
+    if (error) return;
 
-        try {
-            const response = await fetch(`/grademanagement/edit-grade/${gradeId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
+    try {
+      const response = await fetch(`/grademanagement/edit-grade/${gradeId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
 
-            const data = await response.json();
+      const data = await response.json();
 
-            if (!response.ok) {
-                const status = response.status;
-                const errorMessage = data.error ||
-                    (status === 400 ? "Invalid input." :
-                        status === 404 ? "Grade not found." :
-                            status === 409 ? "This student already has a grade for that module and academic year." :
-                                status === 500 ? 'Server error. Please try again later.' :
-                                    "An unexpected error occurred."
-                    );
-                errorDiv.textContent = errorMessage
-                errorDiv.classList.remove("d-none");
-                return;
-            }
+      if (!response.ok) {
+        const status = response.status;
+        const errorMessage = data.error ||
+          (status === 400 ? "Invalid input." :
+            status === 404 ? "Grade not found." :
+              status === 409 ? "This student already has a grade for that module and academic year." :
+                status === 500 ? 'Server error. Please try again later.' :
+                  "An unexpected error occurred."
+          );
+        errorDiv.textContent = errorMessage
+        errorDiv.classList.remove("d-none");
+        return;
+      }
 
-            successDiv.textContent = data.message || "Grade updated successfully!";
-            successDiv.classList.remove("d-none");
+      successDiv.textContent = data.message || "Grade updated successfully!";
+      successDiv.classList.remove("d-none");
 
-            //Gets view user had before opening modal - i.e. grouped by module or by student
-            const currentPath = window.location.pathname;
+      //Gets view user had before opening modal - i.e. grouped by module or by student
+      const currentPath = window.location.pathname;
 
-            setTimeout(() => {
-                if (currentPath.includes("/by-module")) {
-                    window.location.href = "/grademanagement/by-module";
-                } else {
-                    window.location.href = "/grademanagement";
-                }
-            }, 2000);
-
-        } catch (err) {
-            console.error("Error submitting grade update:", err);
-            errorDiv.textContent = "A network error occurred.";
-            errorDiv.classList.remove("d-none");
+      setTimeout(() => {
+        if (currentPath.includes("/by-module")) {
+          window.location.href = "/grademanagement/by-module";
+        } else {
+          window.location.href = "/grademanagement";
         }
-    });
+      }, 2000);
+
+    } catch (err) {
+      console.error("Error submitting grade update:", err);
+      errorDiv.textContent = "A network error occurred.";
+      errorDiv.classList.remove("d-none");
+    }
+  });
 });
 
 // Delete Grade functionality
 document.querySelectorAll(".delete-btn").forEach(button => {
 
-    button.addEventListener("click", async function () {
-        const gradeId = this.getAttribute("data-id");
+  button.addEventListener("click", async function () {
+    const gradeId = this.getAttribute("data-id");
 
-        if (!confirm("Are you sure you want to delete this grade?")) {
-            return; // User cancelled
-        }
+    if (!confirm("Are you sure you want to delete this grade?")) {
+      return; // User cancelled
+    }
 
-        try {
-            const response = await fetch(`/grademanagement/delete-grade/${gradeId}`, {
-                method: "DELETE"
-            });
+    try {
+      const response = await fetch(`/grademanagement/delete-grade/${gradeId}`, {
+        method: "DELETE"
+      });
 
-            const data = await response.json();
+      const data = await response.json();
 
-            if (!response.ok) {
-                alert(data.error || "An error occurred while deleting the grade.");
-                return;
-            }
+      if (!response.ok) {
+        alert(data.error || "An error occurred while deleting the grade.");
+        return;
+      }
 
-             //Gets view user had before opening modal - i.e. grouped by module or by student
-             const currentPath = window.location.pathname;
+      //Gets view user had before opening modal - i.e. grouped by module or by student
+      const currentPath = window.location.pathname;
 
-            alert(data.message || "Grade deleted successfully!");
+      alert(data.message || "Grade deleted successfully!");
 
-            if (currentPath.includes("/by-module")) {
-                window.location.href = "/grademanagement/by-module";
-            } else {
-                window.location.href = "/grademanagement";
-            }
+      if (currentPath.includes("/by-module")) {
+        window.location.href = "/grademanagement/by-module";
+      } else {
+        window.location.href = "/grademanagement";
+      }
 
-        } catch (err) {
-            console.error("Error deleting module:", err);
-            alert("A network error occurred while deleting the module.");
-        }
-    });
+    } catch (err) {
+      console.error("Error deleting module:", err);
+      alert("A network error occurred while deleting the module.");
+    }
+  });
 });
 
 // Modal to display grades for each student
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".view-grades-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const studentId = btn.dataset.id;
-  
-        try {
-          const response = await fetch(`/grademanagement/student/${studentId}`);
-          const data = await response.json();
-  
-          if (!response.ok) {
-            alert(data.error || "Error fetching student grades");
-            return;
-          }
-  
-          // Show student info
-          const s = data.student;
-          document.getElementById("modalStudentInfo").innerHTML = `
+  document.querySelectorAll(".view-grades-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const studentId = btn.dataset.id;
+
+      try {
+        const response = await fetch(`/grademanagement/student/${studentId}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || "Error fetching student grades");
+          return;
+        }
+
+        // Show student info
+        const s = data.student;
+        document.getElementById("modalStudentInfo").innerHTML = `
             <strong>${s.first_name} ${s.last_name}</strong> (${s.student_number})<br>
             Pathway: ${s.pathway_name}<br>
             Entry Level: ${s.entry_level}, Study Status: ${s.study_status}
           `;
-  
-          // Populate grades
-          const tbody = document.getElementById("modalGradeTableBody");
-          tbody.innerHTML = "";
-  
-          data.studentGrades.forEach(g => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
+
+        // Populate grades
+        const tbody = document.getElementById("modalGradeTableBody");
+        tbody.innerHTML = "";
+
+        data.studentGrades.forEach(g => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
               <td>${g.module_title} (${g.module_code})</td>
               <td>${g.academic_year}</td>
               <td><input type="number" class="form-control form-control-sm" value="${g.first_grade}" data-id="${g.id}" data-type="first_grade"></td>
               <td>
                 <select class="form-control form-control-sm" data-id="${g.id}" data-type="grade_result">
                   ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
-                    `<option value="${opt}" ${opt === g.grade_result ? "selected" : ""}>${opt}</option>`
-                  ).join("")}
+            `<option value="${opt}" ${opt === g.grade_result ? "selected" : ""}>${opt}</option>`
+          ).join("")}
                 </select>
               </td>
               <td><input type="number" class="form-control form-control-sm" value="${g.resit_grade || ""}" data-id="${g.id}" data-type="resit_grade"></td>
@@ -326,57 +326,73 @@ document.addEventListener("DOMContentLoaded", () => {
                 <select class="form-control form-control-sm" data-id="${g.id}" data-type="resit_result">
                   <option value=""></option>
                   ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
-                    `<option value="${opt}" ${opt === g.resit_result ? "selected" : ""}>${opt}</option>`
-                  ).join("")}
+            `<option value="${opt}" ${opt === g.resit_result ? "selected" : ""}>${opt}</option>`
+          ).join("")}
                 </select>
               </td>
               <td>
                 <button class="btn btn-sm btn-success save-grade-btn" data-id="${g.id}">Save</button>
               </td>
             `;
-            tbody.appendChild(row);
-          });
-  
-          $('#studentGradeModal').modal('show');
-        } catch (err) {
-          console.error("Error fetching grades:", err);
-          alert("Something went wrong loading student grades.");
-        }
-      });
-    });
-  
-    // Handle save clicks
-    document.addEventListener("click", async (e) => {
-      if (e.target.classList.contains("save-grade-btn")) {
-        const gradeId = e.target.dataset.id;
-        const row = e.target.closest("tr");
-  
-        const payload = {
-          first_grade: row.querySelector('[data-type="first_grade"]').value,
-          grade_result: row.querySelector('[data-type="grade_result"]').value,
-          resit_grade: row.querySelector('[data-type="resit_grade"]').value || null,
-          resit_result: row.querySelector('[data-type="resit_result"]').value || null
-        };
-  
-        try {
-          const response = await fetch(`/grademanagement/edit-grade/${gradeId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-  
-          const result = await response.json();
-  
-          if (response.ok) {
-            alert("Grade updated!");
-          } else {
-            alert("Update failed: " + result.error);
-          }
-        } catch (err) {
-          console.error("Failed to save grade:", err);
-          alert("Something went wrong while saving.");
-        }
+          tbody.appendChild(row);
+        });
+
+        $('#studentGradeModal').modal('show');
+      } catch (err) {
+        console.error("Error fetching grades:", err);
+        alert("Something went wrong loading student grades.");
       }
     });
   });
+
+  // Handle save clicks
+  document.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("save-grade-btn")) {
+      const gradeId = e.target.dataset.id;
+      const row = e.target.closest("tr");
+
+      const payload = {
+        first_grade: row.querySelector('[data-type="first_grade"]').value,
+        grade_result: row.querySelector('[data-type="grade_result"]').value,
+        resit_grade: row.querySelector('[data-type="resit_grade"]').value || null,
+        resit_result: row.querySelector('[data-type="resit_result"]').value || null
+      };
+
+      try {
+        const response = await fetch(`/grademanagement/edit-grade/${gradeId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert("Grade updated!");
+        } else {
+          alert("Update failed: " + result.error);
+        }
+      } catch (err) {
+        console.error("Failed to save grade:", err);
+        alert("Something went wrong while saving.");
+      }
+    }
+  });
+});
+
+// Pahtway filtering dropdown
+document.addEventListener("DOMContentLoaded", () => {
+  const pathwaySelect = document.getElementById("pathwayFilter");
+
+  if (pathwaySelect) {
+    pathwaySelect.addEventListener("change", () => {
+      const selectedPathway = pathwaySelect.value;
+      document.querySelectorAll(".student-card").forEach(card => {
+        const cardPathway = card.getAttribute("data-pathway");
+        const shouldShow = selectedPathway === "all" || cardPathway === selectedPathway;
+        card.style.display = shouldShow ? "block" : "none";
+      });
+    });
+  }
+});
 

@@ -114,10 +114,26 @@
 
         </div>
 
+        <!--Pathway selection/filtering dropdown-->
+        <div class="form-group row mb-4">
+          <label for="pathwayFilter" class="col-sm-2 col-form-label font-weight-bold">Filter by Pathway:</label>
+          <div class="col-sm-4">
+            <select id="pathwayFilter" class="form-control">
+              <option value="all">All Pathways</option>
+              <% 
+                const uniquePathways = [...new Set(students.map(s => s.pathway_name))]; // using Set to get pathway names from students already passed to page
+                uniquePathways.forEach(p => { 
+              %>
+                <option value="<%= p %>"><%= p %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
         <% if (students.length> 0) { %>
           <div class="row">
             <% students.forEach(s=> { %>
-              <div class="col-sm-6 col-md-4 col-lg-2 student-card">
+              <div class="col-sm-6 col-md-4 col-lg-2 student-card" data-pathway="<%= s.pathway_name %>">
                 <div class="card mb-4 shadow-sm">
                   <div class="card-body">
                     <h5 class="card-title">
