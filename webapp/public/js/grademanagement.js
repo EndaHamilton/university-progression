@@ -396,3 +396,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// Search function
+const searchInput = document.getElementById("studentSearch");
+
+if (searchInput) {
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.trim().toLowerCase();
+
+    document.querySelectorAll(".student-card").forEach(card => {
+      const cardText = card.textContent.toLowerCase();
+      const matches = cardText.includes(query);
+
+      // Combine with pathway filter (if any)
+      const pathwayFilter = document.getElementById("pathwayFilter").value;
+      const cardPathway = card.getAttribute("data-pathway");
+      const pathwayMatches = pathwayFilter === "all" || pathwayFilter === cardPathway;
+
+      card.style.display = (matches && pathwayMatches) ? "block" : "none";
+    });
+  });
+}
+
