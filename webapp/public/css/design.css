@@ -166,3 +166,9 @@ body {
 .grade-table td.small-col {
   width: 10%;
 }
+
+/* Student Grades Mgmt */
+.modal-xl-custom {
+  max-width: 90%;
+  width: 90%;
+}
