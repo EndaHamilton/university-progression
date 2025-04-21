@@ -229,18 +229,25 @@ module.exports = function (db) {
             }
             const pathwayCode = pathwayRows[0].code;
 
-            const currentYear = new Date().getFullYear();
+            // const currentYear = new Date().getFullYear();
+
             const yearNum = String(enrollment_year).slice(-2);
 
-            // Generate sequential number — count how many existing students share the same year + pathway code prefix
-            const pattern = `${yearNum}-${pathwayCode}-%`;
-            const [existingCountRows] = await db.promise().query(
-                `SELECT COUNT(*) AS count FROM student WHERE student_number LIKE ?`,
-                [pattern]
-            );
+            // Get next unique number from student_seq table
+            const [seqResult] = await db.promise().query(`INSERT INTO student_seq VALUES ()`);
+            const globalSeq = seqResult.insertId;
+            const paddedSequence = String(globalSeq).padStart(7, "0");
 
-            const sequenceNumber = existingCountRows[0].count + 1;
-            const paddedSequence = String(sequenceNumber).padStart(6, "0"); // e.g., 7 → '000007
+            // // Generate sequential number — count how many existing students share the same year + pathway code prefix
+            // const pattern = `${yearNum}-${pathwayCode}-%`;
+            // const [existingCountRows] = await db.promise().query(
+            //     `SELECT COUNT(*) AS count FROM student WHERE student_number LIKE ?`,
+            //     [pattern]
+            // );
+
+            // const sequenceNumber = existingCountRows[0].count + 1;
+            // const paddedSequence = String(sequenceNumber).padStart(7, "0");
+
 
             const studentNumber = `${yearNum}-${pathwayCode}-${paddedSequence}`;
 
