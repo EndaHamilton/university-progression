@@ -60,6 +60,10 @@ app.use('/grades', gradesRoutes);
 const acadYearRoutes = require('./controllers/acadyear')(db);
 app.use('/acadyear', acadYearRoutes);
 
+// define a route on '/subject' that uses the subectRoutes controller
+const subjectRoutes = require('./controllers/subject')(db);
+app.use('/subject', subjectRoutes);
+
 
 // start express server on port 4000
 app.listen(port, () => {

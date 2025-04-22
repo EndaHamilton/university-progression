@@ -181,24 +181,24 @@ module.exports = function (db) {
             }
         }
 
-        if (shouldCheck('pathway_ids')) {
-            const raw = data.pathway_ids;
+        // if (shouldCheck('pathway_ids')) {
+        //     const raw = data.pathway_ids;
 
-            const parsedPathways = Array.isArray(raw)
-                ? raw
-                : raw
-                    ? [raw]
-                    : [];
+        //     const parsedPathways = Array.isArray(raw)
+        //         ? raw
+        //         : raw
+        //             ? [raw]
+        //             : [];
 
-            const allowedPathwayIds = [1, 2];
+        //     const allowedPathwayIds = [1, 2];
 
-            if (!parsedPathways || parsedPathways.length === 0) {
-                errors.push("Pathway ID(s) cannot be empty")
-            } else if (!parsedPathways.every(id => allowedPathwayIds.includes(Number(id)))) {
-                errors.push("Each selected pathway must be either 1 (Information Systems) or 2 (Business Data Analysis).");
-            }
+        //     if (!parsedPathways || parsedPathways.length === 0) {
+        //         errors.push("Pathway ID(s) cannot be empty")
+        //     } else if (!parsedPathways.every(id => allowedPathwayIds.includes(Number(id)))) {
+        //         errors.push("Each selected pathway must be either 1 (Information Systems) or 2 (Business Data Analysis).");
+        //     }
 
-        }
+        // }
 
 
 

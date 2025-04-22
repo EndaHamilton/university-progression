@@ -14,10 +14,11 @@ router.get('/', async (req, res) => {
     try {
         //GET request to different API endpoints for all data moduleManagement page uses
 
-        const [moduleRes, semesterRes, pathwayRes] = await Promise.all([
+        const [moduleRes, semesterRes, pathwayRes, subjectRes] = await Promise.all([
             axios.get("http://localhost:4000/module", config),
             axios.get("http://localhost:4000/semester", config),
             axios.get("http://localhost:4000/pathway", config),
+            axios.get("http://localhost:4000/subject", config),
 
         ]);
 
@@ -30,6 +31,7 @@ router.get('/', async (req, res) => {
             modules: moduleRes.data,
             semesters: semesterRes.data,
             pathways: pathwayRes.data,
+            subjects: subjectRes.data,
             allowedCredits: ALLOWED_CREDIT_VALUES,
             errorMessage: null
         });

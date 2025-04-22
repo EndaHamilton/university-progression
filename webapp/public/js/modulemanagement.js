@@ -6,34 +6,41 @@ console.log("Module JS loaded, hooking form...");
 
 // Validate Add/Edit Form
 function validateModuleForm(form, errorDiv) {
-    const subjectCode = form.querySelector('[name="subject_code"]').value.trim();
-    const catalogueCode = form.querySelector('[name="catalogue_code"]').value.trim();
+
+    const subjectId = form.querySelector('[name="subject_id"]').value.trim();
+    const defaultProgramLevel = form.querySelector('[name="default_program_level"]').value.trim();
+
+    // const subjectCode = form.querySelector('[name="subject_code"]').value.trim();
+    // const catalogueCode = form.querySelector('[name="catalogue_code"]').value.trim();
+
     const title = form.querySelector('[name="title"]').value.trim();
     const credits = form.querySelector('[name="credits"]').value.trim();
     const semesterId = form.querySelector('[name="semester_id"]').value.trim();
-    const pathwayIds = Array.from(form.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
+
+    // const pathwayIds = Array.from(form.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
 
 
     const isPositiveInteger = val => /^\d+$/.test(val);
 
     //1. Presence checks
-    if (!subjectCode) return showError('Subject code is required.');
-    if (!catalogueCode) return showError('Catalogue code is required.');
+    if (!subjectId) return showError('Subject ID is required.');
+    if (!defaultProgramLevel) return showError('Default Program Level is required.');
     if (!title) return showError('Title is required.');
     if (!credits) return showError('Credits is required.');
     if (!semesterId) return showError('Semester is required.');
-    if (!pathwayIds || pathwayIds.length === 0) return showError('Pathway is required.');
+
+    // if (!pathwayIds || pathwayIds.length === 0) return showError('Pathway is required.');
 
 
 
 
     // 2. Format check for individual fields
-    if (subjectCode.length !== 4)
-        return showError('Subject code must be 4 characters exactly.');
-    if (!isNaN(subjectCode))
-        return showError('Subject code must not be numeric.');
-    if (catalogueCode.length !== 3)
-        return showError('Catalogue code must be 3 characters exactly.');
+    if (!isPositiveInteger(subjectId))
+        return showError('Subject ID must be a whole positive number.');
+    if (defaultProgramLevel < 1 || defaultProgramLevel > 2)
+        return showError('Default Program Level must be either 1 or 2');
+    // if (catalogueCode.length !== 3)
+    //     return showError('Catalogue code must be 3 characters exactly.');
     if (title.length < 3 || title.length > 50)
         return showError('Title must be between 3 and 50 characters long.');
     if (isNaN(credits))
@@ -45,10 +52,10 @@ function validateModuleForm(form, errorDiv) {
         return showError('Semester must be be one of: SPR, AUT, or FYR.');
     }
 
-    const allowedPathwayIds = [1, 2];
-    if(!pathwayIds.every(id => allowedPathwayIds.includes(Number(id)))){
-        return showError('Pathway must be either 1 (Information Systems) or 2 (Business Data Analysis');
-    }
+    // const allowedPathwayIds = [1, 2];
+    // if(!pathwayIds.every(id => allowedPathwayIds.includes(Number(id)))){
+    //     return showError('Pathway must be either 1 (Information Systems) or 2 (Business Data Analysis');
+    // }
 
     return null; // No errors found
 
@@ -84,11 +91,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const formData = new FormData(form);
 
-            // Manually extract pathway_ids as an array
-            const pathwayIds = Array.from(form.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
+            // // Manually extract pathway_ids as an array
+            // const pathwayIds = Array.from(form.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
 
             const payload = Object.fromEntries(formData.entries());
-            payload.pathway_ids = pathwayIds; // overwrite if already there
+
+            // payload.pathway_ids = pathwayIds; // overwrite if already there
+
             console.log("Submitting form with payload: ", payload);
 
 
