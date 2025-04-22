@@ -219,9 +219,23 @@ module.exports = function (db) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
 
-        // Validate that student_number is unique if all other validaton passes above
-
         try {
+
+            const insertStudentSQL = `INSERT INTO student (student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+            //Insert into student with placeholder student_number before updating after concatenation to get student_number
+            const placeholderNumber = 'PENDING';
+            const [result] = await db.promise().query(insertStudentSQL, [
+                placeholderNumber,
+                parsedUserId,
+                parseInt(pathway_id),
+                first_name.trim(),
+                last_name.trim(),
+                parseInt(study_status_id),
+                parseInt(entry_level_id),
+                parseInt(enrollment_year)
+            ]);
 
             // Get pathway code
             const [pathwayRows] = await db.promise().query(`SELECT code FROM pathway WHERE id = ?`, [pathway_id]);
@@ -230,14 +244,12 @@ module.exports = function (db) {
             }
             const pathwayCode = pathwayRows[0].code;
 
-            // const currentYear = new Date().getFullYear();
-
+            // Get students auto incremented ID as the number at end of studnet_number
+            const studentId = result.insertId;
+            const paddedSequence = String(studentId).padStart(7, "0");
             const yearNum = String(enrollment_year).slice(-2);
 
-            // Get next unique number from student_seq table
-            const [seqResult] = await db.promise().query(`INSERT INTO student_seq VALUES ()`);
-            const globalSeq = seqResult.insertId;
-            const paddedSequence = String(globalSeq).padStart(7, "0");
+            const studentNumber = `${yearNum}-${pathwayCode}-${paddedSequence}`;
 
             // // Generate sequential number — count how many existing students share the same year + pathway code prefix
             // const pattern = `${yearNum}-${pathwayCode}-%`;
@@ -249,9 +261,6 @@ module.exports = function (db) {
             // const sequenceNumber = existingCountRows[0].count + 1;
             // const paddedSequence = String(sequenceNumber).padStart(7, "0");
 
-
-            const studentNumber = `${yearNum}-${pathwayCode}-${paddedSequence}`;
-
             const [existingStudentNumber] = await db.promise().query(`SELECT * FROM student WHERE student_number = ?`, [studentNumber]
             );
 
@@ -259,22 +268,21 @@ module.exports = function (db) {
                 return res.status(409).json({ error: 'Student Number already exists' });
             }
 
-            const insertStudentSQL = `INSERT INTO student (student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            // Update student number using new concatenated student_number
+            await db.promise().query(
+                `UPDATE student SET student_number = ? WHERE id = ?`,
+                [studentNumber, studentId]
+            );
 
-            db.query(insertStudentSQL, [studentNumber, parsedUserId, parseInt(pathway_id), first_name, last_name, parseInt(study_status_id), parseInt(entry_level_id), parseInt(enrollment_year)], (err, result) => {
-                if (err) {
 
-                    return res.status(500).json({ error: 'Failed to connect to database', details: err.message });
 
-                } else {
-                    res.status(200).json({ message: "Student created successfully", studentId: result.insertId, studentNumber, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year });
-                }
-            });
+            return res.status(200).json({ message: "Student created successfully", studentId: result.insertId, studentNumber, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year });
+
+
 
         } catch (err) {
             console.error("Error during student POST", err);
-            res.status(500).json({ error: 'Server error: ', details: err.message });
+            return res.status(500).json({ error: 'Server error: ', details: err.message });
         }
 
 
