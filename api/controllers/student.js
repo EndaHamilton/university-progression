@@ -208,7 +208,8 @@ module.exports = function (db) {
     //adding callback function to handle separate error handling for duplicate student number
 
     router.post("/", async (req, res) => {
-        const {user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year } = req.body;
+
+        const { user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year } = req.body;
 
         const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
 
@@ -287,12 +288,12 @@ module.exports = function (db) {
             return res.status(400).json({ error: 'Invalid ID. Must be a number' });
         }
 
-        const { student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id } = req.body;
+        const { user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year } = req.body;
 
-        // Validate that at least one field is being updated
-        if (!student_number && !user_id && !pathway_id && !first_name && !last_name && !study_status_id && !entry_level_id) {
-            return res.status(400).json({ error: 'No data provided for update' });
-        }
+        // // Validate that at least one field is being updated
+        // if (!student_number && !user_id && !pathway_id && !first_name && !last_name && !study_status_id && !entry_level_id) {
+        //     return res.status(400).json({ error: 'No data provided for update' });
+        // }
 
         // Validation function to validate input data - mirrors client-side validation for extra layer of security
         const validationErrors = validateStudentFields(req.body, { isUpdate: true });
@@ -309,33 +310,67 @@ module.exports = function (db) {
 
             const existingStudent = rows[0];
 
-            // Check if student with same student number already exists
-            if ('student_number' in req.body) {
-                if (student_number !== existingStudent.student_number) {
-                    const [conflicts] = await db.promise().query(
-                        `SELECT id FROM student WHERE student_number = ? AND id != ?`,
-                        [student_number, id]
-                    );
+            // // Check if student with same student number already exists
+            // if ('student_number' in req.body) {
+            //     if (student_number !== existingStudent.student_number) {
+            //         const [conflicts] = await db.promise().query(
+            //             `SELECT id FROM student WHERE student_number = ? AND id != ?`,
+            //             [student_number, id]
+            //         );
 
-                    if (conflicts.length > 0) {
-                        return res.status(409).json({ error: 'Student Number already exists' });
-                    }
-                }
-            };
+            //         if (conflicts.length > 0) {
+            //             return res.status(409).json({ error: 'Student Number already exists' });
+            //         }
+            //     }
+            // };
 
             const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
             const fieldsToCheck = [
-                "student_number", "user_id", "pathway_id", "first_name", "last_name", "study_status_id", "entry_level_id"
+                "student_number", "user_id", "pathway_id", "first_name", "last_name", "study_status_id", "entry_level_id", "enrollment_year"
             ];
 
             const { updateFields, updateValues } = getUpdatedFields(req.body, existingStudent, fieldsToCheck);
 
-            updateValues.push(id); // for WHERE clause
+            let newStudentNumber = existingStudent.student_number;
+            const isPathwayOrYearChanged = updateFields.includes("pathway_id = ?") || updateFields.includes("enrollment_year = ?");
+
+            if (isPathwayOrYearChanged) {
+                const pathwayId = pathway_id ? parseInt(pathway_id) : existingStudent.pathway_id;
+                const year = enrollment_year ? String(enrollment_year) : String(existingStudent.enrollment_year);
+                const yearPart = year.slice(-2);
+
+                const [pathwayRows] = await db.promise().query(`SELECT code FROM pathway WHERE id = ?`, [pathwayId]);
+                if (pathwayRows.length === 0) {
+                    return res.status(400).json({ error: "Invalid pathway ID" });
+                }
+                const pathwayCode = pathwayRows[0].code;
+
+                // Reuse the existing sequence part from current student number
+                const sequencePart = existingStudent.student_number.split("-")[2];
+                const generatedStudentNumber = `${yearPart}-${pathwayCode}-${sequencePart}`;
+
+                if (generatedStudentNumber !== existingStudent.student_number) {
+                    // Check for uniqueness
+                    const [conflicts] = await db.promise().query(
+                        `SELECT id FROM student WHERE student_number = ? AND id != ?`,
+                        [generatedStudentNumber, id]
+                    );
+                    if (conflicts.length > 0) {
+                        return res.status(409).json({ error: "Another student with the same student number already exists." });
+                    }
+
+                    newStudentNumber = generatedStudentNumber;
+                    updateFields.push("student_number = ?");
+                    updateValues.push(newStudentNumber);
+                }
+            }
 
             if (updateFields.length === 0) {
                 return res.status(400).json({ error: 'No changes detected. Student data is identical' });
             }
+
+            updateValues.push(id); // for WHERE clause
 
             if (updateFields.length > 0) {
                 const updateSQL = `UPDATE student SET ${updateFields.join(", ")} WHERE id = ?`;
