@@ -119,9 +119,9 @@ module.exports = function (db) {
             const valStr = String(val);
             if (!val || valStr.trim() === "") {
                 errors.push("Default Program Level cannot be empty.");
+            } else if (![1, 2].includes(Number(val))) {
+                errors.push("Default Program Level must be either 1 or 2"); // would be extended to further levels - but our system only deals with 1 and 2 currently
             }
-        } else if (![1, 2].includes(Number(val))) {
-            errors.push("Default Program Level must be either 1 or 2"); // would be extended to further levels - but our system only deals with 1 and 2 currently
         }
 
 
@@ -255,12 +255,12 @@ module.exports = function (db) {
         const subjectModuleNumber = `${level}${paddedSequence}`;
         const moduleCode = `${subjectCode}${subjectModuleNumber}`;
 
-        // Parse pathway_ids
-        const parsedPathways = Array.isArray(pathway_ids)
-            ? pathway_ids.map(id => parseInt(id))
-            : pathway_ids
-                ? [parseInt(pathway_ids)]
-                : [];
+        // // Parse pathway_ids
+        // const parsedPathways = Array.isArray(pathway_ids)
+        //     ? pathway_ids.map(id => parseInt(id))
+        //     : pathway_ids
+        //         ? [parseInt(pathway_ids)]
+        //         : [];
 
 
 
@@ -339,7 +339,7 @@ module.exports = function (db) {
             return res.status(400).json({ error: "Invalid ID. Must be a number." });
         }
 
-        const { subject_code, catalogue_code, title, credits, semester_id } = req.body;
+        const { subject_id, default_program_level, title, credits, semester_id } = req.body;
 
         const validationErrors = validateModuleFields(req.body, { isUpdate: true });
         if (validationErrors.length > 0) {
@@ -355,50 +355,141 @@ module.exports = function (db) {
 
             const existingModule = existingModules[0];
 
-            // Check if the data being updated is the same as existing data
-            // Checks only for fields which are being passed in - doesn't check undefined fields that aren't being toucehd
-            // Fetch existing pathways from DB
-            const [existingPathwayRows] = await db.promise().query(
-                `SELECT pathway_id FROM pathway_module WHERE module_id = ?`,
-                [id]
-            );
-            const existingPathwayIds = existingPathwayRows.map(r => r.pathway_id).sort((a, b) => a - b);
+            // Commenting out pathway related checks as these will happen at pathway level now
 
-            // Get new pathway IDs from request and parse
-            const newPathwayIds = Array.isArray(req.body.pathway_ids)
-                ? req.body.pathway_ids.map(Number).sort((a, b) => a - b)
-                : req.body.pathway_ids
-                    ? [parseInt(req.body.pathway_ids)]
-                    : [];
+            // // Check if the data being updated is the same as existing data
+            // // Checks only for fields which are being passed in - doesn't check undefined fields that aren't being toucehd
+            // // Fetch existing pathways from DB
+            // const [existingPathwayRows] = await db.promise().query(
+            //     `SELECT pathway_id FROM pathway_module WHERE module_id = ?`,
+            //     [id]
+            // );
+            // const existingPathwayIds = existingPathwayRows.map(r => r.pathway_id).sort((a, b) => a - b);
 
-            // // Compare pathway IDs (unordered)
-            const pathwaysUnchanged = JSON.stringify(existingPathwayIds) === JSON.stringify(newPathwayIds);
+            // // Get new pathway IDs from request and parse
+            // const newPathwayIds = Array.isArray(req.body.pathway_ids)
+            //     ? req.body.pathway_ids.map(Number).sort((a, b) => a - b)
+            //     : req.body.pathway_ids
+            //         ? [parseInt(req.body.pathway_ids)]
+            //         : [];
 
-            // Unique constraint check: only if user is updating all 3 relevant fields
-            if (subject_code && catalogue_code && title) {
-                const [conflicts] = await db.promise().query(
-                    `SELECT * FROM module 
-                     WHERE subject_code = ? AND catalogue_code = ? AND title = ? AND id != ?`,
-                    [subject_code.trim(), parseInt(catalogue_code), title.trim(), id]
-                );
+            // // // Compare pathway IDs (unordered)
+            // const pathwaysUnchanged = JSON.stringify(existingPathwayIds) === JSON.stringify(newPathwayIds);
 
-                if (conflicts.length > 0) {
-                    return res.status(409).json({ error: "Another module with the same subject code, catalogue code, and title already exists." });
-                }
-            }
+            // // Unique constraint check: only if user is updating all 3 relevant fields
+            // if (subject_code && catalogue_code && title) {
+            //     const [conflicts] = await db.promise().query(
+            //         `SELECT * FROM module 
+            //          WHERE subject_code = ? AND catalogue_code = ? AND title = ? AND id != ?`,
+            //         [subject_code.trim(), parseInt(catalogue_code), title.trim(), id]
+            //     );
+
+            //     if (conflicts.length > 0) {
+            //         return res.status(409).json({ error: "Another module with the same subject code, catalogue code, and title already exists." });
+            //     }
+            // } 
 
             const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
             const fieldsToCheck = [
-                "subject_code", "catalogue_code", "title", "credits",
+                "subject_id", "default_program_level", "title", "credits",
                 "semester_id",
             ];
 
             const { updateFields, updateValues } = getUpdatedFields(req.body, existingModule, fieldsToCheck);
 
+            // Handling update to subject_module_number and module_code differently as these are system generated based on updated fields above
+            let newSubjectModuleNumber = existingModule.subject_module_number;
+            let newModuleCode = existingModule.module_code;
+
+            // Checks if either subject id or level were detected as changed from comparison function
+            const updatingSubjectOrLevel = updateFields.includes("subject_id = ?") || updateFields.includes("default_program_level = ?");
+
+
+            if (updatingSubjectOrLevel) {
+                const subjectId = req.body.subject_id
+                    ? parseInt(req.body.subject_id)
+                    : existingModule.subject_id;
+                const level = req.body.default_program_level
+                    ? String(req.body.default_program_level).trim()
+                    : existingModule.default_program_level;
+
+                // Lookup subject code
+                const [subjectRows] = await db.promise().query(
+                    `SELECT code FROM subject WHERE id = ?`,
+                    [subjectId]
+                );
+                if (subjectRows.length === 0) {
+                    return res.status(400).json({ error: "Invalid subject ID" });
+                }
+                const subjectCode = subjectRows[0].code;
+
+                // Handle subject_level sequencing
+                const [seqRows] = await db.promise().query(
+                    `SELECT last_used_number FROM subject_level_seq WHERE subject_id = ? AND level = ?`,
+                    [subjectId, level]
+                );
+
+                let nextNumber;
+                if (seqRows.length > 0) {
+                    nextNumber = seqRows[0].last_used_number + 1;
+                } else {
+                    nextNumber = 1;
+                }
+
+                const paddedSequence = String(nextNumber).padStart(2, "0");
+                const generatedSubjectModuleNumber = `${level}${paddedSequence}`;
+                const generatedModuleCode = `${subjectCode}${generatedSubjectModuleNumber}`;
+
+                /* Only perform changes to subj module num and module code if new values or different 
+                - this also includes the insertion into the subject_level_seq table in DB - only want num incremented if a change */
+                const isModuleCodeChanged = (
+                    generatedSubjectModuleNumber !== existingModule.subject_module_number || generatedModuleCode !== existingModule.module_code
+                );
+
+                if (isModuleCodeChanged) {
+                    // Ensure the new module code is unique
+                    const [conflicts] = await db.promise().query(
+                        `SELECT * FROM module WHERE module_code = ? AND id != ?`,
+                        [newModuleCode, id]
+                    );
+                    if (conflicts.length > 0) {
+                        return res
+                            .status(409)
+                            .json({ error: "Another module with the same module code already exists." });
+                    }
+
+                    newSubjectModuleNumber = generatedSubjectModuleNumber;
+                    newModuleCode = generatedModuleCode;
+
+                    updateFields.push("subject_module_number = ?", "module_code = ?");
+                    updateValues.push(newSubjectModuleNumber, newModuleCode);
+
+                    // Only performing increment in subject level seq table if values have changed
+                    if (seqRows.length > 0) {
+                        await db.promise().query(
+                            `UPDATE subject_level_seq SET last_used_number = ? WHERE subject_id = ? AND level = ?`,
+                            [nextNumber, subjectId, level]
+                        );
+                    } else {
+                        await db.promise().query(
+                            `INSERT INTO subject_level_seq (subject_id, level, last_used_number) VALUES (?, ?, ?)`,
+                            [subjectId, level, nextNumber]
+                        );
+                    }
+                }
+
+            }
+
+
             updateValues.push(id);
 
-            if (updateFields.length === 0 && pathwaysUnchanged) {
+            // Commenting out pathway related checks as these will happen at pathway level now
+            // if (updateFields.length === 0 && pathwaysUnchanged) {
+            //     return res.status(400).json({ error: "No changes detected. Module data is identical" });
+            // }
+
+            if (updateFields.length === 0) {
                 return res.status(400).json({ error: "No changes detected. Module data is identical" });
             }
 
@@ -408,27 +499,29 @@ module.exports = function (db) {
                 await db.promise().query(updateSQL, updateValues);
             }
 
-            // Also update pathway_module junction table
-            if ('pathway_ids' in req.body) {
-                const parsedPathways = Array.isArray(req.body.pathway_ids)
-                    ? req.body.pathway_ids.map(id => parseInt(id))
-                    : req.body.pathway_ids
-                        ? [parseInt(req.body.pathway_ids)]
-                        : [];
+            // Commenting out pathway related checks as these will happen at pathway level now
 
-                // Delete old mappings
-                await db.promise().query(`DELETE FROM pathway_module WHERE module_id = ?`, [id]);
+            // // Also update pathway_module junction table
+            // if ('pathway_ids' in req.body) {
+            //     const parsedPathways = Array.isArray(req.body.pathway_ids)
+            //         ? req.body.pathway_ids.map(id => parseInt(id))
+            //         : req.body.pathway_ids
+            //             ? [parseInt(req.body.pathway_ids)]
+            //             : [];
+
+            //     // Delete old mappings
+            //     await db.promise().query(`DELETE FROM pathway_module WHERE module_id = ?`, [id]);
 
 
-                // Insert new ones
-                if (parsedPathways.length > 0) {
-                    const insertPathways = parsedPathways.map(pid => [pid, id]);
-                    await db.promise().query(
-                        `INSERT INTO pathway_module (pathway_id, module_id) VALUES ?`,
-                        [insertPathways]
-                    );
-                }
-            }
+            //     // Insert new ones
+            //     if (parsedPathways.length > 0) {
+            //         const insertPathways = parsedPathways.map(pid => [pid, id]);
+            //         await db.promise().query(
+            //             `INSERT INTO pathway_module (pathway_id, module_id) VALUES ?`,
+            //             [insertPathways]
+            //         );
+            //     }
+            // }
 
             res.status(200).json({ message: "Module updated successfully." });
 
