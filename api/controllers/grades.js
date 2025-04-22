@@ -47,6 +47,48 @@ module.exports = function (db) {
         }
     });
 
+    //GET all grades for a specific module
+    router.get('/module/:moduleId', async (req, res) => {
+        const moduleId = parseInt(req.params.moduleId);
+        if (isNaN(moduleId)) {
+            return res.status(400).json({ error: 'Invalid module ID. Must be a number' });
+        }
+
+        try {
+            const [rows] = await db.promise().query(`
+                    SELECT 
+                        sm.id,
+                s.first_name,
+                s.last_name,
+                s.student_number,
+                ay.name AS academic_year,
+                sm.first_grade,
+                sm.grade_result,
+                sm.resit_grade,
+                sm.resit_result
+            FROM student_module sm
+            JOIN student s ON sm.student_id = s.id
+            JOIN acad_year ay ON sm.academic_year_id = ay.id
+            WHERE sm.module_id = ?
+            ORDER BY ay.name DESC, s.last_name
+                `, [moduleId]);
+
+            // Group by academic_year
+            const groupedByYear = {};
+            rows.forEach(row => {
+                if (!groupedByYear[row.academic_year]) {
+                    groupedByYear[row.academic_year] = [];
+                }
+                groupedByYear[row.academic_year].push(row);
+            });
+
+            return res.status(200).json(groupedByYear);
+        } catch (err) {
+            console.error("Error fetching grades for module:", err);
+            return res.status(500).json({ error: "Failed to fetch module grades" });
+        }
+    });
+
     // GET: All grades grouped by student
     router.get('/', async (req, res) => {
         try {

@@ -136,4 +136,16 @@ router.delete('/delete-module/:id', async (req, res) => {
 
 });
 
+// GET grades for a specific module - using the grades route
+router.get('/grades/module/:moduleId', async (req, res) => {
+    const moduleId = req.params.moduleId;
+    try {
+        const response = await axios.get(`http://localhost:4000/grades/module/${moduleId}`, config);
+        res.json(response.data);
+    } catch (err) {
+        console.error("Error fetching grades by module:", err.message);
+        res.status(500).json({ error: "Failed to load module grades." });
+    }
+});
+
 module.exports = router; 

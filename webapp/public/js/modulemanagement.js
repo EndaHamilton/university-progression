@@ -278,3 +278,81 @@ document.querySelectorAll(".delete-btn").forEach(button => {
         }
     });
 });
+
+// View grades for a specific module
+document.querySelectorAll(".view-grades-btn").forEach(button => {
+    button.addEventListener("click", async () => {
+        const moduleId = button.dataset.id;
+
+        try {
+            const response = await fetch(`/modulemanagement/grades/module/${moduleId}`);
+            const data = await response.json();
+
+            const tabNav = document.createElement("ul");
+            tabNav.className = "nav nav-tabs";
+            tabNav.role = "tablist";
+
+            const tabContent = document.createElement("div");
+            tabContent.className = "tab-content";
+
+            let isFirst = true;
+            Object.entries(data).forEach(([year, students]) => {
+                const tabId = `mod-tab-${year.replace(/[^a-zA-Z0-9]/g, '')}`;
+
+                const li = document.createElement("li");
+                li.className = "nav-item";
+                li.innerHTML = `
+                    <a class="nav-link ${isFirst ? 'active' : ''}" data-toggle="tab" href="#${tabId}" role="tab">${year}</a>
+                `;
+                tabNav.appendChild(li);
+
+                const tabPane = document.createElement("div");
+                tabPane.className = `tab-pane fade ${isFirst ? 'show active' : ''}`;
+                tabPane.id = tabId;
+                tabPane.role = "tabpanel";
+
+                const table = document.createElement("table");
+                table.className = "table table-sm table-bordered";
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Student Number</th>
+                            <th>1st Grade</th>
+                            <th>1st Result</th>
+                            <th>Resit Grade</th>
+                            <th>Resit Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${students.map(s => `
+                            <tr>
+                                <td>${s.first_name} ${s.last_name}</td>
+                                <td>${s.student_number}</td>
+                                <td>${s.first_grade}</td>
+                                <td>${s.grade_result}</td>
+                                <td>${s.resit_grade || ''}</td>
+                                <td>${s.resit_result || ''}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                `;
+
+                tabPane.appendChild(table);
+                tabContent.appendChild(tabPane);
+                isFirst = false;
+            });
+
+            const modalBody = document.getElementById("moduleGradesContent");
+            modalBody.innerHTML = ""; // Clear old content
+            modalBody.appendChild(tabNav);
+            modalBody.appendChild(tabContent);
+
+            $('#moduleGradesModal').modal('show');
+
+        } catch (err) {
+            console.error("Error loading module grades:", err);
+            alert("Failed to load grades for this module.");
+        }
+    });
+});
