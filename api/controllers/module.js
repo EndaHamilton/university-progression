@@ -218,6 +218,43 @@ module.exports = function (db) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
 
+        // Get subject code from subject table
+        const subjectId = parseInt(subject_id);
+        const [subjectRows] = await db.promise().query(`SELECT code FROM subject WHERE id = ?`, [subjectId]);
+        if (subjectRows.length === 0) {
+            return res.status(400).json({ error: "Invalid subject ID" });
+        }
+        const subjectCode = subjectRows[0].code;
+
+        // Get and create the sequence num
+        const level = String(default_program_level).trim();
+        const [seqRows] = await db.promise().query(
+            `SELECT last_used_number FROM subject_level_seq WHERE subject_id = ? AND level = ?`,
+            [subjectId, level]
+        );
+
+        let nextNumber;
+        if (seqRows.length > 0) {
+            nextNumber = seqRows[0].last_used_number + 1;
+
+            await db.promise().query(
+                `UPDATE subject_level_seq SET last_used_number = ? WHERE subject_id = ? AND level = ?`,
+                [nextNumber, subjectId, level]
+            );
+        } else {
+            nextNumber = 1;
+
+            await db.promise().query(
+                `INSERT INTO subject_level_seq (subject_id, level, last_used_number) VALUES (?, ?, ?)`,
+                [subjectId, level, nextNumber]
+            );
+        }
+
+        // Generate module code
+        const paddedSequence = String(nextNumber).padStart(2, "0");
+        const subjectModuleNumber = `${level}${paddedSequence}`;
+        const moduleCode = `${subjectCode}${subjectModuleNumber}`;
+
         // Parse pathway_ids
         const parsedPathways = Array.isArray(pathway_ids)
             ? pathway_ids.map(id => parseInt(id))
@@ -228,28 +265,36 @@ module.exports = function (db) {
 
 
         try {
-            // Check if module with same subject_code, catalogue_code, and title already exists - UQ in DB
+            // // Check if module with same subject_code, catalogue_code, and title already exists - UQ in DB
+            // const [existing] = await db.promise().query(
+            //     `SELECT * FROM module WHERE subject_code = ? AND catalogue_code = ? AND title = ?`,
+            //     [subject_code.trim(), catalogue_code, title.trim()]
+            // );
+
+            // Check if module with same module code (e.g. IFSY211) already exists - UQ in DB
             const [existing] = await db.promise().query(
-                `SELECT * FROM module WHERE subject_code = ? AND catalogue_code = ? AND title = ?`,
-                [subject_code.trim(), catalogue_code, title.trim()]
+                `SELECT * FROM module WHERE module_code = ?`,
+                [moduleCode]
             );
 
             if (existing.length > 0) {
-                return res.status(409).json({ error: "A module with the same subject code, catalogue code, and title already exists." });
+                return res.status(409).json({ error: "A module with the same module code (Same subject and subject module number) already exists." });
             }
 
             // Insert new module (module_code will be generated automatically by the DB)
             const insertSQL = `
-                    INSERT INTO module (subject_code, catalogue_code, title, credits, semester_id)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO module (subject_id, default_program_level, title, subject_module_number, credits, semester_id, module_code)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 `;
 
             const [result] = await db.promise().query(insertSQL, [
-                subject_code.trim(),
-                parseInt(catalogue_code),
+                parseInt(subjectId),
+                level.trim(),
                 title.trim(),
+                subjectModuleNumber,
                 parseInt(credits),
-                parseInt(semester_id)
+                parseInt(semester_id),
+                moduleCode
             ]);
 
             // Fetch the newly inserted module (to return full object incl. module_code)
@@ -260,18 +305,22 @@ module.exports = function (db) {
 
             const newModuleId = result.insertId;
 
-            // Insert into pathway_module
-            if (parsedPathways.length > 0) {
-                const insertPathways = parsedPathways.map(pathwayId => [pathwayId, newModuleId]);
-                await db.promise().query(
-                    `INSERT INTO pathway_module (pathway_id, module_id) VALUES ?`,
-                    [insertPathways]
-                );
-            }
+
+            // Commenting out pathway_module insert as this will now be done at pathway level
+
+            // // Insert into pathway_module
+            // if (parsedPathways.length > 0) {
+            //     const insertPathways = parsedPathways.map(pathwayId => [pathwayId, newModuleId]);
+            //     await db.promise().query(
+            //         `INSERT INTO pathway_module (pathway_id, module_id) VALUES ?`,
+            //         [insertPathways]
+            //     );
+            // }
 
             res.status(200).json({
                 message: "Module created successfully!",
-                module: newModuleId
+                module: newModuleId,
+                module_code: moduleCode
             });
 
         } catch (err) {
