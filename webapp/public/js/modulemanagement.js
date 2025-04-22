@@ -162,18 +162,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // Fill form with student data
                 editForm.setAttribute("data-id", module.id);
-                editForm.querySelector('[name="subject_code"]').value = module.subject_code;
-                editForm.querySelector('[name="subject_module_number"]').value = module.subject_module_number;
+                editForm.querySelector('[name="subject_id"]').value = module.subject_id;
+                editForm.querySelector('[name="default_program_level"]').value = module.default_program_level;
                 editForm.querySelector('[name="title"]').value = module.title;
                 editForm.querySelector('[name="credits"]').value = module.credits;
                 editForm.querySelector('[name="semester_id"]').value = module.semester_id;
 
-                // Set selected pathways
-                const select = editForm.querySelector('[name="pathway_ids"]');
-                const selectedIds = module.pathway_ids || [];
-                Array.from(select.options).forEach(opt => {
-                    opt.selected = selectedIds.includes(parseInt(opt.value));
-                });
+                // // Set selected pathways
+                // const select = editForm.querySelector('[name="pathway_ids"]');
+                // const selectedIds = module.pathway_ids || [];
+                // Array.from(select.options).forEach(opt => {
+                //     opt.selected = selectedIds.includes(parseInt(opt.value));
+                // });
 
                 // Show modal
                 $('#editModuleModal').modal('show');
@@ -190,11 +190,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const moduleId = editForm.getAttribute("data-id");
         const formData = new FormData(editForm);
 
-        const pathwayIds = Array.from(editForm.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
+        // const pathwayIds = Array.from(editForm.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
 
         const payload = Object.fromEntries(formData.entries());
 
-        payload.pathway_ids = pathwayIds; // overwrite if already there
+        // payload.pathway_ids = pathwayIds; // overwrite if already there
 
         // Clear previous feedback
         const errorDiv = document.getElementById("editError");
@@ -224,7 +224,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const errorMessage = data.error ||
                     (status === 400 ? "Invalid input." :
                         status === 404 ? "Module not found." :
-                            status === 409 ? "Module with same subj code, title and catalogue code already exists.." :
+                            status === 409 ? "Module with same module code already exists.." :
                                 "An unexpected error occurred."
                     );
                 errorDiv.textContent = errorMessage;

@@ -13,7 +13,8 @@
 
     <!-- Navigation Bar -->
     <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
-        <a class="navbar-brand col-sm-3 col-md-2 ms-2" href="#"><img class="logo" src="/img/QUB-logo.png" alt="">Generic University Name</a>
+        <a class="navbar-brand col-sm-3 col-md-2 ms-2" href="#"><img class="logo" src="/img/QUB-logo.png" alt="">Generic
+            University Name</a>
         <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">  -->
         <ul class="navbar-nav px-3">
             <li class="nav-item text-nowrap">
@@ -96,34 +97,34 @@
                             <th>Actions</th>
                         </thead>
                         <tbody>
-                            <% modules.forEach(module=> { %>
+                            <% modules.forEach(m=> { %>
                                 <tr>
                                     <td>
-                                        <%= module.subject_code %>
+                                        <%= m.subject_code %>
                                     </td>
                                     <td>
-                                        <%= module.subject_module_number %>
+                                        <%= m.subject_module_number %>
                                     </td>
                                     <td>
-                                        <%= module.title %>
+                                        <%= m.title %>
                                     </td>
                                     <td>
-                                        <%= module.credits %>
+                                        <%= m.credits %>
                                     </td>
                                     <td>
-                                        <%= module.semester_name %>
+                                        <%= m.semester_name %>
                                     </td>
                                     <td>
-                                        <%= module.module_code %>
+                                        <%= m.module_code %>
                                     </td>
                                     <td>
-                                        <%= module.pathway_names %>
+                                        <%= m.pathway_names %>
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-sm btn-outline-secondary edit-btn"
-                                            data-id="<%= module.id %>">Edit</button>
+                                            data-id="<%= m.id %>">Edit</button>
                                         <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
-                                            data-id="<%= module.id %>">Delete</button>
+                                            data-id="<%= m.id %>">Delete</button>
                                     </td>
                                 </tr>
                                 <% }) %>
@@ -163,11 +164,11 @@
                         <div class="form-group">
                             <label>Default Program Level</label>
                             <select name="default_program_level" class="form-control" required>
-                              <option value="" disabled selected>Select Level</option>
-                              <option value="1">1</option>
-                              <option value="2">2</option>
+                                <option value="" disabled selected>Select Level</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
                             </select>
-                          </div>
+                        </div>
                         <div class="form-group">
                             <label>Title</label>
                             <input type="text" class="form-control" name="title" required>
@@ -233,12 +234,23 @@
                     <form id="editModuleForm">
                         <input type="hidden" name="module_id" id="edit-module-id" />
                         <div class="form-group">
-                            <label>Subject Code</label>
-                            <input type="text" class="form-control" name="subject_code" required>
+                            <label>Subject</label>
+                            <select name="subject_id" class="form-control" required>
+                                <option value="" disabled selected>Select a Subject</option>
+                                <% subjects.forEach(subject=> { %>
+                                    <option value="<%= subject.id %>">
+                                        <%= subject.code %>
+                                    </option>
+                                    <% }) %>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>Subject Module Number</label>
-                            <input type="number" class="form-control" name="subject_module_number">
+                            <label>Default Program Level</label>
+                            <select name="default_program_level" class="form-control" required>
+                                <option value="" disabled selected>Select Level</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Title</label>
@@ -266,7 +278,7 @@
                                     <% }) %>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <!-- <div class="form-group">
                             <label>Pathway</label>
                             <select name="pathway_ids" multiple class="form-control" required>
                                 <option value="" disabled>Select a pathway</option>
@@ -278,7 +290,7 @@
                             </select>
                             <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple
                                 pathways.</small>
-                        </div>
+                        </div> -->
                         <div id="editError" class="alert alert-danger d-none"></div>
                         <div id="editSuccess" class="alert alert-success d-none"></div>
                         <button type="submit" class="btn btn-success">Update Module</button>
