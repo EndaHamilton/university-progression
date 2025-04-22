@@ -304,38 +304,122 @@ document.addEventListener("DOMContentLoaded", () => {
             Entry Level: ${s.entry_level}, Study Status: ${s.study_status}
           `;
 
-        // Populate grades
-        const tbody = document.getElementById("modalGradeTableBody");
-        tbody.innerHTML = "";
 
-        data.studentGrades.forEach(g => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-              <td>${g.module_title} (${g.module_code})</td>
-              <td>${g.academic_year}</td>
-              <td><input type="number" class="form-control form-control-sm" value="${g.first_grade}" data-id="${g.id}" data-type="first_grade"></td>
-              <td>
-                <select class="form-control form-control-sm" data-id="${g.id}" data-type="grade_result">
-                  ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
-            `<option value="${opt}" ${opt === g.grade_result ? "selected" : ""}>${opt}</option>`
-          ).join("")}
-                </select>
-              </td>
-              <td><input type="number" class="form-control form-control-sm" value="${g.resit_grade || ""}" data-id="${g.id}" data-type="resit_grade"></td>
-              <td>
-                <select class="form-control form-control-sm" data-id="${g.id}" data-type="resit_result">
-                  <option value=""></option>
-                  ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
-            `<option value="${opt}" ${opt === g.resit_result ? "selected" : ""}>${opt}</option>`
-          ).join("")}
-                </select>
-              </td>
-              <td>
-                <button class="btn btn-sm btn-success save-grade-btn" data-id="${g.id}">Save</button>
-              </td>
-            `;
-          tbody.appendChild(row);
+        // Populate navigatable table of students grades
+        const tabNav = document.createElement("ul");
+        tabNav.className = "nav nav-tabs";
+        tabNav.id = "gradeTabs";
+        tabNav.role = "tablist";
+
+        const tabContent = document.createElement("div");
+        tabContent.className = "tab-content";
+
+        let isFirst = true;
+
+        Object.entries(data.studentGrades).forEach(([year, grades], idx) => {
+          const tabId = `tab-${year.replace(/[^a-zA-Z0-9]/g, '')}`;
+
+          // Tab nav item
+          const li = document.createElement("li");
+          li.className = "nav-item";
+          li.innerHTML = `
+    <a class="nav-link ${isFirst ? "active" : ""}" id="${tabId}-tab" data-toggle="tab" href="#${tabId}" role="tab">${year}</a>
+  `;
+          tabNav.appendChild(li);
+
+          // Tab pane
+          const tabPane = document.createElement("div");
+          tabPane.className = `tab-pane fade ${isFirst ? "show active" : ""}`;
+          tabPane.id = tabId;
+          tabPane.role = "tabpanel";
+
+          const table = document.createElement("table");
+          table.className = "table table-sm table-striped";
+          table.innerHTML = `
+    <thead class="thead-light">
+      <tr>
+        <th>Module</th>
+        <th>1st Grade</th>
+        <th>1st Result</th>
+        <th>Resit Grade</th>
+        <th>Resit Result</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${grades.map(g => `
+        <tr>
+          <td>${g.module_title} (${g.module_code})</td>
+          <td><input type="number" class="form-control form-control-sm" value="${g.first_grade}" data-id="${g.id}" data-type="first_grade"></td>
+          <td>
+            <select class="form-control form-control-sm" data-id="${g.id}" data-type="grade_result">
+              ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
+            `<option value="${opt}" ${opt === g.grade_result ? "selected" : ""}>${opt}</option>`).join("")}
+            </select>
+          </td>
+          <td><input type="number" class="form-control form-control-sm" value="${g.resit_grade || ""}" data-id="${g.id}" data-type="resit_grade"></td>
+          <td>
+            <select class="form-control form-control-sm" data-id="${g.id}" data-type="resit_result">
+              <option value=""></option>
+              ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
+              `<option value="${opt}" ${opt === g.resit_result ? "selected" : ""}>${opt}</option>`).join("")}
+            </select>
+          </td>
+          <td><button class="btn btn-sm btn-success save-grade-btn" data-id="${g.id}">Save</button></td>
+        </tr>
+      `).join("")}
+    </tbody>
+  `;
+
+          tabPane.appendChild(table);
+          tabContent.appendChild(tabPane);
+          isFirst = false;
         });
+
+        const modalBody = document.querySelector("#studentGradeModal .modal-body");
+        modalBody.innerHTML = `
+  <div id="modalStudentInfo" class="mb-3">
+    <strong>${s.first_name} ${s.last_name}</strong> (${s.student_number})<br>
+    Pathway: ${s.pathway_name}<br>
+    Entry Level: ${s.entry_level}, Study Status: ${s.study_status}
+  </div>
+`;
+
+        modalBody.appendChild(tabNav);
+        modalBody.appendChild(tabContent);
+
+        // // Populate grades
+        // const tbody = document.getElementById("modalGradeTableBody");
+        // tbody.innerHTML = "";
+
+        // data.studentGrades.forEach(g => {
+        //   const row = document.createElement("tr");
+        //   row.innerHTML = `
+        //       <td>${g.module_title} (${g.module_code})</td>
+        //       <td>${g.academic_year}</td>
+        //       <td><input type="number" class="form-control form-control-sm" value="${g.first_grade}" data-id="${g.id}" data-type="first_grade"></td>
+        //       <td>
+        //         <select class="form-control form-control-sm" data-id="${g.id}" data-type="grade_result">
+        //           ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
+        //     `<option value="${opt}" ${opt === g.grade_result ? "selected" : ""}>${opt}</option>`
+        //   ).join("")}
+        //         </select>
+        //       </td>
+        //       <td><input type="number" class="form-control form-control-sm" value="${g.resit_grade || ""}" data-id="${g.id}" data-type="resit_grade"></td>
+        //       <td>
+        //         <select class="form-control form-control-sm" data-id="${g.id}" data-type="resit_result">
+        //           <option value=""></option>
+        //           ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
+        //     `<option value="${opt}" ${opt === g.resit_result ? "selected" : ""}>${opt}</option>`
+        //   ).join("")}
+        //         </select>
+        //       </td>
+        //       <td>
+        //         <button class="btn btn-sm btn-success save-grade-btn" data-id="${g.id}">Save</button>
+        //       </td>
+        //     `;
+        //   tbody.appendChild(row);
+        // });
 
         $('#studentGradeModal').modal('show');
       } catch (err) {

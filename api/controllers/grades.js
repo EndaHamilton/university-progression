@@ -31,7 +31,16 @@ module.exports = function (db) {
                 ORDER BY ay.name DESC
             `, [studentId]);
 
-            return res.status(200).json(rows);
+            // Group by academic_year
+            const groupedByYear = {};
+            rows.forEach(row => {
+                if (!groupedByYear[row.academic_year]) {
+                    groupedByYear[row.academic_year] = [];
+                }
+                groupedByYear[row.academic_year].push(row);
+            });
+
+            return res.status(200).json(groupedByYear);
         } catch (err) {
             console.error("Error fetching grades for student:", err);
             return res.status(500).json({ error: "Failed to fetch student grades" });
@@ -318,7 +327,7 @@ module.exports = function (db) {
             `, [student_id, module_id, academic_year_id]);
 
             if (existing.length > 0) {
-                return res.status(409).json({ error: "This student already has a grade for that module and academic year." });
+                return res.status(409).json({ error: "This student already has a grade for that module during that academic year." });
             }
 
             // Insert into student_module

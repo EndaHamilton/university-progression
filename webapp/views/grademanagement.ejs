@@ -20,26 +20,9 @@
           <h5 class="modal-title">Student Grades</h5>
           <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
         </div>
-        <div class="modal-body">
-          <!-- Student Info -->
+        <div class="modal-body" style="overflow-y: auto; overflow-x: auto;">
           <div id="modalStudentInfo" class="mb-3"></div>
-          <div style="overflow-x: auto;">
-            <!-- Grades Table -->
-            <table class="table table-sm table-striped">
-              <thead class="thead-light">
-                <tr>
-                  <th>Module</th>
-                  <th>Year</th>
-                  <th>1st Grade</th>
-                  <th>1st Result</th>
-                  <th>Resit Grade</th>
-                  <th>Resit Result</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="modalGradeTableBody"></tbody>
-            </table>
-          </div>
+          <!--Student grade info from js script file will populate here-->
         </div>
       </div>
     </div>
@@ -121,11 +104,11 @@
             <select id="pathwayFilter" class="form-control">
               <option value="all">All Pathways</option>
               <% const uniquePathways=[...new Set(students.map(s=> s.pathway_name))] %>
-               <% uniquePathways.forEach(p => {%>
-                <option value="<%= p %>">
-                  <%= p %>
-                </option>
-                <% }) %>
+                <% uniquePathways.forEach(p=> {%>
+                  <option value="<%= p %>">
+                    <%= p %>
+                  </option>
+                  <% }) %>
             </select>
           </div>
         </div>
