@@ -185,7 +185,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // 2. Submit handler for Edit Form
+    console.log("Registering edit form submit event");
+
     editForm.addEventListener("submit", async function (e) {
+
+        console.log("Edit form submitted");
+
         e.preventDefault();
         const moduleId = editForm.getAttribute("data-id");
         const formData = new FormData(editForm);

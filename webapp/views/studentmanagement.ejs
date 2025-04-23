@@ -225,14 +225,6 @@
                     <form id="editStudentForm">
                         <input type="hidden" name="student_id" id="edit-student-id" />
                         <div class="form-group">
-                            <label>Student Number</label>
-                            <input type="text" class="form-control" name="student_number" required>
-                        </div>
-                        <div class="form-group">
-                            <label>User ID</label>
-                            <input type="number" class="form-control" name="user_id">
-                        </div>
-                        <div class="form-group">
                             <label>Pathway</label>
                             <select name="pathway_id" class="form-control" required>
                                 <option value="" disabled>Select a pathway</option>
@@ -272,6 +264,10 @@
                                     </option>
                                     <% }) %>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Enrollment Year</label>
+                            <input type="text" class="form-control" name="enrollment_year" required>
                         </div>
                         <div id="editError" class="alert alert-danger d-none"></div>
                         <div id="editSuccess" class="alert alert-success d-none"></div>

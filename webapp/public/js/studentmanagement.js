@@ -3,8 +3,11 @@ console.log("Student Management JS loaded.");
 
 function validateStudentForm(form, errorDiv) {
 
-    // const studentNumber = form.querySelector('[name="student_number"]').value.trim();
-    const userId = form.querySelector('[name="user_id"]').value.trim();
+    // Handling null instances of user ID
+    const userIdField = form.querySelector('[name="user_id"]');
+    const userId = userIdField ? userIdField.value.trim() : '';
+
+
     const pathwayId = form.querySelector('[name="pathway_id"]').value.trim();
     const firstName = form.querySelector('[name="first_name"]').value.trim();
     const lastName = form.querySelector('[name="last_name"]').value.trim();
@@ -154,13 +157,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // Fill form with student data
                 editForm.setAttribute("data-id", student.id);
-                editForm.querySelector('[name="student_number"]').value = student.student_number;
-                editForm.querySelector('[name="user_id"]').value = student.user_id || '';
                 editForm.querySelector('[name="pathway_id"]').value = student.pathway_id;
                 editForm.querySelector('[name="first_name"]').value = student.first_name;
                 editForm.querySelector('[name="last_name"]').value = student.last_name;
                 editForm.querySelector('[name="study_status_id"]').value = student.study_status_id;
                 editForm.querySelector('[name="entry_level_id"]').value = student.entry_level_id;
+                editForm.querySelector('[name="enrollment_year"]').value = student.enrollment_year;
 
                 // Show modal
                 $('#editStudentModal').modal('show');
