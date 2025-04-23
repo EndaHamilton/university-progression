@@ -491,5 +491,34 @@ module.exports = function (db) {
     });
 
 
+    // POST route for enrolling a student in modules - insert into the student_module join table in DB
+    router.post("/:id/enroll", async (req, res) => {
+        const studentId = parseInt(req.params.id);
+        const { modules, acad_yr_id } = req.body;
+
+        if (!Array.isArray(modules) || modules.length === 0) {
+            return res.status(400).json({ error: "No modules provided." });
+        }
+
+        try {
+
+            // VALUES ? - used once to represent multiple row inserts 
+            const insertSQL = `
+                INSERT INTO student_module (student_id, module_id, is_repeat, academic_year_id)
+                VALUES ?
+            `;
+            const values = modules.map(mod => [studentId, mod.module_id, 0, acad_yr_id]);
+
+            const [enrolledModules] = await db.promise().query(insertSQL, [values]);
+
+            return res.status(200).json({ message: "Modules enrolled successfully.", 
+                                        enrolled_modules: enrolledModules, });
+        } catch (err) {
+            console.error("Database error during enrollment:", err);
+            return res.status(500).json({ error: "Failed to enroll modules." });
+        }
+    });
+
+
     return router;
 };

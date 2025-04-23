@@ -24,11 +24,12 @@ router.get('/', async (req, res) => {
     try {
         //GET request to different API endpoints for all data studentManagement page uses
 
-        const [studentsRes, pathwaysRes, studyStatusRes, entryLevelRes] = await Promise.all([
+        const [studentsRes, pathwaysRes, studyStatusRes, entryLevelRes, acadYearRes] = await Promise.all([
             axios.get("http://localhost:4000/student/details", config),
             axios.get("http://localhost:4000/pathway", config),
             axios.get("http://localhost:4000/studystatus", config),
-            axios.get("http://localhost:4000/entrylevel", config)
+            axios.get("http://localhost:4000/entrylevel", config),
+            axios.get("http://localhost:4000/acadyear", config),
         ]);
 
         //Render EJS view with all data fetched from API endpoints
@@ -41,6 +42,7 @@ router.get('/', async (req, res) => {
             pathways: pathwaysRes.data,
             studyStatuses: studyStatusRes.data,
             entryLevels: entryLevelRes.data,
+            acadYrs: acadYearRes.data,
             errorMessage: null
         });
 
@@ -155,6 +157,7 @@ router.delete('/delete-student/:id', async (req, res) => {
 router.get('/student/:id/available-modules', async (req, res) => {
 
     try {
+        
         const studentId = req.params.id;
         const getStudentModulesEp = `http://localhost:4000/student/${studentId}/available-modules`;
         const response = await axios.get(getStudentModulesEp, config);
@@ -168,6 +171,28 @@ router.get('/student/:id/available-modules', async (req, res) => {
         console.error('Status code from API:', status);
         // Handle the error response dynamically
 
+        return res.status(status).json({ error: errorMessage });
+    }
+});
+
+// POST route for enrolling a student in modules - insert into the student_module join table in DB
+router.post('/student/:id/enroll', async (req, res) => {
+
+    const studentId = req.params.id;
+    const { modules, acad_yr_id } = req.body;
+
+    if (!Array.isArray(modules) || modules.length === 0) {
+        return res.status(400).json({ error: "No modules provided." });
+    }
+
+    try {
+        const enrollStudentEp = `http://localhost:4000/student/${studentId}/enroll`;
+        const response = await axios.post(enrollStudentEp, { modules, acad_yr_id }, config);
+        return res.status(200).json(response.data);
+    } catch (error) {
+        const status = error.response?.status || 500;
+        const errorMessage = error.response?.data?.error || "Failed to enroll student.";
+        console.error("Enrollment error:", errorMessage);
         return res.status(status).json({ error: errorMessage });
     }
 });

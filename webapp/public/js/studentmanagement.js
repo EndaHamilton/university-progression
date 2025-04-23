@@ -292,6 +292,9 @@ document.querySelectorAll(".assign-modules-btn").forEach(button => {
         const res = await fetch(`/studentmanagement/student/${studentId}/available-modules`);
         const data = await res.json();
 
+        // Set student ID as data attribute on the modal - to be fetched by submit handler further down
+        document.getElementById("assignModulesModal").setAttribute("data-student-id", studentId);
+
         // Student details - update this to include student number and name
         document.getElementById("studentModuleDetails").innerHTML = `
           <strong>Student ID:</strong> ${data.studentId}<br>
@@ -365,5 +368,71 @@ function updateCatsCounter() {
     document.getElementById("catsCounter").textContent = total;
     document.getElementById("submitEnrollmentBtn").disabled = total < 120;
 }
+
+// Functionality for submitting enrollment button
+document.getElementById("submitEnrollmentBtn").addEventListener("click", async function () {
+    const studentId = document.getElementById("assignModulesModal").getAttribute("data-student-id");
+
+    // Clear previous feedback
+    const errorDiv = document.getElementById("enrollError");
+    const successDiv = document.getElementById("enrollSuccess");
+    const exceedCATSDiv = document.getElementById("exceedCATS");
+    errorDiv.classList.add("d-none");
+    errorDiv.textContent = "";
+    successDiv.classList.add("d-none");
+    successDiv.textContent = "";
+    exceedCATSDiv.classList.add("d-none");
+    exceedCATSDiv.textContent = "";
+
+    const selectedModules = Array.from(document.querySelectorAll(".module-checkbox:checked"))
+        .map(cb => ({
+            module_id: parseInt(cb.value),
+            credits: parseInt(cb.getAttribute("data-credits")),
+            semester: cb.getAttribute("data-semester")
+        }));
+
+    const totalCredits = selectedModules.reduce((sum, mod) => sum + mod.credits, 0);
+
+    if (totalCredits < 120) {
+        errorDiv.textContent = "You must select at least 120 CATS.";
+        errorDiv.classList.remove("d-none");
+        return;
+    } else if (totalCredits > 120) {
+        exceedCATSDiv.textContent = "Be aware you are enrolling for more CATs than are required";
+        exceedCATSDiv.classList.remove("d-none");
+    }
+
+    try {
+        const acadYrId = document.getElementById("academicYearSelect").value;
+
+        const response = await fetch(`/studentmanagement/student/${studentId}/enroll`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ modules: selectedModules, acad_yr_id: acadYrId })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            const errorMessage = data.error || "Unknown error occurred while enrolling modules"
+            errorDiv.textContent = errorMessage;
+            errorDiv.classList.remove("d-none");
+        }
+
+        successDiv.textContent = data.message || "Modules assigned successfully!";
+        successDiv.classList.remove("d-none");
+
+        setTimeout(() => {
+            window.location.href = "/studentmanagement";
+        }, 2000);
+
+    } catch (err) {
+        console.error("Error deleting student:", err);
+        errorDiv.textContent = err.message || "A network error occurred.";
+        errorDiv.classList.remove("d-none");
+    }
+});
 
 
