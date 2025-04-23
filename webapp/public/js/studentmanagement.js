@@ -367,9 +367,48 @@ document.addEventListener('change', function (e) {
 function updateCatsCounter() {
     const checkboxes = document.querySelectorAll(".module-checkbox:checked");
     let total = 0;
-    checkboxes.forEach(cb => total += parseInt(cb.getAttribute("data-credits")));
+    let autumn = 0;
+    let spring = 0;
+    let fullYear = 0;
+
+    checkboxes.forEach(cb => {
+        const credits = parseInt(cb.getAttribute("data-credits"));
+        const semester = cb.getAttribute("data-semester");
+        total += credits;
+
+        switch (semester) {
+            case "AUT":
+                autumn += credits;
+                break;
+            case "SPR":
+                spring += credits;
+                break;
+            case "FYR":
+                fullYear += credits;
+                break;
+        }
+    });
+
     document.getElementById("catsCounter").textContent = total;
     document.getElementById("submitEnrollmentBtn").disabled = total < 120;
+
+    // Semester breakdown
+    document.getElementById("autumnCATS").textContent = `Autumn: ${autumn} CATS`;
+    document.getElementById("springCATS").textContent = `Spring: ${spring} CATS`;
+    document.getElementById("fullYearCATS").textContent = `Full Year: ${fullYear} CATS`;
+
+    // Warning if over 60 CATS in a semester
+    const warningDiv = document.getElementById("semesterWarning");
+    if (autumn > 60 || spring > 60) {
+        let msg = "You're enrolling more than 60 CATS in:";
+        if (autumn > 60) msg += ` Autumn (${autumn})`;
+        if (spring > 60) msg += ` Spring (${spring})`;
+        warningDiv.textContent = msg;
+        warningDiv.classList.remove("d-none");
+    } else {
+        warningDiv.classList.add("d-none");
+        warningDiv.textContent = '';
+    }
 
     // Show/hide the warning if over 120 CATS
     const exceedCATSDiv = document.getElementById("exceedCATS");
