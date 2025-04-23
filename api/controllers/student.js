@@ -25,11 +25,11 @@ module.exports = function (db) {
         //     }
         // }
 
-        if ('user_id' in data && data.user_id !== null && data.user_id !== "") {
-            if (!isPositiveInteger(data.user_id)) {
-                errors.push("User ID must be a positive whole number.");
-            }
-        }
+        // if ('user_id' in data && data.user_id !== null && data.user_id !== "") {
+        //     if (!isPositiveInteger(data.user_id)) {
+        //         errors.push("User ID must be a positive whole number.");
+        //     }
+        // }
 
         if (shouldCheck('first_name')) {
             const val = data.first_name;
@@ -209,9 +209,9 @@ module.exports = function (db) {
 
     router.post("/", async (req, res) => {
 
-        const { user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year } = req.body;
+        const { pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year } = req.body;
 
-        const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
+        // const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
 
         // Validation function to validate input data - mirrors client-side validation for extra layer of security
         const validationErrors = validateStudentFields(req.body);
@@ -221,7 +221,7 @@ module.exports = function (db) {
 
         try {
 
-            const insertStudentSQL = `INSERT INTO student (student_number, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
+            const insertStudentSQL = `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
             //Insert into student with placeholder student_number before updating after concatenation to get student_number
@@ -266,7 +266,7 @@ module.exports = function (db) {
 
 
 
-            return res.status(200).json({ message: "Student created successfully", studentId: result.insertId, studentNumber, user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year });
+            return res.status(200).json({ message: "Student created successfully", studentId: result.insertId, studentNumber, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year });
 
 
 
@@ -311,7 +311,7 @@ module.exports = function (db) {
             const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
             const fieldsToCheck = [
-                "student_number", "user_id", "pathway_id", "first_name", "last_name", "study_status_id", "entry_level_id", "enrollment_year"
+                "student_number", "pathway_id", "first_name", "last_name", "study_status_id", "entry_level_id", "enrollment_year"
             ];
 
             const { updateFields, updateValues } = getUpdatedFields(req.body, existingStudent, fieldsToCheck);
@@ -408,7 +408,12 @@ module.exports = function (db) {
         }
 
         try {
-            const [rows] = await db.promise().query(`SELECT * FROM student WHERE user_id = ?`, [userId]);
+            const [rows] = await db.promise().query(`
+                SELECT s.* 
+                FROM user u
+                JOIN student s ON u.student_id = s.id
+                WHERE u.id = ?
+              `, [userId]);
 
             if (rows.length === 0) {
                 return res.status(404).json({ error: 'Student not found for this user' });
@@ -511,8 +516,10 @@ module.exports = function (db) {
 
             const [enrolledModules] = await db.promise().query(insertSQL, [values]);
 
-            return res.status(200).json({ message: "Modules enrolled successfully.", 
-                                        enrolled_modules: enrolledModules, });
+            return res.status(200).json({
+                message: "Modules enrolled successfully.",
+                enrolled_modules: enrolledModules,
+            });
         } catch (err) {
             console.error("Database error during enrollment:", err);
             return res.status(500).json({ error: "Failed to enroll modules." });
