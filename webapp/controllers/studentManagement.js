@@ -151,4 +151,25 @@ router.delete('/delete-student/:id', async (req, res) => {
 
 });
 
+// GET students available modules
+router.get('/student/:id/available-modules', async (req, res) => {
+
+    try {
+        const studentId = req.params.id;
+        const getStudentModulesEp = `http://localhost:4000/student/${studentId}/available-modules`;
+        const response = await axios.get(getStudentModulesEp, config);
+        console.log("Response from API: ", response.data);
+        return res.status(200).json(response.data);
+    } catch (error) {
+
+        const status = error.response?.status || 500;
+        const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
+        console.error('Error message from API:', errorMessage);
+        console.error('Status code from API:', status);
+        // Handle the error response dynamically
+
+        return res.status(status).json({ error: errorMessage });
+    }
+});
+
 module.exports = router;

@@ -260,3 +260,85 @@ document.querySelectorAll(".delete-btn").forEach(button => {
     });
 });
 
+// Functionality for assign / enroll modules form
+document.querySelectorAll(".assign-modules-btn").forEach(button => {
+    button.addEventListener("click", async function () {
+        const studentId = this.getAttribute("data-id");
+        const res = await fetch(`/studentmanagement/student/${studentId}/available-modules`);
+        const data = await res.json();
+
+        // Student details - update this to include student number and name
+        document.getElementById("studentModuleDetails").innerHTML = `
+          <strong>Student ID:</strong> ${data.studentId}<br>
+          <strong>Pathway ID:</strong> ${data.pathway_id}<br>
+          <strong>Level:</strong> ${data.entry_level_id}
+        `;
+
+        // Mandatory Core modules
+        const mandatoryCoreContainer = document.getElementById("mandatoryCoreModules");
+        mandatoryCoreContainer.innerHTML = '';
+        data.coreModules.forEach(module => {
+            mandatoryCoreContainer.innerHTML += `
+            <div class="form-check mr-3">
+              <input class="form-check-input module-checkbox" type="checkbox"
+                     data-credits="${module.credits}" value="${module.id}" id="core-${module.id}">
+              <label class="form-check-label" for="core-${module.id}">
+                ${module.module_code} - ${module.title} (${module.credits} CATS, ${module.semester_name})
+              </label>
+            </div>
+          `;
+        });
+
+
+        // Optional Core (EITHER OR) modules
+        const optionalCoreContainer = document.getElementById("optionalCoreModules");
+        optionalCoreContainer.innerHTML = '';
+        Object.values(data.optionalCoreGroups).forEach(group => {
+            group.forEach(module => {
+                optionalCoreContainer.innerHTML += `
+              <div class="form-check mr-3">
+                <input class="form-check-input module-checkbox" type="checkbox"
+                       data-credits="${module.credits}" value="${module.id}" id="optcore-${module.id}">
+                <label class="form-check-label" for="optcore-${module.id}">
+                  ${module.module_code} - ${module.title} (${module.credits} CATS, ${module.semester_name})
+                </label>
+              </div>
+            `;
+            });
+        });
+
+        const nonCoreContainer = document.querySelector("#availableModules .d-flex");
+        nonCoreContainer.innerHTML = '';
+        data.availableModules.forEach(module => {
+            nonCoreContainer.innerHTML += `<div class="form-check mr-3">
+                <input class="form-check-input module-checkbox" type="checkbox"
+                  data-credits="${module.credits}" data-semester="${module.semester_name}"
+                  value="${module.id}" id="mod-${module.id}">
+                <label class="form-check-label" for="mod-${module.id}">
+                  ${module.module_code} - ${module.title} (${module.credits} CATS, ${module.semester_name})
+                </label>
+            </div>`;
+        });
+
+        updateCatsCounter();
+
+        // Show modal
+        $('#assignModulesModal').modal('show');
+    });
+});
+
+document.addEventListener('change', function (e) {
+    if (e.target.classList.contains('module-checkbox')) {
+        updateCatsCounter();
+    }
+});
+
+function updateCatsCounter() {
+    const checkboxes = document.querySelectorAll(".module-checkbox:checked");
+    let total = 0;
+    checkboxes.forEach(cb => total += parseInt(cb.getAttribute("data-credits")));
+    document.getElementById("catsCounter").textContent = total;
+    document.getElementById("submitEnrollmentBtn").disabled = total < 120;
+}
+
+
