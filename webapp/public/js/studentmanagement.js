@@ -237,6 +237,14 @@ document.querySelectorAll(".delete-btn").forEach(button => {
     button.addEventListener("click", async function () {
         const studentId = this.getAttribute("data-id");
 
+        // Clear previous feedback
+        const errorDiv = document.getElementById("deleteError");
+        const successDiv = document.getElementById("deleteSuccess");
+        errorDiv.classList.add("d-none");
+        errorDiv.textContent = "";
+        successDiv.classList.add("d-none");
+        successDiv.textContent = "";
+
         if (!confirm("Are you sure you want to delete this student?")) {
             return; // User cancelled
         }
@@ -249,15 +257,30 @@ document.querySelectorAll(".delete-btn").forEach(button => {
             const data = await response.json();
 
             if (!response.ok) {
-                alert(data.error || "An error occurred while deleting the student.");
+                const status = response.status;
+                const errorMessage = data.error ||
+                    (status === 400 ? "Invalid input." :
+                        status === 404 ? "Student not found." :
+                            status === 409 ? "An error occurred while deleting the student." : "An unexpected error occurred"
+                    );
+                errorDiv.textContent = errorMessage;
+                errorDiv.classList.remove("d-none");
+
                 return;
             }
 
-            alert(data.message || "Student deleted successfully!");
-            window.location.href = "/studentmanagement"; // Redirect to student management page
+            successDiv.textContent = data.message || "Student deleted successfully!";
+            successDiv.classList.remove("d-none");
+
+            setTimeout(() => {
+                window.location.href = "/studentmanagement";
+            }, 2000);
+
+
         } catch (err) {
             console.error("Error deleting student:", err);
-            alert("A network error occurred while deleting the student.");
+            errorDiv.textContent = "A network error occurred.";
+            errorDiv.classList.remove("d-none");
         }
     });
 });

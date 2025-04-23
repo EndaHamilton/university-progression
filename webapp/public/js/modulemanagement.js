@@ -259,6 +259,14 @@ document.querySelectorAll(".delete-btn").forEach(button => {
     button.addEventListener("click", async function () {
         const moduleId = this.getAttribute("data-id");
 
+        // Clear previous feedback
+        const errorDiv = document.getElementById("deleteError");
+        const successDiv = document.getElementById("deleteSuccess");
+        errorDiv.classList.add("d-none");
+        errorDiv.textContent = "";
+        successDiv.classList.add("d-none");
+        successDiv.textContent = "";
+
         if (!confirm("Are you sure you want to delete this module?")) {
             return; // User cancelled
         }
@@ -271,12 +279,25 @@ document.querySelectorAll(".delete-btn").forEach(button => {
             const data = await response.json();
 
             if (!response.ok) {
-                alert(data.error || "An error occurred while deleting the module.");
+                const status = response.status;
+                const errorMessage = data.error ||
+                    (status === 400 ? "Invalid input." :
+                        status === 404 ? "Module not found." :
+                            status === 409 ? "An error occurred while deleting the module." : "An unexpected error occurred"
+                    );
+                errorDiv.textContent = errorMessage;
+                errorDiv.classList.remove("d-none");
+
                 return;
             }
 
-            alert(data.message || "Module deleted successfully!");
-            window.location.href = "/modulemanagement"; // Redirect to module management page
+            successDiv.textContent = data.message || "Module deleted successfully!";
+            successDiv.classList.remove("d-none");
+
+            setTimeout(() => {
+                window.location.href = "/modulemanagement";
+            }, 2000);
+
         } catch (err) {
             console.error("Error deleting module:", err);
             alert("A network error occurred while deleting the module.");
