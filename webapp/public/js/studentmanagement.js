@@ -292,6 +292,7 @@ document.querySelectorAll(".assign-modules-btn").forEach(button => {
         const res = await fetch(`/studentmanagement/student/${studentId}/available-modules`);
         const data = await res.json();
 
+
         // Set student ID as data attribute on the modal - to be fetched by submit handler further down
         document.getElementById("assignModulesModal").setAttribute("data-student-id", studentId);
 
@@ -350,6 +351,8 @@ document.querySelectorAll(".assign-modules-btn").forEach(button => {
 
         updateCatsCounter();
 
+
+
         // Show modal
         $('#assignModulesModal').modal('show');
     });
@@ -367,6 +370,16 @@ function updateCatsCounter() {
     checkboxes.forEach(cb => total += parseInt(cb.getAttribute("data-credits")));
     document.getElementById("catsCounter").textContent = total;
     document.getElementById("submitEnrollmentBtn").disabled = total < 120;
+
+    // Show/hide the warning if over 120 CATS
+    const exceedCATSDiv = document.getElementById("exceedCATS");
+    if (total > 120) {
+        exceedCATSDiv.textContent = "Be aware you are enrolling for more CATs than are required";
+        exceedCATSDiv.classList.remove("d-none");
+    } else {
+        exceedCATSDiv.classList.add("d-none");
+        exceedCATSDiv.textContent = "";
+    }
 }
 
 // Functionality for submitting enrollment button
@@ -376,13 +389,11 @@ document.getElementById("submitEnrollmentBtn").addEventListener("click", async f
     // Clear previous feedback
     const errorDiv = document.getElementById("enrollError");
     const successDiv = document.getElementById("enrollSuccess");
-    const exceedCATSDiv = document.getElementById("exceedCATS");
     errorDiv.classList.add("d-none");
     errorDiv.textContent = "";
     successDiv.classList.add("d-none");
     successDiv.textContent = "";
-    exceedCATSDiv.classList.add("d-none");
-    exceedCATSDiv.textContent = "";
+
 
     const selectedModules = Array.from(document.querySelectorAll(".module-checkbox:checked"))
         .map(cb => ({
@@ -397,9 +408,6 @@ document.getElementById("submitEnrollmentBtn").addEventListener("click", async f
         errorDiv.textContent = "You must select at least 120 CATS.";
         errorDiv.classList.remove("d-none");
         return;
-    } else if (totalCredits > 120) {
-        exceedCATSDiv.textContent = "Be aware you are enrolling for more CATs than are required";
-        exceedCATSDiv.classList.remove("d-none");
     }
 
     try {
