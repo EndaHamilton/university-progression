@@ -251,16 +251,6 @@ module.exports = function (db) {
 
             const studentNumber = `${yearNum}-${pathwayCode}-${paddedSequence}`;
 
-            // // Generate sequential number — count how many existing students share the same year + pathway code prefix
-            // const pattern = `${yearNum}-${pathwayCode}-%`;
-            // const [existingCountRows] = await db.promise().query(
-            //     `SELECT COUNT(*) AS count FROM student WHERE student_number LIKE ?`,
-            //     [pattern]
-            // );
-
-            // const sequenceNumber = existingCountRows[0].count + 1;
-            // const paddedSequence = String(sequenceNumber).padStart(7, "0");
-
             const [existingStudentNumber] = await db.promise().query(`SELECT * FROM student WHERE student_number = ?`, [studentNumber]
             );
 
@@ -317,20 +307,6 @@ module.exports = function (db) {
             }
 
             const existingStudent = rows[0];
-
-            // // Check if student with same student number already exists
-            // if ('student_number' in req.body) {
-            //     if (student_number !== existingStudent.student_number) {
-            //         const [conflicts] = await db.promise().query(
-            //             `SELECT id FROM student WHERE student_number = ? AND id != ?`,
-            //             [student_number, id]
-            //         );
-
-            //         if (conflicts.length > 0) {
-            //             return res.status(409).json({ error: 'Student Number already exists' });
-            //         }
-            //     }
-            // };
 
             const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
@@ -445,6 +421,75 @@ module.exports = function (db) {
             res.status(500).json({ error: "Failed to fetch student by user ID" });
         }
     });
+
+    // GET available modules for a student based on pathway and level
+    router.get('/:id/available-modules', async (req, res) => {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid student ID. Must be a number' });
+        }
+
+        try {
+            // Get the students pathway and entry level
+            const [studentRows] = await db.promise().query(`
+                    SELECT id, pathway_id, entry_level_id FROM student WHERE id = ?
+                `, [id]);
+
+            if (studentRows.length === 0) {
+                return res.status(404).json({ error: 'Student not found' });
+            }
+
+            const { pathway_id, entry_level_id } = studentRows[0];
+
+            // Get core and non-core modules for that pathway and level
+            const [moduleRows] = await db.promise().query(`
+                    SELECT 
+                        m.id, m.module_code, m.title, m.credits, m.semester_id AS semester_id,
+                        s.name AS semester_name, pm.core, pm.optional_core, pm.optional_amount
+                    FROM module m
+                    INNER JOIN pathway_module pm ON m.id = pm.module_id
+                    INNER JOIN semester s ON m.semester_id = s.id
+                    WHERE pm.pathway_id = ? AND pm.pathway_level = ?
+                    ORDER BY pm.core DESC, m.semester_id ASC, m.title ASC
+                `, [pathway_id, entry_level_id]);
+
+            // Organise results by core modules (including EITHER OR) and non-core modules
+            const coreModules = [];
+            const optionalCoreGroups = {};
+            const nonCoreModules = [];
+
+            for (const module of moduleRows) {
+                if (module.core === 1) {
+                    if (module.optional_core === 1) {
+                        // Group by optional_amount - ok for now as we only have 1 EITHER OR scenario - but consider grouping these modules better, e.g. 'A', 'B' - to identify EITHER OR modules in same group
+                        const groupKey = `group_${module.optional_amount || '1'}`;
+                        if (!optionalCoreGroups[groupKey]) {
+                            optionalCoreGroups[groupKey] = [];
+                        }
+                        optionalCoreGroups[groupKey].push(module);
+                    } else {
+                        coreModules.push(module);
+                    }
+                } else {
+                    nonCoreModules.push(module);
+                }
+            }
+
+            return res.status(200).json({
+                studentId: id,
+                pathway_id,
+                entry_level_id,
+                coreModules,
+                optionalCoreGroups,
+                availableModules: nonCoreModules
+            });
+
+        } catch (err) {
+            console.error("Failed to fetch available modules", err);
+            res.status(500).json({ error: "Failed to fetch available modules" });
+        }
+    });
+
 
     return router;
 };
