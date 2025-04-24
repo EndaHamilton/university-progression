@@ -378,12 +378,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const modalBody = document.querySelector("#studentGradeModal .modal-body");
         modalBody.innerHTML = `
-  <div id="modalStudentInfo" class="mb-3">
-    <strong>${s.first_name} ${s.last_name}</strong> (${s.student_number})<br>
-    Pathway: ${s.pathway_name}<br>
-    Entry Level: ${s.entry_level}, Study Status: ${s.study_status}
-  </div>
-`;
+                            <div id="modalStudentInfo" class="mb-3">
+                            <strong>${s.first_name} ${s.last_name}</strong> (${s.student_number})<br>
+                            Pathway: ${s.pathway_name}<br>
+                            Entry Level: ${s.entry_level}, Study Status: ${s.study_status}
+                            </div>
+                            `;
 
         modalBody.appendChild(tabNav);
         modalBody.appendChild(tabContent);
@@ -442,6 +442,16 @@ document.addEventListener("DOMContentLoaded", () => {
         resit_result: row.querySelector('[data-type="resit_result"]').value || null
       };
 
+      // Error msgs
+      const errorDiv = document.getElementById("gradeError");
+      const successDiv = document.getElementById("gradeSuccess");
+
+      // Clear previous
+      errorDiv.classList.add("d-none");
+      errorDiv.textContent = "";
+      successDiv.classList.add("d-none");
+      successDiv.textContent = "";
+
       try {
         const response = await fetch(`/grademanagement/edit-grade/${gradeId}`, {
           method: "PUT",
@@ -451,11 +461,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const result = await response.json();
 
-        if (response.ok) {
-          alert("Grade updated!");
+        if (!response.ok) {
+          errorDiv.textContent = result.error || "Update failed.";
+          errorDiv.classList.remove("d-none");
+
+          setTimeout(() => {
+            errorDiv.classList.add("d-none");
+            errorDiv.textContent = "";
+          }, 3000);
+
         } else {
-          alert("Update failed: " + result.error);
+          successDiv.textContent = result.message || "Grade updated!";
+          successDiv.classList.remove("d-none");
+
+          setTimeout(() => {
+            successDiv.classList.add("d-none");
+            successDiv.textContent = "";
+          }, 3000);
         }
+
       } catch (err) {
         console.error("Failed to save grade:", err);
         alert("Something went wrong while saving.");
