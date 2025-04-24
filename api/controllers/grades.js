@@ -504,6 +504,55 @@ module.exports = function (db) {
         }
     });
 
+    // GET: Accurate grade summary (credits + average) for a student
+    router.get('/summary/:studentId', async (req, res) => {
+        const studentId = parseInt(req.params.studentId);
+        if (isNaN(studentId)) {
+            return res.status(400).json({ error: 'Invalid student ID. Must be a number' });
+        }
+
+        try {
+
+            const calculateGradeAndCATSQuery = `
+            SELECT 
+              SUM(
+                CASE 
+                  WHEN sm.grade_result = 'pass' THEN m.credits
+                  WHEN sm.grade_result != 'pass' 
+                       AND sm.resit_result IN ('pass', 'pass capped') THEN m.credits
+                  ELSE 0
+                END
+              ) AS total_credits_achieved,
+
+              ROUND(AVG(
+                CASE 
+                  WHEN sm.grade_result = 'excused' AND sm.resit_result = 'excused' THEN NULL
+    			  WHEN sm.grade_result = 'excused' AND sm.resit_result = 'pass' THEN sm.resit_grade
+    			  WHEN sm.grade_result = 'excused' AND sm.resit_result = 'pass capped' THEN 40
+                  WHEN sm.grade_result = 'pass' THEN sm.first_grade
+                  WHEN sm.resit_result = 'pass' THEN sm.resit_grade
+                  WHEN sm.resit_result = 'pass capped' THEN 40
+                  WHEN sm.grade_result = 'absent' THEN 0
+                  ELSE
+                    CASE 
+                      WHEN sm.resit_grade IS NOT NULL THEN sm.resit_grade
+                      ELSE sm.first_grade
+                    END
+                END
+              ), 2) AS average_grade
+            FROM student_module sm
+            JOIN module m ON sm.module_id = m.id
+            WHERE sm.student_id = ?;
+            `
+            const [rows] = await db.promise().query(calculateGradeAndCATSQuery,[studentId]);
+
+            return res.status(200).json(rows[0]);
+        } catch (err) {
+            console.error("Error calculating student grade summary:", err);
+            return res.status(500).json({ error: "Failed to calculate student grade summary" });
+        }
+    });
+
 
     return router;
 }

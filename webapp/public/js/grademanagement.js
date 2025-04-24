@@ -323,8 +323,8 @@ document.addEventListener("DOMContentLoaded", () => {
           const li = document.createElement("li");
           li.className = "nav-item";
           li.innerHTML = `
-    <a class="nav-link ${isFirst ? "active" : ""}" id="${tabId}-tab" data-toggle="tab" href="#${tabId}" role="tab">${year}</a>
-  `;
+          <a class="nav-link ${isFirst ? "active" : ""}" id="${tabId}-tab" data-toggle="tab" href="#${tabId}" role="tab">${year}</a>
+          `;
           tabNav.appendChild(li);
 
           // Tab pane
@@ -336,15 +336,15 @@ document.addEventListener("DOMContentLoaded", () => {
           const table = document.createElement("table");
           table.className = "table table-sm table-striped";
           table.innerHTML = `
-    <thead class="thead-light">
-      <tr>
-        <th>Module</th>
-        <th>1st Grade</th>
-        <th>1st Result</th>
-        <th>Resit Grade</th>
-        <th>Resit Result</th>
-      </tr>
-    </thead>
+        <thead class="thead-light">
+          <tr>
+            <th>Module</th>
+            <th>1st Grade</th>
+            <th>1st Result</th>
+            <th>Resit Grade</th>
+            <th>Resit Result</th>
+          </tr>
+        </thead>
     <tbody>
       ${grades.map(g => `
         <tr>
@@ -367,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </tr>
       `).join("")}
     </tbody>
-  `;
+    `;
 
           tabPane.appendChild(table);
           tabContent.appendChild(tabPane);
@@ -425,64 +425,6 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Something went wrong loading student grades.");
       }
     });
-  });
-
-  // Handle save clicks
-  document.addEventListener("click", async (e) => {
-    if (e.target.classList.contains("save-grade-btn")) {
-      const gradeId = e.target.dataset.id;
-      const row = e.target.closest("tr");
-
-      const payload = {
-        first_grade: row.querySelector('[data-type="first_grade"]').value,
-        grade_result: row.querySelector('[data-type="grade_result"]').value,
-        resit_grade: row.querySelector('[data-type="resit_grade"]').value || null,
-        resit_result: row.querySelector('[data-type="resit_result"]').value || null
-      };
-
-      // Error msgs
-      const errorDiv = document.getElementById("gradeError");
-      const successDiv = document.getElementById("gradeSuccess");
-
-      // Clear previous
-      errorDiv.classList.add("d-none");
-      errorDiv.textContent = "";
-      successDiv.classList.add("d-none");
-      successDiv.textContent = "";
-
-      try {
-        const response = await fetch(`/grademanagement/edit-grade/${gradeId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          errorDiv.textContent = result.error || "Update failed.";
-          errorDiv.classList.remove("d-none");
-
-          setTimeout(() => {
-            errorDiv.classList.add("d-none");
-            errorDiv.textContent = "";
-          }, 3000);
-
-        } else {
-          successDiv.textContent = result.message || "Grade updated!";
-          successDiv.classList.remove("d-none");
-
-          setTimeout(() => {
-            successDiv.classList.add("d-none");
-            successDiv.textContent = "";
-          }, 3000);
-        }
-
-      } catch (err) {
-        console.error("Failed to save grade:", err);
-        alert("Something went wrong while saving.");
-      }
-    }
   });
 
   // Handle Save all click
