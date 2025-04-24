@@ -285,7 +285,7 @@ module.exports = function (db) {
             const username = paddedSequence;
 
             // Hash a raw password
-            const rawPassword = Math.random().toString(36).slice(-8); 
+            const rawPassword = Math.random().toString(36).slice(-8);
             const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
             // Insert user record
@@ -554,6 +554,23 @@ module.exports = function (db) {
                 VALUES ?
             `;
             const values = modules.map(mod => [studentId, mod.module_id, 0, acad_yr_id]);
+
+            const moduleIds = modules.map(mod => mod.module_id);
+            const placeholders = moduleIds.map(() => '?').join(',');
+
+            const [existing] = await db.promise().query(`
+                            SELECT sm.module_id, m.module_code, m.title
+                            FROM student_module sm
+                            JOIN module m ON sm.module_id = m.id
+                            WHERE sm.student_id = ? AND sm.academic_year_id = ? AND sm.module_id IN (${placeholders})
+                            `, [studentId, acad_yr_id, ...moduleIds]);
+
+            if (existing.length > 0) {
+                const duplicateModules = existing.map(row => `• ${row.module_code} - ${row.title}`).join('\n');
+                return res.status(409).json({
+                    error: `This student is already enrolled in the following module(s) for that academic year:\n${duplicateModules}`
+                });
+            }
 
             const [enrolledModules] = await db.promise().query(insertSQL, [values]);
 

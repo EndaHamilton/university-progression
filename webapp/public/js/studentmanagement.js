@@ -463,9 +463,11 @@ document.getElementById("submitEnrollmentBtn").addEventListener("click", async f
         const data = await response.json();
 
         if (!response.ok) {
-            const errorMessage = data.error || "Unknown error occurred while enrolling modules"
-            errorDiv.textContent = errorMessage;
+            const errorMessage = data.error || "Unknown error occurred while enrolling modules";
+            errorDiv.innerHTML = errorMessage.replace(/\n/g, "<br>"); // line breaks for bulleted list
             errorDiv.classList.remove("d-none");
+
+            return;
         }
 
         successDiv.textContent = data.message || "Modules assigned successfully!";
@@ -473,7 +475,7 @@ document.getElementById("submitEnrollmentBtn").addEventListener("click", async f
 
         setTimeout(() => {
             window.location.href = "/studentmanagement";
-        }, 2000);
+        }, 3000);
 
     } catch (err) {
         console.error("Error deleting student:", err);

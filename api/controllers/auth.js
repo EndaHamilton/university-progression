@@ -25,10 +25,11 @@ module.exports = function (db) {
 
                 if (passwordMatch) {
                     return res.json({ authenticate: true, userID: user.id, role: user.role });
+                } else {
+                    return res.json({ authenticate: false });
                 }
-               
             } else {
-                return res.json({ authenticate: false });
+                return res.status(404).json({ error: "User not found." });
             }
         });
     });
