@@ -298,9 +298,9 @@ document.querySelectorAll(".assign-modules-btn").forEach(button => {
 
         // Student details - update this to include student number and name
         document.getElementById("studentModuleDetails").innerHTML = `
-          <strong>Student ID:</strong> ${data.studentId}<br>
-          <strong>Pathway ID:</strong> ${data.pathway_id}<br>
-          <strong>Level:</strong> ${data.entry_level_id}
+          <strong>Student:</strong> ${data.first_name} ${data.last_name} (${data.student_number})<br>
+          <strong>Pathway:</strong> ${data.pathway_name}<br>
+          <strong>Level:</strong> ${data.entry_level_name}
         `;
 
         // Mandatory Core modules

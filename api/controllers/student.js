@@ -478,7 +478,19 @@ module.exports = function (db) {
         try {
             // Get the students pathway and entry level
             const [studentRows] = await db.promise().query(`
-                    SELECT id, pathway_id, entry_level_id FROM student WHERE id = ?
+            SELECT 
+                s.id,
+                s.student_number,
+                s.first_name,
+                s.last_name,
+                s.pathway_id,
+                p.name AS pathway_name,
+                s.entry_level_id,
+                el.name AS entry_level_name
+            FROM student s
+            JOIN pathway p ON s.pathway_id = p.id
+            JOIN entry_level el ON s.entry_level_id = el.id
+            WHERE s.id = ?
                 `, [id]);
 
             if (studentRows.length === 0) {
@@ -523,6 +535,7 @@ module.exports = function (db) {
 
             return res.status(200).json({
                 studentId: id,
+                ...studentRows[0],
                 pathway_id,
                 entry_level_id,
                 coreModules,
