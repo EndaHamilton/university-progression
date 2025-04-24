@@ -4,6 +4,15 @@ const checkApiKey = require("../middleware/checkApiKey");
 
 router.use(checkApiKey) // Apply the API key check middleware to all routes in this router
 
+// Creating local DB for use of transaction within POST route only
+const mysql = require('mysql2/promise');
+const localDb = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: 'root',
+  database: 'acad_progression_new'
+});
+
 module.exports = function (db) {
 
     //Format validation function for shared fields between adding and updating student
@@ -219,16 +228,20 @@ module.exports = function (db) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
 
+        // Wrapping the multiple SQL inserts in a transaction - ensures if one part of insert fails, the whole block rolls back - so no case of a student but no corresponding user (or vice versa)
+        const connection = await localDb.getConnection();
+
         try {
 
+            await connection.beginTransaction();
+
             const insertStudentSQL = `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+                                VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
             //Insert into student with placeholder student_number before updating after concatenation to get student_number
             const placeholderNumber = 'PENDING';
-            const [result] = await db.promise().query(insertStudentSQL, [
+            const [result] = await connection.query(insertStudentSQL, [
                 placeholderNumber,
-                parsedUserId,
                 parseInt(pathway_id),
                 first_name.trim(),
                 last_name.trim(),
@@ -238,7 +251,7 @@ module.exports = function (db) {
             ]);
 
             // Get pathway code
-            const [pathwayRows] = await db.promise().query(`SELECT code FROM pathway WHERE id = ?`, [pathway_id]);
+            const [pathwayRows] = await connection.query(`SELECT code FROM pathway WHERE id = ?`, [pathway_id]);
             if (pathwayRows.length === 0) {
                 return res.status(400).json({ error: "Invalid pathway ID" });
             }
@@ -251,7 +264,9 @@ module.exports = function (db) {
 
             const studentNumber = `${yearNum}-${pathwayCode}-${paddedSequence}`;
 
-            const [existingStudentNumber] = await db.promise().query(`SELECT * FROM student WHERE student_number = ?`, [studentNumber]
+
+            // Ensure student number is unique
+            const [existingStudentNumber] = await connection.query(`SELECT * FROM student WHERE student_number = ?`, [studentNumber]
             );
 
             if (existingStudentNumber.length > 0) {
@@ -259,23 +274,42 @@ module.exports = function (db) {
             }
 
             // Update student number using new concatenated student_number
-            await db.promise().query(
+            await connection.query(
                 `UPDATE student SET student_number = ? WHERE id = ?`,
                 [studentNumber, studentId]
             );
 
+            // Generate student username from last digits of student number
+            const username = paddedSequence;
 
+            // Insert user record
+            await connection.query(`
+            INSERT INTO user (username, student_id, role)
+            VALUES (?, ?, 'student')`,
+                [username, studentId]);
 
-            return res.status(200).json({ message: "Student created successfully", studentId: result.insertId, studentNumber, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year });
+            await connection.commit();
 
-
+            return res.status(200).json({
+                message: "Student and user created successfully",
+                studentId,
+                studentNumber,
+                username,
+                first_name,
+                last_name,
+                pathway_id,
+                study_status_id,
+                entry_level_id,
+                enrollment_year
+            });
 
         } catch (err) {
+            await connection.rollback();
             console.error("Error during student POST", err);
             return res.status(500).json({ error: 'Server error: ', details: err.message });
+        } finally {
+            connection.release();
         }
-
-
     });
 
     // PUT (Update) a student by ID - /student/:id
