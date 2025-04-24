@@ -96,10 +96,10 @@
 
 
 
-          <div class="btn-group mr-2">
+          <div class="btn-group mr-2 align-items-center">
             <!-- Trigger button for Add Student Grade Modal-->
             <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal"
-              data-target="#addGradeModal">Add Student Grade</button>
+              data-target="#importModal">Import CSV File of Grades</button>
           </div>
 
         </div>
@@ -262,12 +262,38 @@
     </div>
   </div>
 
+  <!-- Modal -->
+  <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content shadow-lg">
+        <div class="modal-header">
+          <h5 class="modal-title" id="importModalLabel">Upload CSV File</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="drop-area">
+            <p class="fw-semibold">Drag & drop your CSV file here</p>
+            <p class="text-muted">or click to browse</p>
+            <input type="file" id="fileElem" accept=".csv" hidden>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="importButton" class="btn btn-success" disabled>Import</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
 
 
 
   <!--js behaviour source-->
   <script src="/js/grademanagement.js"></script>
+
+  <!--Papa Parse file parsing script-->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
 
 
   <!-- Bootstrap CDSN -->

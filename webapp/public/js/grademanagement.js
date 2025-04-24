@@ -532,3 +532,70 @@ if (searchInput) {
   });
 }
 
+// Drag and Drop Script
+const dropArea = document.getElementById('drop-area');
+const fileInput = document.getElementById('fileElem');
+const importButton = document.getElementById('importButton');
+
+let selectedFile = null;
+
+// Open file dialog
+dropArea.addEventListener('click', () => fileInput.click());
+
+// Handle file input selection
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) {
+    selectedFile = fileInput.files[0];
+    importButton.disabled = false;
+    dropArea.querySelector('p.fw-semibold').textContent = selectedFile.name;
+  }
+});
+
+// Drag over styling
+dropArea.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropArea.classList.add('dragover');
+});
+
+dropArea.addEventListener('dragleave', () => {
+  dropArea.classList.remove('dragover');
+});
+
+// Handle drop
+dropArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropArea.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.csv')) {
+    selectedFile = file;
+    importButton.disabled = false;
+    dropArea.querySelector('p.fw-semibold').textContent = selectedFile.name;
+  } else {
+    alert('Please drop a valid .csv file.');
+  }
+});
+
+// Import button click
+importButton.addEventListener('click', () => {
+  if (selectedFile) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const csvText = e.target.result;
+      // console.log('CSV Content:', text); // Process file here
+
+
+      Papa.parse(csvText, {
+        header: true, // optional - makes output an array of objects using the first row as keys
+        skipEmptyLines: true,
+        complete: function (results) {
+          console.log(results.data); // Array of rows (as objects if header:true)
+        }
+      });
+
+      alert('CSV imported! Check console for content.');
+    };
+    reader.readAsText(selectedFile);
+  }
+});
+
+

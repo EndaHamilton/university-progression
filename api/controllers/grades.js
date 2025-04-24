@@ -532,6 +532,8 @@ module.exports = function (db) {
                   WHEN sm.grade_result = 'pass' THEN sm.first_grade
                   WHEN sm.resit_result = 'pass' THEN sm.resit_grade
                   WHEN sm.resit_result = 'pass capped' THEN 40
+                  WHEN sm.grade_result = 'fail' AND sm.resit_result = 'fail' AND sm.resit_grade > sm.first_grade THEN sm.resit_grade
+                  WHEN sm.grade_result = 'fail' AND sm.resit_result = 'fail' AND sm.first_grade > sm.resit_grade THEN sm.first_grade
                   WHEN sm.grade_result = 'absent' THEN 0
                   ELSE
                     CASE 

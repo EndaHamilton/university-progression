@@ -115,7 +115,7 @@ body {
 
 @media (min-width: 1024px) {
   main {
-    margin-left: 16.666667%; 
+    margin-left: 16.666667%;
   }
 }
 
@@ -171,4 +171,19 @@ body {
 .modal-xl-custom {
   max-width: 80%;
   width: 80%;
+}
+
+/* Import CSV Modal */
+#drop-area {
+  border: 2px dashed #6c757d;
+  border-radius: 12px;
+  padding: 50px;
+  text-align: center;
+  color: #6c757d;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#drop-area.dragover {
+  background-color: #f8f9fa;
 }
