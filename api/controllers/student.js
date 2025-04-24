@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcrypt');
+
 const checkApiKey = require("../middleware/checkApiKey");
 
 router.use(checkApiKey) // Apply the API key check middleware to all routes in this router
@@ -7,10 +9,10 @@ router.use(checkApiKey) // Apply the API key check middleware to all routes in t
 // Creating local DB for use of transaction within POST route only
 const mysql = require('mysql2/promise');
 const localDb = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: 'root',
-  database: 'acad_progression_new'
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'acad_progression_new'
 });
 
 module.exports = function (db) {
@@ -282,11 +284,15 @@ module.exports = function (db) {
             // Generate student username from last digits of student number
             const username = paddedSequence;
 
+            // Hash a raw password
+            const rawPassword = Math.random().toString(36).slice(-8); 
+            const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
             // Insert user record
             await connection.query(`
-            INSERT INTO user (username, student_id, role)
-            VALUES (?, ?, 'student')`,
-                [username, studentId]);
+            INSERT INTO user (username, password, student_id, role)
+            VALUES (?, ?, ?, 'student')`,
+                [username, hashedPassword, studentId]);
 
             await connection.commit();
 
@@ -295,6 +301,7 @@ module.exports = function (db) {
                 studentId,
                 studentNumber,
                 username,
+                password: rawPassword, // show raw password in response so we know what it is before hashing
                 first_name,
                 last_name,
                 pathway_id,

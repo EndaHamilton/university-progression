@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcrypt');
+
 const checkApiKey = require("../middleware/checkApiKey");
 
 router.use(checkApiKey) // Apply the API key check middleware to all routes in this router
@@ -9,20 +11,24 @@ module.exports = function (db) {
         console.log('Received authentication request:', req.body);
 
         const { email, password } = req.body;
-        const sql = 'SELECT * FROM user WHERE email = ? AND password = ?';
+        const sql = 'SELECT * FROM user WHERE email = ? OR username = ?'; // allows login with either email or username
 
-        db.query(sql, [email, password], (err, rows) => {
+        db.query(sql, [email, email], async (err, rows) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ error: 'Internal server error' });
             }
 
             if (rows.length > 0) {
-                res.json({ authenticate: true, userID: rows[0].id, role: rows[0].role });
-                console.log(`User ID: ${rows[0].id}
-                            Role: ${rows[0].role}`);
+                const user = rows[0];
+                const passwordMatch = await bcrypt.compare(password, user.password);
+
+                if (passwordMatch) {
+                    return res.json({ authenticate: true, userID: user.id, role: user.role });
+                }
+               
             } else {
-                res.json({ authenticate: false });
+                return res.json({ authenticate: false });
             }
         });
     });
