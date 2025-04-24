@@ -23,12 +23,15 @@ module.exports = function (db) {
                     sm.first_grade,
                     sm.grade_result,
                     sm.resit_grade,
-                    sm.resit_result
+                    sm.resit_result,
+                    s.id AS semester_id,
+                    s.name AS semester_name
                 FROM student_module sm
                 JOIN module m ON sm.module_id = m.id
                 JOIN acad_year ay ON sm.academic_year_id = ay.id
+                JOIN semester s ON m.semester_id = s.id
                 WHERE sm.student_id = ?
-                ORDER BY ay.name DESC
+                ORDER BY ay.name DESC, s.id ASC, m.module_code ASC
             `, [studentId]);
 
             // Group by academic_year

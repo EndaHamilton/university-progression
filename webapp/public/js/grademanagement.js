@@ -343,13 +343,12 @@ document.addEventListener("DOMContentLoaded", () => {
         <th>1st Result</th>
         <th>Resit Grade</th>
         <th>Resit Result</th>
-        <th>Action</th>
       </tr>
     </thead>
     <tbody>
       ${grades.map(g => `
         <tr>
-          <td>${g.module_title} (${g.module_code})</td>
+          <td>${g.module_title} (${g.module_code}) <br><small class="badge badge-secondary">${g.semester_name}</small></td>
           <td><input type="number" class="form-control form-control-sm" value="${g.first_grade}" data-id="${g.id}" data-type="first_grade"></td>
           <td>
             <select class="form-control form-control-sm" data-id="${g.id}" data-type="grade_result">
@@ -365,7 +364,6 @@ document.addEventListener("DOMContentLoaded", () => {
               `<option value="${opt}" ${opt === g.resit_result ? "selected" : ""}>${opt}</option>`).join("")}
             </select>
           </td>
-          <td><button class="btn btn-sm btn-success save-grade-btn" data-id="${g.id}">Save</button></td>
         </tr>
       `).join("")}
     </tbody>
@@ -486,6 +484,73 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // Handle Save all click
+  document.getElementById("saveAllGradesBtn").addEventListener("click", async () => {
+    const rows = document.querySelectorAll("#studentGradeModal tbody tr");
+    const updates = [];
+    const errorDiv = document.getElementById("gradeError");
+    const successDiv = document.getElementById("gradeSuccess");
+
+    errorDiv.classList.add("d-none");
+    errorDiv.textContent = "";
+    successDiv.classList.add("d-none");
+    successDiv.textContent = "";
+
+    for (const row of rows) {
+      const gradeId = row.querySelector('[data-type="first_grade"]').dataset.id;
+
+      const payload = {
+        first_grade: row.querySelector('[data-type="first_grade"]').value,
+        grade_result: row.querySelector('[data-type="grade_result"]').value,
+        resit_grade: row.querySelector('[data-type="resit_grade"]').value || null,
+        resit_result: row.querySelector('[data-type="resit_result"]').value || null
+      };
+
+      // Make a PUT request for each updated row
+      try {
+        const response = await fetch(`/grademanagement/edit-grade/${gradeId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          updates.push(gradeId); // Keep track of successful updates
+        } else if (result.error !== "No changes detected. Student grade data is identical.") {
+          errorDiv.textContent = result.error || "Error updating grades.";
+          errorDiv.classList.remove("d-none");
+          return;
+        }
+
+      } catch (err) {
+        console.error("Error saving grade ID " + gradeId, err);
+        errorDiv.textContent = "Network error while updating grades.";
+        errorDiv.classList.remove("d-none");
+        return;
+      }
+    }
+
+    if (updates.length > 0) {
+      successDiv.textContent = `${updates.length} grade(s) updated successfully!`;
+      successDiv.classList.remove("d-none");
+      setTimeout(() => {
+        successDiv.classList.add("d-none");
+        successDiv.textContent = "";
+      }, 3000);
+    } else {
+      errorDiv.textContent = "No changes detected in any row.";
+      errorDiv.classList.remove("d-none");
+      setTimeout(() => {
+        errorDiv.classList.add("d-none");
+        errorDiv.textContent = "";
+      }, 3000);
+    }
+  });
+
+
 });
 
 // Pahtway filtering dropdown
