@@ -507,13 +507,20 @@ module.exports = function (db) {
     // GET: Accurate grade summary (credits + average) for a student
     router.get('/summary/:studentId', async (req, res) => {
         const studentId = parseInt(req.params.studentId);
+        const acadYearId = parseInt(req.query.academic_year_id);
+
         if (isNaN(studentId)) {
             return res.status(400).json({ error: 'Invalid student ID. Must be a number' });
         }
+        if (isNaN(acadYearId)) {
+            return res.status(400).json({ error: 'Invalid academic year ID. Must be a number' });
+        }
+
+
 
         try {
 
-            const calculateGradeAndCATSQuery = `
+            let calculationQuery = `
             SELECT 
               SUM(
                 CASE 
@@ -544,9 +551,15 @@ module.exports = function (db) {
               ), 2) AS average_grade
             FROM student_module sm
             JOIN module m ON sm.module_id = m.id
-            WHERE sm.student_id = ?;
-            `
-            const [rows] = await db.promise().query(calculateGradeAndCATSQuery,[studentId]);
+            WHERE sm.student_id = ?
+            `;
+
+            const queryParams = [studentId]
+
+            calculationQuery += ` AND sm.academic_year_id = ?`;
+            queryParams.push(acadYearId);
+
+            const [rows] = await db.promise().query(calculationQuery, queryParams);
 
             return res.status(200).json(rows[0]);
         } catch (err) {
