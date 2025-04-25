@@ -230,6 +230,31 @@ router.delete('/delete-grade/:id', async (req, res) => {
 
 });
 
+// GET: Grade summary for a student for a specific academic year
+router.get('/student/:studentId/summary/:acadYearId', async (req, res) => {
+    const studentId = parseInt(req.params.studentId);
+    const acadYearId = parseInt(req.params.acadYearId);
+
+    const config = getApiConfig();
+
+    if (isNaN(studentId)) {
+        return res.status(400).json({ error: "Invalid student ID. Must be a number" });
+    }
+    if (isNaN(acadYearId)) {
+        return res.status(400).json({ error: "Invalid acad year ID. Must be a number" });
+    }
+
+    try {
+        const summaryRes = await axios.get(`http://localhost:4000/grades/summary/${studentId}?academic_year_id=${acadYearId}`, config);
+        return res.status(200).json(summaryRes.data);
+    } catch (error) {
+        console.error("Error fetching grade summary:", error.message);
+        const status = error.response?.status || 500;
+        const errorMessage = error.response?.data?.error || "Failed to retrieve summary.";
+        return res.status(status).json({ error: errorMessage });
+    }
+});
+
 
 
 module.exports = router;

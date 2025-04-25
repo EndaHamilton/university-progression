@@ -316,8 +316,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let isFirst = true;
 
-        Object.entries(data.studentGrades).forEach(([year, grades], idx) => {
-          const tabId = `tab-${year.replace(/[^a-zA-Z0-9]/g, '')}`;
+        const gradeEntries = Object.entries(data.studentGrades);
+        for (const [year, grades] of gradeEntries) {
+          // const tabId = `tab-${year.replace(/[^a-zA-Z0-9]/g, '')}`;
+          const tabId = `tab-${year}`;
 
           // Tab nav item
           const li = document.createElement("li");
@@ -332,6 +334,12 @@ document.addEventListener("DOMContentLoaded", () => {
           tabPane.className = `tab-pane fade ${isFirst ? "show active" : ""}`;
           tabPane.id = tabId;
           tabPane.role = "tabpanel";
+          tabPane.dataset.acadYearId = grades[0]?.academic_year_id || "";
+
+          const summaryDiv = document.createElement("div");
+          summaryDiv.className = "mb-2 font-weight-bold text-info";
+          summaryDiv.textContent = "Loading summary...";
+          tabPane.appendChild(summaryDiv);
 
           const table = document.createElement("table");
           table.className = "table table-sm table-striped";
@@ -370,9 +378,23 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
           tabPane.appendChild(table);
+
+          // Fetch summary for this academic year
+          if (grades[0]?.academic_year_id) {
+            try {
+              const summaryRes = await fetch(`/grademanagement/student/${studentId}/summary/${grades[0].academic_year_id}`);
+              const summary = await summaryRes.json();
+
+              summaryDiv.textContent = `Total Credits: ${summary.total_credits_achieved || 0}, Average Grade: ${summary.average_grade || 0}`;
+            } catch (err) {
+              console.error("Error fetching grade summary:", err);
+              summaryDiv.textContent = "Failed to load summary.";
+            }
+          }
+
           tabContent.appendChild(tabPane);
           isFirst = false;
-        });
+        }
 
         const modalBody = document.querySelector("#studentGradeModal .modal-body");
         modalBody.innerHTML = `

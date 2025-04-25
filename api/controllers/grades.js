@@ -20,6 +20,7 @@ module.exports = function (db) {
                     m.title AS module_title,
                     m.module_code,
                     ay.name AS academic_year,
+                    sm.academic_year_id,
                     sm.first_grade,
                     sm.grade_result,
                     sm.resit_grade,
