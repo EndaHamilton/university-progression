@@ -30,7 +30,7 @@ app.use('/modulemanagement', moduleManagementRoutes);
 const signInRoutes = require("./controllers/signIn");
 app.use('/', signInRoutes);
 
-// Student profile page route
+// Student profile route
 const studentProfileRoutes = require("./controllers/studentProfile");
 app.use('/studentprofile', studentProfileRoutes);
 

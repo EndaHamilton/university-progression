@@ -86,6 +86,16 @@ module.exports = function (db) {
             }
         }
 
+        if (shouldCheck('current_level_id')) {
+            const val = data.current_level_id;
+            const valStr = String(val);
+            if (!val || valStr.trim() === "") {
+                errors.push("Current level cannot be empty.");
+            } else if (!isPositiveInteger(val)) {
+                errors.push("Current level ID must be a positive whole number.");
+            }
+        }
+
         if (shouldCheck('entry_level_id')) {
             const val = data.entry_level_id;
             const valStr = String(val);
@@ -145,14 +155,16 @@ module.exports = function (db) {
     router.get("/details", async (req, res) => {
         const allStudentsDetailsSQL = `
             SELECT 
-                s.*, 
-                p.name AS pathway_name, 
-                ss.name AS study_status, 
-                el.name AS entry_level
+                s.*,
+                p.name AS pathway_name,
+                ss.name AS study_status,
+                entry_level.name AS entry_level,
+                current_level.name AS current_level
             FROM student s
             INNER JOIN pathway p ON s.pathway_id = p.id
             INNER JOIN study_status ss ON s.study_status_id = ss.id
-            INNER JOIN entry_level el ON s.entry_level_id = el.id`;
+            INNER JOIN level entry_level ON s.entry_level_id = entry_level.id
+            INNER JOIN level current_level ON s.current_level_id = current_level.id`;
 
         try {
             const [rows] = await db.promise().query(allStudentsDetailsSQL);
@@ -193,14 +205,16 @@ module.exports = function (db) {
         const id = parseInt(req.params.id);
         const allStudentsDetailsSQL = `
             SELECT 
-                s.*, 
-                p.name AS pathway_name, 
-                ss.name AS study_status, 
-                el.name AS entry_level
+                s.*,
+                p.name AS pathway_name,
+                ss.name AS study_status,
+                entry_level.name AS entry_level,
+                current_level.name AS current_level
             FROM student s
             INNER JOIN pathway p ON s.pathway_id = p.id
             INNER JOIN study_status ss ON s.study_status_id = ss.id
-            INNER JOIN entry_level el ON s.entry_level_id = el.id
+            INNER JOIN level entry_level ON s.entry_level_id = entry_level.id
+            INNER JOIN level current_level ON s.current_level_id = current_level.id
             WHERE s.id = ?
             `;
 
@@ -220,7 +234,7 @@ module.exports = function (db) {
 
     router.post("/", async (req, res) => {
 
-        const { pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year } = req.body;
+        const { pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id,enrollment_year } = req.body;
 
         // const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
 
@@ -237,8 +251,8 @@ module.exports = function (db) {
 
             await connection.beginTransaction();
 
-            const insertStudentSQL = `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?)`;
+            const insertStudentSQL = `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id, enrollment_year) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
             //Insert into student with placeholder student_number before updating after concatenation to get student_number
             const placeholderNumber = 'PENDING';
@@ -248,6 +262,7 @@ module.exports = function (db) {
                 first_name.trim(),
                 last_name.trim(),
                 parseInt(study_status_id),
+                parseInt(current_level_id),
                 parseInt(entry_level_id),
                 parseInt(enrollment_year)
             ]);
@@ -327,7 +342,7 @@ module.exports = function (db) {
             return res.status(400).json({ error: 'Invalid ID. Must be a number' });
         }
 
-        const { user_id, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year } = req.body;
+        const { user_id, pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id, enrollment_year } = req.body;
 
         // // Validate that at least one field is being updated
         // if (!student_number && !user_id && !pathway_id && !first_name && !last_name && !study_status_id && !entry_level_id) {
@@ -352,7 +367,7 @@ module.exports = function (db) {
             const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
             const fieldsToCheck = [
-                "student_number", "pathway_id", "first_name", "last_name", "study_status_id", "entry_level_id", "enrollment_year"
+                "student_number", "pathway_id", "first_name", "last_name", "study_status_id", "current_level_id", "entry_level_id", "enrollment_year"
             ];
 
             const { updateFields, updateValues } = getUpdatedFields(req.body, existingStudent, fieldsToCheck);
@@ -454,12 +469,14 @@ module.exports = function (db) {
                 s.*, 
                 p.name AS pathway_name, 
                 ss.name AS study_status, 
-                el.name AS entry_level
+                entry_level.name AS entry_level,
+                current_level.name AS current_level
             FROM user u
             JOIN student s ON u.student_id = s.id
             JOIN pathway p ON s.pathway_id = p.id
             JOIN study_status ss ON s.study_status_id = ss.id
-            JOIN entry_level el ON s.entry_level_id = el.id
+            JOIN level entry_level ON s.entry_level_id = entry_level.id
+            JOIN level current_level ON s.current_level_id = current_level.id
             WHERE u.id = ?
               `, [userId]);
 
@@ -483,7 +500,7 @@ module.exports = function (db) {
         }
 
         try {
-            // Get the students pathway and entry level
+            // Get the students pathway and current level
             const [studentRows] = await db.promise().query(`
             SELECT 
                 s.id,
@@ -492,11 +509,11 @@ module.exports = function (db) {
                 s.last_name,
                 s.pathway_id,
                 p.name AS pathway_name,
-                s.entry_level_id,
-                el.name AS entry_level_name
+                s.current_level_id,
+                l.name AS current_level_name
             FROM student s
             JOIN pathway p ON s.pathway_id = p.id
-            JOIN entry_level el ON s.entry_level_id = el.id
+            JOIN level l ON s.current_level_id = l.id
             WHERE s.id = ?
                 `, [id]);
 
@@ -504,7 +521,7 @@ module.exports = function (db) {
                 return res.status(404).json({ error: 'Student not found' });
             }
 
-            const { pathway_id, entry_level_id } = studentRows[0];
+            const { pathway_id, current_level_id } = studentRows[0];
 
             // Get core and non-core modules for that pathway and level
             const [moduleRows] = await db.promise().query(`
@@ -516,7 +533,7 @@ module.exports = function (db) {
                     INNER JOIN semester s ON m.semester_id = s.id
                     WHERE pm.pathway_id = ? AND pm.pathway_level = ?
                     ORDER BY pm.core DESC, m.semester_id ASC, m.title ASC
-                `, [pathway_id, entry_level_id]);
+                `, [pathway_id, current_level_id]);
 
             // Organise results by core modules (including EITHER OR) and non-core modules
             const coreModules = [];
@@ -544,7 +561,7 @@ module.exports = function (db) {
                 studentId: id,
                 ...studentRows[0],
                 pathway_id,
-                entry_level_id,
+                current_level_id,
                 coreModules,
                 optionalCoreGroups,
                 availableModules: nonCoreModules

@@ -13,6 +13,7 @@ function validateStudentForm(form, errorDiv) {
     const lastName = form.querySelector('[name="last_name"]').value.trim();
     const studyStatusId = form.querySelector('[name="study_status_id"]').value.trim();
     const entryLevelId = form.querySelector('[name="entry_level_id"]').value.trim();
+    const currentLevelId = form.querySelector('[name="current_level_id"]').value.trim();
     const enrollmentYear = form.querySelector('[name="enrollment_year"]').value.trim();
 
     //query for checking positive integers
@@ -25,6 +26,7 @@ function validateStudentForm(form, errorDiv) {
     if (!lastName) return showError('Last name is required.');
     if (!studyStatusId) return showError('Study Status ID is required.');
     if (!entryLevelId) return showError('Entry Level ID is required.');
+    if (!currentLevelId) return showError('Current Level ID is required.');
     if (!enrollmentYear) return showError('Enrollment Year is required.');
 
     // 2. Format check for individual fields
@@ -42,6 +44,8 @@ function validateStudentForm(form, errorDiv) {
         return showError('Please select a valid Study Status.');
     if (!isPositiveInteger(entryLevelId))
         return showError('Please select a valid Entry Level.');
+    if (!isPositiveInteger(currentLevelId))
+        return showError('Please select a valid Current Level.');
     if (!isPositiveInteger(enrollmentYear))
         return showError('Enrollment Year must be a positive whole number');
     if (parseInt(enrollmentYear) < 2000 || parseInt(enrollmentYear) > 2099)
@@ -162,6 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 editForm.querySelector('[name="last_name"]').value = student.last_name;
                 editForm.querySelector('[name="study_status_id"]').value = student.study_status_id;
                 editForm.querySelector('[name="entry_level_id"]').value = student.entry_level_id;
+                editForm.querySelector('[name="current_level_id"]').value = student.current_level_id;
                 editForm.querySelector('[name="enrollment_year"]').value = student.enrollment_year;
 
                 // Show modal
@@ -300,7 +305,7 @@ document.querySelectorAll(".assign-modules-btn").forEach(button => {
         document.getElementById("studentModuleDetails").innerHTML = `
           <strong>Student:</strong> ${data.first_name} ${data.last_name} (${data.student_number})<br>
           <strong>Pathway:</strong> ${data.pathway_name}<br>
-          <strong>Level:</strong> ${data.entry_level_name}
+          <strong>Current Level:</strong> ${data.current_level_name}
         `;
 
         // Mandatory Core modules

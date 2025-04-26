@@ -89,6 +89,7 @@
                             <th>Last Name</th>
                             <th>Pathway (Degree)</th>
                             <th>Study Status</th>
+                            <th>Current Level</th>
                             <th>Entry Level</th>
                             <th>Actions</th>
                         </thead>
@@ -109,6 +110,9 @@
                                     </td>
                                     <td>
                                         <%= student.study_status %>
+                                    </td>
+                                    <td>
+                                        <%= student.current_level %>
                                     </td>
                                     <td>
                                         <%= student.entry_level %>
@@ -182,10 +186,21 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label>Current Level</label>
+                            <select name="current_level_id" class="form-control" required>
+                                <option value="" disabled selected>Select a current level</option>
+                                <% levels.forEach(currentLevel=> { %>
+                                    <option value="<%= currentLevel.id %>">
+                                        <%= currentLevel.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label>Entry Level</label>
                             <select name="entry_level_id" class="form-control" required>
                                 <option value="" disabled selected>Select an entry level</option>
-                                <% entryLevels.forEach(entryLevel=> { %>
+                                <% levels.forEach(entryLevel=> { %>
                                     <option value="<%= entryLevel.id %>">
                                         <%= entryLevel.name %>
                                     </option>
@@ -252,10 +267,21 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label>Current Level</label>
+                            <select name="current_level_id" class="form-control" required>
+                                <option value="" disabled>Select a current level</option>
+                                <% levels.forEach(currentLevel=> { %>
+                                    <option value="<%= currentLevel.id %>">
+                                        <%= currentLevel.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label>Entry Level</label>
                             <select name="entry_level_id" class="form-control" required>
                                 <option value="" disabled>Select an entry level</option>
-                                <% entryLevels.forEach(entryLevel=> { %>
+                                <% levels.forEach(entryLevel=> { %>
                                     <option value="<%= entryLevel.id %>">
                                         <%= entryLevel.name %>
                                     </option>

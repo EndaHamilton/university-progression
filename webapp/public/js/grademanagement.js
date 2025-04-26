@@ -301,7 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("modalStudentInfo").innerHTML = `
             <strong>${s.first_name} ${s.last_name}</strong> (${s.student_number})<br>
             Pathway: ${s.pathway_name}<br>
-            Entry Level: ${s.entry_level}, Study Status: ${s.study_status}
+            Current Level: ${s.current_level}, Study Status: ${s.study_status}
           `;
 
 
@@ -406,7 +406,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <div id="modalStudentInfo" class="mb-3">
                             <strong>${s.first_name} ${s.last_name}</strong> (${s.student_number})<br>
                             Pathway: ${s.pathway_name}<br>
-                            Entry Level: ${s.entry_level}, Study Status: ${s.study_status}
+                            Current Level: ${s.current_level}, Study Status: ${s.study_status}
                             </div>
                             `;
 

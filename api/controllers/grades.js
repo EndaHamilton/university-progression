@@ -413,7 +413,7 @@ module.exports = function (db) {
             student_id,
             module_id,
             academic_year_id,
-            entry_level_id,
+            current_level_id,
             study_status_id,
             first_grade,
             grade_result,

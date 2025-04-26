@@ -45,14 +45,14 @@ const studyStatus = require('./controllers/studystatus')(db);
 app.use('/studystatus', studyStatus);
 
 // define a route on '/entrylevel' that uses the entryLevelRoutes controller
-const entryLevelRoutes = require('./controllers/entrylevel')(db);
-app.use('/entrylevel', entryLevelRoutes);
+const levelRoutes = require('./controllers/level')(db);
+app.use('/level', levelRoutes);
 
 // define a route on '/semester' that uses the semesterRoutes controller
 const semesterRoutes = require('./controllers/semester')(db);
 app.use('/semester', semesterRoutes);
 
-// define a route on '/grades' that uses the entryLevelRoutes controller
+// define a route on '/grades' that uses the gradesRoutes controller
 const gradesRoutes = require('./controllers/grades')(db);
 app.use('/grades', gradesRoutes);
 
