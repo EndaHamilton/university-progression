@@ -385,7 +385,12 @@ document.addEventListener("DOMContentLoaded", () => {
               const summaryRes = await fetch(`/grademanagement/student/${studentId}/summary/${grades[0].academic_year_id}`);
               const summary = await summaryRes.json();
 
-              summaryDiv.textContent = `Total Credits: ${summary.total_credits_achieved || 0}, Average Grade: ${summary.average_grade || 0}`;
+              summaryDiv.innerHTML = `<span class="text-primary h4 font-weight-bold">
+                                      Total CATs acquired: ${summary.total_credits_achieved || 0}
+                                      <br>
+                                      Average Grade: ${summary.average_grade || 0}
+                                      </span>
+                                      `;
             } catch (err) {
               console.error("Error fetching grade summary:", err);
               summaryDiv.textContent = "Failed to load summary.";

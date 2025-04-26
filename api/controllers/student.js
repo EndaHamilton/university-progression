@@ -450,10 +450,17 @@ module.exports = function (db) {
 
         try {
             const [rows] = await db.promise().query(`
-                SELECT s.* 
-                FROM user u
-                JOIN student s ON u.student_id = s.id
-                WHERE u.id = ?
+                SELECT 
+                s.*, 
+                p.name AS pathway_name, 
+                ss.name AS study_status, 
+                el.name AS entry_level
+            FROM user u
+            JOIN student s ON u.student_id = s.id
+            JOIN pathway p ON s.pathway_id = p.id
+            JOIN study_status ss ON s.study_status_id = ss.id
+            JOIN entry_level el ON s.entry_level_id = el.id
+            WHERE u.id = ?
               `, [userId]);
 
             if (rows.length === 0) {
