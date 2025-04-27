@@ -23,7 +23,7 @@ function validateGradeForm(form, errorDiv) {
   if (!firstGrade && normalizedGradeResult !== "excused") {
     return showError("First grade is required unless result is 'excused'.");
   }
-  
+
   if (!gradeResult) return showError("First result is required.");
 
 
@@ -291,6 +291,11 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", async () => {
       const studentId = btn.dataset.id;
 
+      // Error msg in case of failure to load modal
+      const errorDiv = document.getElementById("modalLoadError");
+      errorDiv.classList.add("d-none");
+      errorDiv.textContent = "";
+
       try {
         const response = await fetch(`/grademanagement/student/${studentId}`);
         const data = await response.json();
@@ -453,7 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
         $('#studentGradeModal').modal('show');
       } catch (err) {
         console.error("Error fetching grades:", err);
-        alert("Something went wrong loading student grades.");
+        errorDiv.textContent = "Failed to load student grades modal.";
       }
     });
   });
@@ -531,6 +536,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".view-progression-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const studentId = btn.dataset.id;
+
+      // Error msg in case of failure to load modal
+      const errorDiv = document.getElementById("modalLoadError");
+      errorDiv.classList.add("d-none");
+      errorDiv.textContent = "";
 
       try {
         // 1. Fetch all academic years the student has grades for
@@ -613,7 +623,7 @@ document.addEventListener("DOMContentLoaded", () => {
         $('#progressionModal').modal('show');
       } catch (err) {
         console.error("Error opening progression modal:", err);
-        alert("Something went wrong loading progression.");
+        errorDiv.textContent = "Failed to load progression modal.";
       }
     });
   });

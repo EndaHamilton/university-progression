@@ -113,6 +113,8 @@
           class="d-flex flex-wrap justify-content-between align-items-start gap-2 pb-2 mb-3 border-bottom grade-controls">
           <h2>Grade Management</h2>
 
+          <!--Hidden msg to appear when there is an issue displaying modals-->
+          <div id="modalLoadError" class="alert alert-danger d-none"></div>
 
 
           <div class="btn-group mr-2 align-items-center">
@@ -283,7 +285,7 @@
     </div>
   </div>
 
-  <!-- Modal -->
+  <!-- Import CSV modal -->
   <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content shadow-lg">
