@@ -255,6 +255,30 @@ router.get('/student/:studentId/summary/:acadYearId', async (req, res) => {
     }
 });
 
+// GET: Fetch automatic progression decision for a student
+router.get('/student/:studentId/progression/:acadYearId', async (req, res) => {
+    const studentId = parseInt(req.params.studentId);
+    const acadYearId = parseInt(req.params.acadYearId);
+
+    if (isNaN(studentId)) {
+        return res.status(400).json({ error: "Invalid student ID. Must be a number" });
+    }
+    if (isNaN(acadYearId)) {
+        return res.status(400).json({ error: "Invalid acad year ID. Must be a number" });
+    }
+
+    try {
+        const progressionRes = await axios.get(`http://localhost:4000/grades/progression/${studentId}/${acadYearId}`, config);
+
+        return res.status(200).json(progressionRes.data);
+    } catch (error) {
+        console.error("Error fetching progression decision:", error.message);
+        const status = error.response?.status || 500;
+        const errorMessage = error.response?.data?.error || "Failed to retrieve progression decision.";
+        return res.status(status).json({ error: errorMessage });
+    }
+});
+
 
 
 module.exports = router;

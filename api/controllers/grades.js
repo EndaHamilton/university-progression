@@ -291,8 +291,9 @@ module.exports = function (db) {
         if (shouldCheck('first_grade')) {
             const val = data.first_grade;
             const valStr = String(val);
-            if (!val || valStr.trim() === "") {
-                errors.push("First grade cannot be empty.");
+            const result = (data.grade_result || "").trim().toLowerCase();
+            if ((!val || valStr.trim() === "") && result !== "excused") {
+                errors.push("First grade cannot be empty unless result is 'excused'.");
             } else if (val < 0 || val > 100) {
                 errors.push("First grade must be must be a whole positive number between 0 - 100.");
             }

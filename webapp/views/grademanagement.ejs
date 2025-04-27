@@ -35,6 +35,25 @@
     </div>
   </div>
 
+  <!-- Progression Modal -->
+  <div class="modal fade" id="progressionModal" tabindex="-1" role="dialog" aria-labelledby="progressionModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="progressionModalLabel">Student Progression</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Student progression info from js script file will populate here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Navigation Bar -->
   <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
     <a class="navbar-brand col-sm-3 col-md-2 ms-2" href="#"><img class="logo" src="/img/QUB-logo.png" alt="">Generic
@@ -151,6 +170,8 @@
                       <%= s.study_status%>
                     </p>
                     <button class="btn btn-sm btn-primary view-grades-btn" data-id="<%= s.id %>">View Grades</button>
+                    <button class="btn btn-sm btn-success view-progression-btn" data-id="<%= s.id %>">View
+                      Progression</button>
                   </div>
                 </div>
               </div>

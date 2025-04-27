@@ -18,7 +18,12 @@ function validateGradeForm(form, errorDiv) {
   if (!studentId) return showError("Student is required.");
   if (!moduleId) return showError("Module is required.");
   if (!academicYearId) return showError("Academic year is required.");
-  if (!firstGrade) return showError("First grade is required.");
+
+  const normalizedGradeResult = gradeResult.trim().toLowerCase();
+  if (!firstGrade && normalizedGradeResult !== "excused") {
+    return showError("First grade is required unless result is 'excused'.");
+  }
+  
   if (!gradeResult) return showError("First result is required.");
 
 
@@ -281,7 +286,6 @@ document.querySelectorAll(".delete-btn").forEach(button => {
 });
 
 // Modal to display grades for each student
-
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".view-grades-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
@@ -454,7 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Handle Save all click
+  // Handle Save all grades click
   document.getElementById("saveAllGradesBtn").addEventListener("click", async () => {
     const rows = document.querySelectorAll("#studentGradeModal tbody tr");
     const updates = [];
@@ -521,6 +525,100 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 });
+
+// Modal to display progression details for each student
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".view-progression-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const studentId = btn.dataset.id;
+
+      try {
+        // 1. Fetch all academic years the student has grades for
+        const studentRes = await fetch(`/grademanagement/student/${studentId}`);
+        const studentData = await studentRes.json();
+
+        if (!studentRes.ok) {
+          alert(studentData.error || "Error fetching student data.");
+          return;
+        }
+
+        const progressionModalBody = document.querySelector("#progressionModal .modal-body");
+        progressionModalBody.innerHTML = ""; // Clear old content
+
+        const tabNav = document.createElement("ul");
+        tabNav.className = "nav nav-tabs";
+        tabNav.role = "tablist";
+
+        const tabContent = document.createElement("div");
+        tabContent.className = "tab-content";
+
+        let isFirst = true;
+
+        const gradeEntries = Object.entries(studentData.studentGrades);
+
+        for (const [year, grades] of gradeEntries) {
+          const tabId = `prog-${year}`;
+
+          const li = document.createElement("li");
+          li.className = "nav-item";
+          li.innerHTML = `
+            <a class="nav-link ${isFirst ? "active" : ""}" id="${tabId}-tab" data-toggle="tab" href="#${tabId}" role="tab">${year}</a>
+          `;
+          tabNav.appendChild(li);
+
+          const tabPane = document.createElement("div");
+          tabPane.className = `tab-pane fade ${isFirst ? "show active" : ""}`;
+          tabPane.id = tabId;
+          tabPane.role = "tabpanel";
+
+          const loadingDiv = document.createElement("div");
+          loadingDiv.className = "font-weight-bold";
+          loadingDiv.textContent = "Loading progression decision...";
+          tabPane.appendChild(loadingDiv);
+
+          // Fetch progression outcome for this academic year
+          if (grades[0]?.academic_year_id) {
+            try {
+              const progressionRes = await fetch(`/grademanagement/student/${studentId}/progression/${grades[0].academic_year_id}`);
+              const progressionData = await progressionRes.json();
+
+              if (progressionRes.ok) {
+                loadingDiv.innerHTML = `
+                  <p><strong>Current Level:</strong> ${progressionData.current_level}</p>
+                  <p><strong>Total Credits Attempted:</strong> ${progressionData.total_credits_attempted}</p>
+                  <p><strong>Total Credits Passed:</strong> ${progressionData.total_credits_passed}</p>
+                  <p><strong>Failed Core Modules:</strong> ${progressionData.failed_core_modules}</p>
+                  <p><strong>Outstanding Failed Modules:</strong> ${progressionData.outstanding_fails}</p>
+                  <p class="${progressionData.can_progress ? 'text-success' : 'text-danger'}">
+                    <strong>Can Progress:</strong> ${progressionData.can_progress ? 'YES' : 'NO'}
+                  </p>
+                  <p><strong>Reason:</strong> ${progressionData.reason}</p>
+                `;
+              } else {
+                loadingDiv.textContent = progressionData.error || "Failed to fetch progression.";
+              }
+            } catch (err) {
+              console.error("Error fetching progression:", err);
+              loadingDiv.textContent = "Error loading progression.";
+            }
+          }
+
+          tabContent.appendChild(tabPane);
+          isFirst = false;
+        }
+
+        progressionModalBody.appendChild(tabNav);
+        progressionModalBody.appendChild(tabContent);
+
+        $('#progressionModal').modal('show');
+      } catch (err) {
+        console.error("Error opening progression modal:", err);
+        alert("Something went wrong loading progression.");
+      }
+    });
+  });
+});
+
 
 // Pahtway filtering dropdown
 document.addEventListener("DOMContentLoaded", () => {
