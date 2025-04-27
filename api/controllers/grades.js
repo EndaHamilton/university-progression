@@ -569,6 +569,127 @@ module.exports = function (db) {
         }
     });
 
+    // GET: Calculate automatic progression outcome for a student
+    router.get('/progression/:studentId/:acadYearId', async (req, res) => {
+        const studentId = parseInt(req.params.studentId);
+        const acadYearId = parseInt(req.params.acadYearId);
+
+        if (isNaN(studentId)) {
+            return res.status(400).json({ error: 'Invalid student ID. Must be a number' });
+        }
+        if (isNaN(acadYearId)) {
+            return res.status(400).json({ error: 'Invalid academic year ID. Must be a number' });
+        }
+
+        try {
+            const [rows] = await db.promise().query(`
+            SELECT 
+                sm.first_grade,
+                sm.grade_result,
+                sm.resit_grade,
+                sm.resit_result,
+                m.credits,
+                pm.pathway_level,
+                pm.core,
+                current_level.name AS current_level
+            FROM student_module sm
+            JOIN module m ON sm.module_id = m.id
+            JOIN student s ON sm.student_id = s.id
+            JOIN level current_level ON s.current_level_id = current_level.id
+            JOIN pathway_module pm ON pm.module_id = m.id AND pm.pathway_id = s.pathway_id
+            WHERE sm.student_id = ? AND sm.academic_year_id = ?
+            `, [studentId, acadYearId]);
+
+            if (rows.length === 0) {
+                return res.status(404).json({ error: "No module records found for this student and academic year." });
+            }
+
+            // Get student's current level
+            const currentLevel = parseInt(rows[0].current_level);
+
+            let totalCreditsAttempted = 0;
+            let totalCreditsPassed = 0;
+            let failedCoreModules = [];
+            let outstandingFails = [];
+
+            for (const module of rows) {
+                // If student is Level 1 - only check Level 1 modules
+                // If student is Level 2 - check ALL modules (level 1 and 2) - as may be repeating Level 1 modules
+                if (currentLevel === 1 && module.pathway_level !== 1) {
+                    continue; // For Level 1 students, ignore modules from other levels
+                }
+
+                totalCreditsAttempted += module.credits;
+
+                let passed = false;
+                if (module.grade_result === 'pass') {
+                    passed = true;
+                } else if (module.resit_result === 'pass' || module.resit_result === 'pass capped') {
+                    passed = true;
+                }
+
+                if (passed) {
+                    totalCreditsPassed += module.credits;
+                } else {
+                    if (module.core) {
+                        failedCoreModules.push(module);
+                    } else {
+                        outstandingFails.push(module);
+                    }
+                }
+            }
+
+            let canProgress = false;
+            let decisionReasons = [];
+
+            if (currentLevel === 1) {
+                if (totalCreditsPassed >= 100 && failedCoreModules.length === 0) {
+                    canProgress = true;
+                    decisionReasons.push("Enough credits and no failed core modules.");
+                } else {
+                    if (totalCreditsPassed < 100) {
+                        decisionReasons.push("Insufficient credits.");
+                    }
+                    if (failedCoreModules.length > 0) {
+                        decisionReasons.push("Failed core module(s).");
+                    }
+                }
+            } else if (currentLevel === 2) {
+                if (failedCoreModules.length === 0 && outstandingFails.length === 0 && totalCreditsPassed >= 240) {
+                    canProgress = true;
+                    decisionReasons.push("All modules passed.");
+                } else {
+                    if (totalCreditsPassed < 240) {
+                        decisionReasons.push("Insufficient credits.");
+                    }
+                    if (failedCoreModules.length > 0) {
+                        decisionReasons.push("Failed core module(s).");
+                    }
+                    if (outstandingFails.length > 0) {
+                        decisionReasons.push("Outstanding failed modules.");
+                    }
+                }
+            }
+
+            return res.status(200).json({
+                student_id: studentId,
+                acad_year_id: acadYearId,
+                current_level: currentLevel,
+                total_credits_attempted: totalCreditsAttempted,
+                total_credits_passed: totalCreditsPassed,
+                failed_core_modules: failedCoreModules.length,
+                outstanding_fails: outstandingFails.length,
+                can_progress: canProgress,
+                reason: decisionReasons.join(", ")
+            });
+
+        } catch (err) {
+            console.error("Error calculating progression:", err);
+            return res.status(500).json({ error: "Failed to calculate progression." });
+        }
+    });
+
+
 
     return router;
 }
