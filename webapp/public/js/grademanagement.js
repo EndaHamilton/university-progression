@@ -594,16 +594,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
               if (progressionRes.ok) {
                 loadingDiv.innerHTML = `
-                  <p><strong>Current Level:</strong> ${progressionData.current_level}</p>
-                  <p><strong>Total Credits Attempted:</strong> ${progressionData.total_credits_attempted}</p>
-                  <p><strong>Total Credits Passed:</strong> ${progressionData.total_credits_passed}</p>
-                  <p><strong>Failed Core Modules:</strong> ${progressionData.failed_core_modules}</p>
-                  <p><strong>Outstanding Failed Modules:</strong> ${progressionData.outstanding_fails}</p>
-                  <p class="${progressionData.can_progress ? 'text-success' : 'text-danger'}">
-                    <strong>Can Progress:</strong> ${progressionData.can_progress ? 'YES' : 'NO'}
+                <div class="mb-3">
+                  <h5><strong>Current Level:</strong> ${progressionData.current_level}</h5>
+                </div>
+
+                <div class="mb-3">
+                  <h6><strong>Credits Overview:</strong></h6>
+                  <ul>
+                    <li><strong>Total Credits Attempted:</strong> ${progressionData.total_credits_attempted}</li>
+                    <li><strong>Total Credits Passed:</strong> ${progressionData.total_credits_passed}</li>
+                    <li><strong>Level 1 Credits Attempted:</strong> ${progressionData.level1_credits_attempted}</li>
+                    <li><strong>Level 1 Credits Passed:</strong> ${progressionData.level1_credits_passed}</li>
+                    <li><strong>Level 2 Credits Attempted:</strong> ${progressionData.level2_credits_attempted}</li>
+                    <li><strong>Level 2 Credits Passed:</strong> ${progressionData.level2_credits_passed}</li>
+                  </ul>
+                </div>
+
+                <div class="mb-3">
+                  <h6><strong>Module Failures:</strong></h6>
+                  <ul>
+                    <li><strong>Failed Core Modules:</strong> ${progressionData.failed_core_modules}</li>
+                    <li><strong>Outstanding Failed Modules:</strong> ${progressionData.outstanding_fails}</li>
+                  </ul>
+                </div>
+
+                <div class="mb-3">
+                  <h6><strong>Progression Decision:</strong></h6>
+                  <p class="${progressionData.can_progress ? 'badge badge-success' : 'badge badge-danger'} p-2" style="font-size: 1rem;">
+                    ${progressionData.can_progress ? 'CAN PROGRESS' : 'CANNOT PROGRESS'}
                   </p>
-                  <p><strong>Reason:</strong> ${progressionData.reason}</p>
-                `;
+                </div>
+
+                <div>
+                  <h6><strong>Reason(s):</strong></h6>
+                  <ul>
+                    ${Array.isArray(progressionData.reason) ? progressionData.reason.map(r => `<li>${r}</li>`).join('') : `<li>${progressionData.reason}</li>`}
+                  </ul>
+                </div>
+              `;
               } else {
                 loadingDiv.textContent = progressionData.error || "Failed to fetch progression.";
               }

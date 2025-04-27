@@ -611,15 +611,18 @@ module.exports = function (db) {
 
             let totalCreditsAttempted = 0;
             let totalCreditsPassed = 0;
+
+            let level1CreditsAttempted = 0;
+            let level1CreditsPassed = 0;
+
+            let level2CreditsAttempted = 0;
+            let level2CreditsPassed = 0;
+
             let failedCoreModules = [];
             let outstandingFails = [];
 
             for (const module of rows) {
-                // If student is Level 1 - only check Level 1 modules
-                // If student is Level 2 - check ALL modules (level 1 and 2) - as may be repeating Level 1 modules
-                // if (currentLevel === 1 && module.pathway_level !== 1) {
-                //     continue; // For Level 1 students, ignore modules from other levels
-                // }
+                const moduleLevel = module.pathway_level;
 
                 totalCreditsAttempted += module.credits;
 
@@ -632,7 +635,21 @@ module.exports = function (db) {
 
                 if (passed) {
                     totalCreditsPassed += module.credits;
+
+                    if (moduleLevel === 1) {
+                        level1CreditsAttempted += module.credits;
+                        level1CreditsPassed += module.credits;
+                    } else if (moduleLevel === 2) {
+                        level2CreditsAttempted += module.credits;
+                        level2CreditsPassed += module.credits;
+                    }
                 } else {
+                    if (moduleLevel === 1) {
+                        level1CreditsAttempted += module.credits;
+                    } else if (moduleLevel === 2) {
+                        level2CreditsAttempted += module.credits;
+                    }
+
                     if (module.core) {
                         failedCoreModules.push(module);
                     } else {
@@ -645,24 +662,27 @@ module.exports = function (db) {
             let decisionReasons = [];
 
             if (currentLevel === 1) {
-                if (totalCreditsPassed >= 100 && failedCoreModules.length === 0) {
+                if (level1CreditsPassed >= 100 && failedCoreModules.length === 0) {
                     canProgress = true;
-                    decisionReasons.push("Enough credits and no failed core modules.");
+                    decisionReasons.push("Enough level 1 credits and no failed core modules.");
                 } else {
-                    if (totalCreditsPassed < 100) {
-                        decisionReasons.push("Insufficient credits.");
+                    if (level1CreditsPassed < 100) {
+                        decisionReasons.push("Insufficient level 1 credits.");
                     }
                     if (failedCoreModules.length > 0) {
                         decisionReasons.push("Failed core module(s).");
                     }
                 }
             } else if (currentLevel === 2) {
-                if (failedCoreModules.length === 0 && outstandingFails.length === 0 && totalCreditsPassed >= 240) {
+                if (level1CreditsPassed >= 120 && level2CreditsPassed >= 120 && failedCoreModules.length === 0 && outstandingFails.length === 0) {
                     canProgress = true;
-                    decisionReasons.push("All modules passed.");
+                    decisionReasons.push("All modules from Level 1 and level 2 passed.");
                 } else {
-                    if (totalCreditsPassed < 240) {
-                        decisionReasons.push("Insufficient credits.");
+                    if (level1CreditsPassed < 120) {
+                        decisionReasons.push("Unresolved Level 1 module failures.");
+                    }
+                    if (level2CreditsPassed < 120) {
+                        decisionReasons.push("Insufficient level 2 credits.");
                     }
                     if (failedCoreModules.length > 0) {
                         decisionReasons.push("Failed core module(s).");
@@ -679,10 +699,14 @@ module.exports = function (db) {
                 current_level: currentLevel,
                 total_credits_attempted: totalCreditsAttempted,
                 total_credits_passed: totalCreditsPassed,
+                level1_credits_attempted: level1CreditsAttempted,
+                level1_credits_passed: level1CreditsPassed,
+                level2_credits_attempted: level2CreditsAttempted,
+                level2_credits_passed: level2CreditsPassed,
                 failed_core_modules: failedCoreModules.length,
                 outstanding_fails: outstandingFails.length,
                 can_progress: canProgress,
-                reason: decisionReasons.join("; ")
+                reason: decisionReasons
             });
 
         } catch (err) {
