@@ -356,7 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
     <tbody>
       ${grades.map(g => `
         <tr>
-          <td>${g.module_title} (${g.module_code}) <br><small class="badge badge-secondary">${g.semester_name}</small></td>
+          <td>${g.module_title} (${g.module_code})<br><strong> CATS: ${g.credits} </strong><br><small class="badge badge-secondary">${g.semester_name}</small></td>
           <td><input type="number" class="form-control form-control-sm" value="${g.first_grade}" data-id="${g.id}" data-type="first_grade"></td>
           <td>
             <select class="form-control form-control-sm" data-id="${g.id}" data-type="grade_result">

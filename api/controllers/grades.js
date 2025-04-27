@@ -19,6 +19,7 @@ module.exports = function (db) {
                     sm.id,
                     m.title AS module_title,
                     m.module_code,
+                    m.credits,
                     ay.name AS academic_year,
                     sm.academic_year_id,
                     sm.first_grade,
@@ -615,9 +616,9 @@ module.exports = function (db) {
             for (const module of rows) {
                 // If student is Level 1 - only check Level 1 modules
                 // If student is Level 2 - check ALL modules (level 1 and 2) - as may be repeating Level 1 modules
-                if (currentLevel === 1 && module.pathway_level !== 1) {
-                    continue; // For Level 1 students, ignore modules from other levels
-                }
+                // if (currentLevel === 1 && module.pathway_level !== 1) {
+                //     continue; // For Level 1 students, ignore modules from other levels
+                // }
 
                 totalCreditsAttempted += module.credits;
 
@@ -680,7 +681,7 @@ module.exports = function (db) {
                 failed_core_modules: failedCoreModules.length,
                 outstanding_fails: outstandingFails.length,
                 can_progress: canProgress,
-                reason: decisionReasons.join(", ")
+                reason: decisionReasons.join("; ")
             });
 
         } catch (err) {
