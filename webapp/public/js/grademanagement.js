@@ -537,10 +537,16 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", async () => {
       const studentId = btn.dataset.id;
 
-      // Error msg in case of failure to load modal
-      const errorDiv = document.getElementById("modalLoadError");
+      // Error msg in case of failure to load modal - wipe previous error msg
+      let errorDiv = document.getElementById("modalLoadError");
       errorDiv.classList.add("d-none");
       errorDiv.textContent = "";
+
+      let successDiv = document.getElementById("progressionSuccess");
+      successDiv.classList.add("d-none");
+      successDiv.textContent = "";
+
+
 
       try {
         // 1. Fetch all academic years the student has grades for
@@ -632,6 +638,126 @@ document.addEventListener("DOMContentLoaded", () => {
                   </ul>
                 </div>
               `;
+
+                loadingDiv.innerHTML += `
+              <div class="mt-4">
+              <h6><strong>Admin Progression Action:</strong></h6>
+    
+              <div class="form-group">
+                <label for="progressionDecision-${tabId}">Select Final Outcome:</label>
+                <select id="progressionDecision-${tabId}" class="form-control progression-decision-dropdown">
+                  <option value="">-- Select Outcome --</option>
+                  ${progressionData.can_progress ? `
+                    <option value="Progress to Next Level">Progress to Next Level</option>
+                  ` : `
+                    <option value="Resit Required">Resit Required</option>
+                    <option value="Student Deciding">Student Deciding (Withdraw/Repeat Year)</option>
+                    <option value="Contact Advisor of Studies">Contact Advisor of Studies</option>
+                    <option class="font-weight bold" value="Progress with Mitigating Circumstances">Progress to Next Level with Mitigating Circumstances</option>
+                  `}
+                </select>
+              </div>
+
+              <div class="form-group d-none" id="mitigatingCommentBox-${tabId}">
+                <label for="mitigatingComment-${tabId}">Mitigating Circumstances Details:</label>
+                <textarea id="mitigatingComment-${tabId}" class="form-control" rows="3" placeholder="Enter details..."></textarea>
+              </div>
+
+              <button class="btn btn-primary mt-2 finalise-progression-btn" data-student-id="${studentId}" data-acad-year-id="${grades[0].academic_year_id}" data-tab-id="${tabId}" disabled>
+                Finalise Progression
+              </button>
+            </div>
+              `;
+
+                // Handle dropdown selection within progression modal and enabling/disabling the finalise button
+                const decisionDropdown = tabPane.querySelector(`#progressionDecision-${tabId}`);
+                const commentBox = tabPane.querySelector(`#mitigatingCommentBox-${tabId}`);
+                const finaliseBtn = tabPane.querySelector(`.finalise-progression-btn[data-tab-id="${tabId}"]`);
+
+                if (decisionDropdown && finaliseBtn) {
+                  decisionDropdown.addEventListener('change', (e) => {
+                    const selected = e.target.value;
+
+                    if (selected === "Progress with Mitigating Circumstances") {
+                      commentBox.classList.remove('d-none');
+                    } else {
+                      commentBox.classList.add('d-none');
+                    }
+
+                    if (selected !== "") {
+                      finaliseBtn.disabled = false;
+                      finaliseBtn.classList.remove('btn-secondary');
+                      finaliseBtn.classList.add('btn-primary');
+                    } else {
+                      finaliseBtn.disabled = true;
+                      finaliseBtn.classList.remove('btn-primary');
+                      finaliseBtn.classList.add('btn-secondary');
+                    }
+                  });
+
+                  // Handle Finalise submission/click
+                  finaliseBtn.addEventListener('click', async () => {
+                    const selectedOutcome = decisionDropdown.value;
+                    const mitigatingComment = tabPane.querySelector(`#mitigatingComment-${tabId}`)?.value || "";
+
+                    if (selectedOutcome === "") {
+                      alert("Please select a progression outcome.");
+                      return;
+                    }
+                    if (selectedOutcome === "Progress with Mitigating Circumstances" && mitigatingComment.trim() === "") {
+                      alert("Please provide details for mitigating circumstances.");
+                      return;
+                    }
+
+                    const payload = {
+                      progression_result: selectedOutcome,
+                      mitigating_circumstances: mitigatingComment || null,
+                      student_id: studentId,
+                      academic_year_id: grades[0]?.academic_year_id
+                    };
+
+                    try {
+                      console.log("Submitting progression:", payload);
+                      const response = await fetch('/grademanagement/finalise-progression', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                      });
+
+                      const result = await response.json();
+
+                      // Disable finalise button after click to prevent double submit attempts
+                      finaliseBtn.disabled = false;
+
+                      if (response.ok) {
+                        successDiv.textContent = 'Progression finalised successfully!';
+                        successDiv.classList.remove("d-none");
+
+                        setTimeout(() => {
+                          successDiv.classList.add("d-none");
+                          successDiv.textContent = "";
+                          window.location.href = "/grademanagement/";
+                        }, 3000);
+
+                        // $('#progressionModal').modal('hide');
+                      } else {
+
+                        let errorDiv = document.getElementById("progressionError");
+                        errorDiv.textContent = result.error || 'Failed to finalise progression.';
+                        errorDiv.classList.remove("d-none");
+                      }
+                    } catch (error) {
+                      let errorDiv = document.getElementById("progressionError");
+                      errorDiv.textContent = error.message || 'Failed to finalise progression.';
+                      errorDiv.classList.remove("d-none");
+                      // console.error('Error submitting progression:', error);
+                      // alert('Network error finalising progression.');
+                    }
+                  });
+                }
+
               } else {
                 loadingDiv.textContent = progressionData.error || "Failed to fetch progression.";
               }
@@ -643,6 +769,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
           tabContent.appendChild(tabPane);
           isFirst = false;
+
+
+
         }
 
         progressionModalBody.appendChild(tabNav);
@@ -656,6 +785,73 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+// // Handle dropdown selection within progression modal
+// document.getElementById(`progressionDecision-${tabId}`).addEventListener('change', (e) => {
+//   const selected = e.target.value;
+//   const commentBox = document.getElementById(`mitigatingCommentBox-${tabId}`);
+//   const finaliseBtn = document.querySelector(`.finalise-progression-btn[data-tab-id="${tabId}"]`);
+
+//   if (selected === "Progress with Mitigating Circumstances") {
+//     commentBox.classList.remove('d-none');
+//   } else {
+//     commentBox.classList.add('d-none');
+//   }
+
+//   // Enable Finalise button if a choice is made
+//   if (selected !== "") {
+//     finaliseBtn.disabled = false;
+//     finaliseBtn.classList.remove('btn-secondary');
+//     finaliseBtn.classList.add('btn-primary');
+//   } else {
+//     finaliseBtn.disabled = true;
+//     finaliseBtn.classList.remove('btn-success');
+//     finaliseBtn.classList.add('btn-secondary');
+//   }
+// });
+
+// // Handle Finalise click
+// document.querySelector(`.finalise-progression-btn[data-tab-id="${tabId}"]`).addEventListener('click', async () => {
+//   const decision = document.getElementById(`progressionDecision-${tabId}`).value;
+//   const comment = document.getElementById(`mitigatingComment-${tabId}`)?.value || "";
+//   const studentId = studentId;
+//   const acadYearId = grades[0].academic_year_id;
+
+//   if (decision === "") {
+//     alert("Please select a progression outcome.");
+//     return;
+//   }
+//   if (decision === "Progress with Mitigating Circumstances" && comment.trim() === "") {
+//     alert("Please provide details for mitigating circumstances.");
+//     return;
+//   }
+
+//   try {
+//     const response = await fetch('/grademanagement/finalise-progression', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({
+//         student_id: studentId,
+//         academic_year_id: acadYearId,
+//         overall_result: decision,
+//         comment: comment
+//       })
+//     });
+
+//     const result = await response.json();
+
+//     if (response.ok) {
+//       alert("Progression finalised successfully!");
+//       $('#progressionModal').modal('hide');
+//     } else {
+//       alert(result.error || "Error finalising progression.");
+//     }
+//   } catch (err) {
+//     console.error("Error finalising progression:", err);
+//     alert("Something went wrong. Please try again.");
+//   }
+// });
+
 
 
 // Pahtway filtering dropdown

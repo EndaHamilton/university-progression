@@ -279,6 +279,34 @@ router.get('/student/:studentId/progression/:acadYearId', async (req, res) => {
     }
 });
 
+const validateProgressionPayload = require ('../utils/validateProgressionPayload');
+
+// POST: Finalise student progression
+router.post('/finalise-progression', validateProgressionPayload, async (req, res) => {
+    const { student_id, academic_year_id, progression_result, mitigating_comment } = req.body;
+
+    if (!student_id || !academic_year_id || !progression_result) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    try {
+        const response = await axios.post('http://localhost:4000/grades/finalise-progression', {
+            student_id,
+            academic_year_id,
+            progression_result,
+            mitigating_comment
+        }, config);
+
+        return res.status(200).json(response.data);
+    } catch (err) {
+        console.error("Error finalising progression:", err.message);
+        const status = err.response?.status || 500;
+        const errorMessage = err.response?.data?.error || "Failed to finalise progression.";
+        return res.status(status).json({ error: errorMessage });
+    }
+});
+
+
 
 
 module.exports = router;

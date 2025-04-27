@@ -507,6 +507,37 @@ module.exports = function (db) {
         }
     });
 
+    // Helper function - used across diff routes
+    async function calculateAverageGrade(studentId, acadYearId) {
+        const [rows] = await db.promise().query(`
+        SELECT 
+              ROUND(AVG(
+                CASE 
+                  WHEN sm.grade_result = 'excused' AND sm.resit_result = 'excused' THEN NULL
+    			  WHEN sm.grade_result = 'excused' AND sm.resit_result = 'pass' THEN sm.resit_grade
+    			  WHEN sm.grade_result = 'excused' AND sm.resit_result = 'pass capped' THEN 40
+                  WHEN sm.grade_result = 'pass' THEN sm.first_grade
+                  WHEN sm.resit_result = 'pass' THEN sm.resit_grade
+                  WHEN sm.resit_result = 'pass capped' THEN 40
+                  WHEN sm.grade_result = 'fail' AND sm.resit_result = 'fail' AND sm.resit_grade > sm.first_grade THEN sm.resit_grade
+                  WHEN sm.grade_result = 'fail' AND sm.resit_result = 'fail' AND sm.first_grade > sm.resit_grade THEN sm.first_grade
+                  WHEN sm.grade_result = 'absent' THEN 0
+                  ELSE
+                    CASE 
+                      WHEN sm.resit_grade IS NOT NULL THEN sm.resit_grade
+                      ELSE sm.first_grade
+                    END
+                END
+              ), 2) AS average_grade
+            FROM student_module sm
+            JOIN module m ON sm.module_id = m.id
+            WHERE sm.student_id = ? AND sm.academic_year_id = ?
+        `, [studentId, acadYearId]);
+
+        return rows[0]?.average_grade || 0;
+    }
+
+
     // GET: Accurate grade summary (credits + average) for a student
     router.get('/summary/:studentId', async (req, res) => {
         const studentId = parseInt(req.params.studentId);
@@ -712,6 +743,97 @@ module.exports = function (db) {
         } catch (err) {
             console.error("Error calculating progression:", err);
             return res.status(500).json({ error: "Failed to calculate progression." });
+        }
+    });
+
+    const validateProgressionPayload = require('../utils/validateProgressionPayload');
+
+    // POST: Finalise progression for a student for an academic year
+    router.post('/finalise-progression', validateProgressionPayload, async (req, res) => {
+        const { student_id, academic_year_id, progression_result, mitigating_comment } = req.body;
+
+        if (!student_id) {
+            return res.status(400).json({ error: "Student ID required." });
+        }
+        if (!academic_year_id) {
+            return res.status(400).json({ error: "Academic Year ID required." });
+        }
+        if (!progression_result) {
+            return res.status(400).json({ error: "Progression result required." });
+        }
+
+        if (progression_result.trim().toLowerCase === 'progress to next level with mitigating circumstances' & !mitigating_comment) {
+            return res.status(400).json({ error: "Mitigating circumstances required for this progression" });
+        }
+
+        try {
+            // Fetch required student info
+            const [studentRows] = await db.promise().query(`
+            SELECT pathway_id, current_level_id, entry_level_id, study_status_id
+            FROM student
+            WHERE id = ?
+            `, [student_id]);
+
+            if (studentRows.length === 0) {
+                return res.status(404).json({ error: "Student not found." });
+            }
+
+            const student = studentRows[0];
+
+            const overallGrade = await calculateAverageGrade(student_id, academic_year_id);
+
+            // Check if a record already exists for that student and year
+            const [historyRows] = await db.promise().query(`
+            SELECT id FROM student_history
+            WHERE student_id = ? AND acad_year_id = ?
+            `, [student_id, academic_year_id]);
+
+            if (historyRows.length > 0) {
+                // Update existing record
+                await db.promise().query(`
+                UPDATE student_history
+                SET progression_result = ?, mitigating_circumstances = ?
+                WHERE id = ?
+                `, [progression_result, mitigating_comment || null, historyRows[0].id]);
+
+                return res.status(200).json({ message: "Progression record updated successfully." });
+            } else {
+                // Insert new record
+                await db.promise().query(`
+                INSERT INTO student_history
+                    (student_id, acad_year_id, pathway_id, entry_level_id, study_status_id, current_level_id, overall_grade, progression_result, mitigating_circumstances)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    student_id,
+                    academic_year_id,
+                    student.pathway_id,
+                    student.entry_level_id,
+                    student.study_status_id,
+                    student.current_level_id,
+                    overallGrade,
+                    progression_result,
+                    mitigating_comment || null
+                ]);
+
+                // If student is progressing normally, update their current_level_id
+                /* Not including progression with mitigation as there may be some manual review required
+                or some checks by advisor of studies for example - dont want automatic adjustment */
+                if (progression_result.trim().toLowerCase() === "progress to next level") {
+                    await db.promise().query(`
+                    UPDATE student
+                    SET current_level_id = current_level_id + 1
+                    WHERE id = ?
+                    `, [student_id]);
+                }
+
+
+                return res.status(200).json({ message: "Progression record created successfully." });
+            }
+
+
+        } catch (error) {
+            console.error("Error finalising progression:", error);
+            return res.status(500).json({ error: "Failed to finalise progression." });
         }
     });
 
