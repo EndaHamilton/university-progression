@@ -23,14 +23,14 @@ router.get('/', async (req, res) => {
 
         const studentId = studentProfileRes.data.id;
 
-        // Fetch students  grades
+        // // Fetch students  grades
         const studentGradesRes = await axios.get(`http://localhost:4000/grades/student/${studentId}`, config);
 
-        // Fetch students progression decision
-        const studentProgressionRes = await axios.get(`http://localhost:4000/grades/progression/${studentId}/${LATEST_ACADEMIC_YEAR_ID}`, config);
+        // // Fetch students progression decision
+        // const studentProgressionRes = await axios.get(`http://localhost:4000/grades/progression/${studentId}/${LATEST_ACADEMIC_YEAR_ID}`, config);
 
-        // Fetch students grade summary (credits and average grade)
-        const gradeSummaryRes = await axios.get(`http://localhost:4000/grades/summary/${studentId}?academic_year_id=${LATEST_ACADEMIC_YEAR_ID}`, config);
+        // // Fetch students grade summary (credits and average grade)
+        // const gradeSummaryRes = await axios.get(`http://localhost:4000/grades/summary/${studentId}?academic_year_id=${LATEST_ACADEMIC_YEAR_ID}`, config);
 
 
         res.render('studentprogression', {
@@ -40,8 +40,8 @@ router.get('/', async (req, res) => {
             },
             student: studentProfileRes.data,
             studentGrades: studentGradesRes.data,
-            studentProgression: studentProgressionRes.data,
-            gradeSummary: gradeSummaryRes.data,
+            // studentProgression: studentProgressionRes.data,
+            // gradeSummary: gradeSummaryRes.data,
 
         });
 
@@ -59,22 +59,34 @@ router.get('/data', async (req, res) => {
 
         const studentProfileRes = await axios.get(`http://localhost:4000/student/by-user/${userId}`, config);
         const studentProfile = studentProfileRes.data;
+
         const studentId = studentProfile.id;
 
         const studentGradesRes = await axios.get(`http://localhost:4000/grades/student/${studentId}`, config);
         const studentGrades = studentGradesRes.data;
 
-        const studentProgressionRes = await axios.get(`http://localhost:4000/grades/progression/${studentId}/${LATEST_ACADEMIC_YEAR_ID}`, config);
+        // get latest academic year ID from student grades array
+        const academicYears = Object.keys(studentGrades);
+        const latestAcademicYearKey = academicYears[0]; // grabs first grouped array within the array of arrays - latest academic year
+        const gradesArray = studentGrades[latestAcademicYearKey] || []; // grabs acadmic year id from first module in array
+        const latestAcademicYear = gradesArray[0]?.academic_year_id
+        console.log("Latest Academic Year ID:", latestAcademicYear);
+
+        const studentProgressionRes = await axios.get(`http://localhost:4000/grades/progression/${studentId}/${latestAcademicYear}`, config);
         const studentProgression = studentProgressionRes.data;
 
-        const gradeSummaryRes = await axios.get(`http://localhost:4000/grades/summary/${studentId}?academic_year_id=${LATEST_ACADEMIC_YEAR_ID}`, config);
+        const gradeSummaryRes = await axios.get(`http://localhost:4000/grades/summary/${studentId}?academic_year_id=${latestAcademicYear}`, config);
         const gradeSummary = gradeSummaryRes.data;
+
+        const progressionResultData = await axios.get(`http://localhost:4000/grades/progression-result/${studentId}/${latestAcademicYear}`, config);
+        const progressionResult = progressionResultData.data;
 
         return res.status(200).json({
             studentProfile,
             studentGrades,
             studentProgression,
-            gradeSummary
+            gradeSummary,
+            progressionResult
         });
 
     } catch (error) {

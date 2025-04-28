@@ -871,7 +871,7 @@ module.exports = function (db) {
         `, [studentId, acadYearId]);
 
             if (rows.length === 0) {
-                return res.status(404).json({ progression_result: null });
+                return res.status(200).json({ progression_result: null });
             }
 
             return res.status(200).json(rows[0]);

@@ -9,10 +9,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const studentGrades = data.studentGrades;
         const studentProgression = data.studentProgression;
         const gradeSummary = data.gradeSummary;
+        const progressionResult = data.progressionResult;
 
         // Getting grades array for current / latest academic year - as studentGrades returns an object of arrays of grades grouped by academic year
         const latestYear = Object.keys(studentGrades)[0];
-        const gradesArray = studentGrades[latestYear] || [];
+        const gradesArray = studentGrades[latestYear] || []; // gets first group of arrays within the array of arrays - latest academic year
+        console.log("Latest Academic Year ID:", latestYear);
+        console.log("Grades Array:", gradesArray);
 
 
         // Display Progression Decision
@@ -34,6 +37,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                 reasonsContainer.appendChild(li);
             });
             progressionDecision.appendChild(reasonsContainer);
+
+            const studentId = studentProfile.id;
+            const acadYearId = gradesArray[0]?.academic_year_id;
+            if (studentId && acadYearId) {
+                try {
+                    // const historyRes = await fetch(`/grademanagement/student-history/${studentId}/${acadYearId}`);
+                    // const historyData = await historyRes.json();
+
+                    const progressionResultArea = document.getElementById('progressionResultArea');
+                    if (progressionResult && progressionResult.progression_result !== null) {
+                        progressionResultArea.innerHTML = `
+                        <div class="alert alert-primary">
+                        Progression Result: <strong>${progressionResult.progression_result}</strong>
+                        </div>
+                    `;
+                    } else {
+                        progressionResultArea.innerHTML = `
+                        <div class="alert alert-secondary">
+                        Progression Result: <strong>Not finalised yet</strong> 
+                        </div>
+                    `;
+                    }
+                } catch (err) {
+                    console.error("Failed fetching progression history:", err);
+                    const progressionResultArea = document.getElementById('progressionResultArea');
+                    progressionResultArea.innerHTML = `<div class="alert alert-warning">Error loading progression result.</div>`;
+                }
+            }
 
         }
 
