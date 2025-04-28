@@ -279,11 +279,11 @@ router.get('/student/:studentId/progression/:acadYearId', async (req, res) => {
     }
 });
 
-const validateProgressionPayload = require ('../utils/validateProgressionPayload');
+const validateProgressionPayload = require('../utils/validateProgressionPayload');
 
 // POST: Finalise student progression
 router.post('/finalise-progression', validateProgressionPayload, async (req, res) => {
-    const { student_id, academic_year_id, progression_result, mitigating_comment } = req.body;
+    const { student_id, academic_year_id, progression_result, mitigating_circumstances } = req.body;
 
     if (!student_id || !academic_year_id || !progression_result) {
         return res.status(400).json({ error: "Missing required fields." });
@@ -294,7 +294,7 @@ router.post('/finalise-progression', validateProgressionPayload, async (req, res
             student_id,
             academic_year_id,
             progression_result,
-            mitigating_comment
+            mitigating_circumstances
         }, config);
 
         return res.status(200).json(response.data);
@@ -306,6 +306,20 @@ router.post('/finalise-progression', validateProgressionPayload, async (req, res
     }
 });
 
+// GET: Fetch progression result
+router.get('/progression-result/:studentId/:acadYearId', async (req, res) => {
+    const { studentId, acadYearId } = req.params;
+
+    try {
+        const response = await axios.get(`http://localhost:4000/grades/progression-result/${studentId}/${acadYearId}`, config);
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error("Error fetching progression result:", error.message);
+        const status = error.response?.status || 500;
+        const errorMessage = error.response?.data?.error || "Failed to fetch progression result.";
+        return res.status(status).json({ error: errorMessage });
+    }
+});
 
 
 

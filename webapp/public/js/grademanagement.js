@@ -598,6 +598,18 @@ document.addEventListener("DOMContentLoaded", () => {
               const progressionRes = await fetch(`/grademanagement/student/${studentId}/progression/${grades[0].academic_year_id}`);
               const progressionData = await progressionRes.json();
 
+              let finalisedProgression = null;
+              try {
+                const historyRes = await fetch(`/grademanagement/progression-result/${studentId}/${grades[0].academic_year_id}`);
+                if (historyRes.ok) {
+                  const historyData = await historyRes.json();
+                  finalisedProgression = historyData.progression_result || null;
+                }
+              } catch (err) {
+                console.error("Failed to fetch finalised progression result:", err);
+              }
+
+
               if (progressionRes.ok) {
                 loadingDiv.innerHTML = `
                 <div class="mb-3">
@@ -659,7 +671,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
               `;
 
-              
+                // Show current finalised progression decision if available
+                loadingDiv.innerHTML += `
+                <h6><strong>Finalised Progression Decision (Admin):</strong></h6>
+                <p class="badge ${finalisedProgression ? 'badge-info' : 'badge-secondary'} p-2" style="font-size: 1rem;">
+                  ${finalisedProgression || "- (Not finalised yet)"}
+                </p>
+              `;
 
                 loadingDiv.innerHTML += `
               <div class="mt-4">
@@ -670,12 +688,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 <select id="progressionDecision-${tabId}" class="form-control progression-decision-dropdown">
                   <option value="">-- Select Outcome --</option>
                   ${progressionData.can_progress ? `
-                    <option value="Progress to Level ${(progressionData.current_level) + 1 }">Progress to Level ${(progressionData.current_level) + 1}</option> 
+                    <option value="Progress to Level ${(progressionData.current_level) + 1}">Progress to Level ${(progressionData.current_level) + 1}</option> 
                   ` : `
                     <option value="Resit Required">Resit Required</option>
-                    <option value="Student Deciding">Student Deciding (Withdraw/Repeat Year)</option>
+                    <option value="Student Deciding (Withdraw/Repeat Year)">Student Deciding (Withdraw/Repeat Year)</option>
                     <option value="Contact Advisor of Studies">Contact Advisor of Studies</option>
-                    <option class="font-weight bold" value="Progress to Level ${(progressionData.current_level) + 1 } with Mitigating Circumstances">Progress to Level ${(progressionData.current_level) + 1 } with Mitigating Circumstances</option>
+                    <option class="font-weight bold" value="Progress to Level ${(progressionData.current_level) + 1} with Mitigating Circumstances">Progress to Level ${(progressionData.current_level) + 1} with Mitigating Circumstances</option>
                   `}
                 </select>
               </div>

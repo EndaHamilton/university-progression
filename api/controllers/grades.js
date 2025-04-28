@@ -763,7 +763,7 @@ module.exports = function (db) {
 
     // POST: Finalise progression for a student for an academic year
     router.post('/finalise-progression', validateProgressionPayload, async (req, res) => {
-        const { student_id, academic_year_id, progression_result, mitigating_comment } = req.body;
+        const { student_id, academic_year_id, progression_result, mitigating_circumstances } = req.body;
 
         if (!student_id) {
             return res.status(400).json({ error: "Student ID required." });
@@ -775,7 +775,7 @@ module.exports = function (db) {
             return res.status(400).json({ error: "Progression result required." });
         }
 
-        if (progression_result.trim().toLowerCase === 'progress to next level with mitigating circumstances' & !mitigating_comment) {
+        if (progression_result.trim().toLowerCase().includes('mitigating circumstances') && !mitigating_circumstances) {
             return res.status(400).json({ error: "Mitigating circumstances required for this progression" });
         }
 
@@ -807,7 +807,7 @@ module.exports = function (db) {
                 UPDATE student_history
                 SET progression_result = ?, mitigating_circumstances = ?
                 WHERE id = ?
-                `, [progression_result, mitigating_comment || null, historyRows[0].id]);
+                `, [progression_result, mitigating_circumstances || null, historyRows[0].id]);
 
                 return res.status(200).json({ message: "Progression record updated successfully." });
             } else {
@@ -825,7 +825,7 @@ module.exports = function (db) {
                     student.current_level_id,
                     overallGrade,
                     progression_result,
-                    mitigating_comment || null
+                    mitigating_circumstances || null
                 ]);
 
                 // If student is progressing normally, update their current_level_id
@@ -850,6 +850,36 @@ module.exports = function (db) {
         }
     });
 
+    // GET: Progression result for a student and academic year
+    router.get('/progression-result/:studentId/:acadYearId', async (req, res) => {
+        const studentId = parseInt(req.params.studentId);
+        const acadYearId = parseInt(req.params.acadYearId);
+
+        if (isNaN(studentId)) {
+            return res.status(400).json({ error: 'Invalid student ID. Must be a number' });
+        }
+        if (isNaN(acadYearId)) {
+            return res.status(400).json({ error: 'Invalid academic year ID. Must be a number' });
+        }
+
+        try {
+            const [rows] = await db.promise().query(`
+            SELECT progression_result 
+            FROM student_history 
+            WHERE student_id = ? AND acad_year_id = ?
+            LIMIT 1
+        `, [studentId, acadYearId]);
+
+            if (rows.length === 0) {
+                return res.status(404).json({ progression_result: null });
+            }
+
+            return res.status(200).json(rows[0]);
+        } catch (err) {
+            console.error("Error fetching progression result:", err);
+            return res.status(500).json({ error: "Failed to fetch progression result" });
+        }
+    });
 
 
     return router;
