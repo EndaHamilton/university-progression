@@ -622,6 +622,8 @@ module.exports = function (db) {
                 sm.resit_grade,
                 sm.resit_result,
                 m.credits,
+                m.module_code,
+                m.title,
                 pm.pathway_level,
                 pm.core,
                 current_level.name AS current_level
@@ -651,6 +653,9 @@ module.exports = function (db) {
 
             let failedCoreModules = [];
             let outstandingFails = [];
+
+            let modulesNeedingResit = [];
+            let modulesNeedingReenrollment = [];
 
             for (const module of rows) {
                 const moduleLevel = module.pathway_level;
@@ -685,6 +690,12 @@ module.exports = function (db) {
                         failedCoreModules.push(module);
                     } else {
                         outstandingFails.push(module);
+                    }
+
+                    if (!module.resit_result) {
+                        modulesNeedingResit.push(module);
+                    } else if (!['pass', 'pass capped'].includes(module.resit_result)) {
+                        modulesNeedingReenrollment.push(module);
                     }
                 }
             }
@@ -734,8 +745,10 @@ module.exports = function (db) {
                 level1_credits_passed: level1CreditsPassed,
                 level2_credits_attempted: level2CreditsAttempted,
                 level2_credits_passed: level2CreditsPassed,
-                failed_core_modules: failedCoreModules.length,
-                outstanding_fails: outstandingFails.length,
+                failed_core_modules: failedCoreModules,
+                modules_needing_resit: modulesNeedingResit,
+                modules_needing_reenrollment: modulesNeedingReenrollment,
+                outstanding_fails: outstandingFails,
                 can_progress: canProgress,
                 reason: decisionReasons
             });

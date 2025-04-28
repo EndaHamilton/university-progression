@@ -619,9 +619,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="mb-3">
                   <h6><strong>Module Failures:</strong></h6>
                   <ul>
-                    <li><strong>Failed Core Modules:</strong> ${progressionData.failed_core_modules}</li>
-                    <li><strong>Outstanding Failed Modules:</strong> ${progressionData.outstanding_fails}</li>
+                    <li><strong>Failed Core Modules:</strong> ${progressionData.failed_core_modules.length}</li>
+                    <ul>
+                      <li>${progressionData.failed_core_modules.map(m => `${m.module_code} (${m.module_title})`).join(', ')}</li>
+                    </ul>
+                    <li><strong>Outstanding Failed Modules:</strong> ${progressionData.outstanding_fails.length}</li>
+                    <ul>
+                      <li>${progressionData.outstanding_fails.map(m => `${m.module_code} ${m.title} (CATS: ${m.credits})`).join('; ')}</li>
+                    </ul>
                   </ul>
+                </div>
+
+                <div class="mb-3">
+                <h6><strong>Module Resits / Reenrollments:</strong></h6>
+                <ul>
+                  <li><strong>Resits Required:</strong> ${progressionData.modules_needing_resit.length}</li>
+                  <ul>
+                    <li>${progressionData.modules_needing_resit.map(m => `${m.module_code} ${m.title} (CATS: ${m.credits})`).join('; ')}</li>
+                  </ul>
+                  <li><strong>Reenrollments Required:</strong> ${progressionData.modules_needing_reenrollment.length}</li> 
+                  <ul>
+                    <li>${progressionData.modules_needing_reenrollment.map(m => `${m.module_code} ${m.title} (CATS: ${m.credits})`).join('; ')}</li>
+                  </ul>
+                </ul>
                 </div>
 
                 <div class="mb-3">
