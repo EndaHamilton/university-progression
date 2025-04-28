@@ -659,6 +659,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
               `;
 
+              
+
                 loadingDiv.innerHTML += `
               <div class="mt-4">
               <h6><strong>Admin Progression Action:</strong></h6>
@@ -668,12 +670,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 <select id="progressionDecision-${tabId}" class="form-control progression-decision-dropdown">
                   <option value="">-- Select Outcome --</option>
                   ${progressionData.can_progress ? `
-                    <option value="Progress to Next Level">Progress to Next Level</option>
+                    <option value="Progress to Level ${(progressionData.current_level) + 1 }">Progress to Level ${(progressionData.current_level) + 1}</option> 
                   ` : `
                     <option value="Resit Required">Resit Required</option>
                     <option value="Student Deciding">Student Deciding (Withdraw/Repeat Year)</option>
                     <option value="Contact Advisor of Studies">Contact Advisor of Studies</option>
-                    <option class="font-weight bold" value="Progress with Mitigating Circumstances">Progress to Next Level with Mitigating Circumstances</option>
+                    <option class="font-weight bold" value="Progress to Level ${(progressionData.current_level) + 1 } with Mitigating Circumstances">Progress to Level ${(progressionData.current_level) + 1 } with Mitigating Circumstances</option>
                   `}
                 </select>
               </div>
@@ -698,7 +700,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   decisionDropdown.addEventListener('change', (e) => {
                     const selected = e.target.value;
 
-                    if (selected === "Progress with Mitigating Circumstances") {
+                    if (selected.includes('Mitigating Circumstances')) {
                       commentBox.classList.remove('d-none');
                     } else {
                       commentBox.classList.add('d-none');
@@ -726,7 +728,7 @@ document.addEventListener("DOMContentLoaded", () => {
                       errorDiv.classList.remove("d-none");
                       return;
                     }
-                    if (selectedOutcome === "Progress with Mitigating Circumstances" && mitigatingComment.trim() === "") {
+                    if (selectedOutcome.includes('Mitigating Circumstances') && mitigatingComment.trim() === "") {
                       let errorDiv = document.getElementById("progressionError");
                       errorDiv.textContent = 'Please provide details for mitigating circumstances.';
                       errorDiv.classList.remove("d-none");
