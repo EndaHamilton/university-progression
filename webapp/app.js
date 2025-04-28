@@ -34,6 +34,10 @@ app.use('/', signInRoutes);
 const studentProfileRoutes = require("./controllers/studentProfile");
 app.use('/studentprofile', studentProfileRoutes);
 
+// Student Progression page route
+const studentProgressionRoutes = require("./controllers/studentProgression");
+app.use('/studentprogression', studentProgressionRoutes);
+
 // Grade Management page route
 const gradeManagementRoutes = require("./controllers/gradeManagement");
 app.use('/grademanagement', gradeManagementRoutes);
