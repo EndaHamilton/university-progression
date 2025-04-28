@@ -64,6 +64,10 @@ app.use('/acadyear', acadYearRoutes);
 const subjectRoutes = require('./controllers/subject')(db);
 app.use('/subject', subjectRoutes);
 
+// define a route on '/messages' that uses the messages controller
+const messagesRoutes = require('./controllers/messages')(db);
+app.use('/messages', messagesRoutes);
+
 
 // start express server on port 4000
 app.listen(port, () => {

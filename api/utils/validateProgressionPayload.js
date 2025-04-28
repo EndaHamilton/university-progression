@@ -11,7 +11,7 @@ function validateProgressionPayload(req, res, next) {
     return res.status(400).json({ error: "Progression result required." });
   }
 
-  if (progression_result.trim().toLowerCase === 'progress to next level with mitigating circumstances' & !mitigating_comment) {
+  if (progression_result.trim().toLowerCase().includes('mitigating circumstances') && !mitigating_comment) {
     return res.status(400).json({ error: "Mitigating circumstances required for this progression" });
   }
 
