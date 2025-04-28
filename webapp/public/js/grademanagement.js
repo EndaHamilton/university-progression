@@ -701,11 +701,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     const mitigatingComment = tabPane.querySelector(`#mitigatingComment-${tabId}`)?.value || "";
 
                     if (selectedOutcome === "") {
-                      alert("Please select a progression outcome.");
+                      let errorDiv = document.getElementById("progressionError");
+                      errorDiv.textContent = 'Please select a progression outcome.';
+                      errorDiv.classList.remove("d-none");
                       return;
                     }
                     if (selectedOutcome === "Progress with Mitigating Circumstances" && mitigatingComment.trim() === "") {
-                      alert("Please provide details for mitigating circumstances.");
+                      let errorDiv = document.getElementById("progressionError");
+                      errorDiv.textContent = 'Please provide details for mitigating circumstances.';
+                      errorDiv.classList.remove("d-none");
                       return;
                     }
 
