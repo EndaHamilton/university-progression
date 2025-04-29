@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Communciation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/design.css">
+</head>
+
+<body>
+    
+    <div id="userId" data-user-id="<%= user.id %>"></div>
+
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+        <a class="navbar-brand col-sm-3 col-md-2 ms-2" href="#"><img class="logo" src="/img/QUB-logo.png" alt="">Generic
+            University Name</a>
+        <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">  -->
+        <ul class="navbar-nav px-3">
+            <li class="nav-item text-nowrap">
+                <a class="nav-link" href="#">Sign out</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- All content below nav bar -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Side Bar -->
+            <nav class="col-12 col-sm-4 col-md-3 col-lg-2 bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span data-feather="home"></span>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/studentmanagement">
+                                <span data-feather="users"></span>
+                                Student Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/modulemanagement">
+                                <span data-feather="file"></span>
+                                Module Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/grademanagement">
+                                <span data-feather="layers"></span>
+                                Grade Management<span class="sr-only">(current)</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span data-feather="bar-chart-2"></span>
+                                Analytics
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/adminmessages">
+                                <span data-feather="bar-chart-2"></span>
+                                Communication
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content to right of Side Bar -->
+            <main class="col px-4 pt-3">
+                <div
+                    class="d-flex flex-wrap justify-content-between align-items-start gap-2 pb-2 mb-3 border-bottom grade-controls">
+                    <h2>Admin Communication</h2>
+                </div>
+
+                <p>Session user ID is: <%= user.id %></p>
+
+
+                <ul class="nav nav-tabs" id="adminMessageTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="individual-tab" data-toggle="tab" href="#individual"
+                            role="tab">Send to Individual</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="cohort-tab" data-toggle="tab" href="#cohort" role="tab">Send to
+                            Cohort</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="sent-tab" data-toggle="tab" href="#sent" role="tab">Sent Messages</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="adminMessageTabContent">
+                    <!-- Send to Individual -->
+                    <div class="tab-pane fade show active pt-3" id="individual" role="tabpanel">
+                        <form id="individualMessageForm">
+                            <div class="form-group">
+                                <label for="receiver_id">Select Student</label>
+                                <select class="form-control" id="receiver_id" name="receiver_id" required>
+                                    <option value="">-- Select Student --</option>
+                                    <% students.forEach(student=> { %>
+                                        <option value="<%= student.id %>">
+                                            <%= student.first_name %>
+                                                <%= student.last_name %> (<%= student.student_number %>)
+                                        </option>
+                                        <% }) %>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="individual_subject">Subject</label>
+                                <input type="text" class="form-control" id="individual_subject" name="subject" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="individual_body">Message</label>
+                                <textarea class="form-control" id="individual_body" name="body" rows="4"
+                                    required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </form>
+                    </div>
+
+                    <!-- Send to Cohort -->
+                    <div class="tab-pane fade pt-3" id="cohort" role="tabpanel">
+                        <form id="cohortMessageForm">
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label for="pathway">Pathway</label>
+                                    <select class="form-control" id="pathway" name="target_pathway_id">
+                                        <option value="">All Pathways</option>
+                                        <% pathways.forEach(p=> { %>
+                                            <option value="<%= p.id %>">
+                                                <%= p.name %>
+                                            </option>
+                                            <% }) %>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="level">Level</label>
+                                    <select class="form-control" id="level" name="target_level_id">
+                                        <option value="">All Levels</option>
+                                        <% levels.forEach(l=> { %>
+                                            <option value="<%= l.id %>">
+                                                <%= l.name %>
+                                            </option>
+                                            <% }) %>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="study_status">Study Status</label>
+                                    <select class="form-control" id="study_status" name="target_study_status_id">
+                                        <option value="">All Statuses</option>
+                                        <% statuses.forEach(s=> { %>
+                                            <option value="<%= s.id %>">
+                                                <%= s.name %>
+                                            </option>
+                                            <% }) %>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="cohort_subject">Subject</label>
+                                <input type="text" class="form-control" id="cohort_subject" name="subject" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cohort_body">Message</label>
+                                <textarea class="form-control" id="cohort_body" name="body" rows="4"
+                                    required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </form>
+                    </div>
+
+                    <!-- Sent Messages -->
+                    <div class="tab-pane fade pt-3" id="sent" role="tabpanel">
+                        <table class="table table-bordered" id="sentMessagesTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Recipient / Cohort</th>
+                                    <th>Body</th>
+                                    <th>Sent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Will be populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+    </div>
+
+
+
+
+
+    
+
+    <!--js behaviour source-->
+    <script src="/js/adminmessages.js"></script>
+
+
+
+    <!-- Bootstrap CDSN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+    <script>
+        feather.replace()
+    </script>
+
+
+</body>
+
+</html>

@@ -18,10 +18,10 @@ module.exports = function (db) {
         VALUES (?, ?, ?, ?)
       `, [sender_id, receiver_id, subject, body]);
 
-            res.status(200).json({ message: "Message sent successfully", insertId: result.insertId });
+            return res.status(200).json({ message: "Message sent successfully", insertId: result.insertId });
         } catch (err) {
             console.error("Error sending individual message:", err);
-            res.status(500).json({ error: "Failed to send individual message" });
+            return res.status(500).json({ error: "Failed to send individual message" });
         }
     });
 
@@ -126,9 +126,15 @@ module.exports = function (db) {
 
         try {
             const [rows] = await db.promise().query(`
-        SELECT * FROM messages
-        WHERE sender_id = ?
-        ORDER BY created_at DESC
+        SELECT 
+        m.*, 
+        s.first_name AS receiver_first_name, 
+        s.last_name AS receiver_last_name, 
+        s.student_number AS receiver_student_number
+      FROM messages m
+      LEFT JOIN student s ON m.receiver_id = s.id
+      WHERE m.sender_id = ?
+      ORDER BY m.created_at DESC
       `, [userId]);
 
             res.status(200).json(rows);
@@ -156,6 +162,44 @@ module.exports = function (db) {
             res.status(500).json({ error: "Failed to update message status" });
         }
     });
+
+    //POST: for student messaging - as they can only contact their advisor
+    router.post('/contact-advisor', validateMessageFields('contact'), async (req, res) => {
+        const { sender_id, subject, body } = req.body;
+
+        try {
+            const [studentRows] = await db.promise().query(`
+                SELECT pathway_id
+                FROM student s
+                JOIN user u ON s.id = u.student_id
+                WHERE u.id = ?
+            `, [sender_id]);
+
+            if (!studentRows.length) return res.status(404).json({ error: "Student not found" });
+
+            const pathwayId = studentRows[0].pathway_id;
+
+            const advisorByPathway = {
+                1: 6, // Hardcoded user ID for IFSY advisor from user table in DB
+                2: 7, // Hardcoded user ID for BSAS advisor from user table in DB
+            };
+
+            const receiver_id = advisorByPathway[pathwayId];
+            if (!receiver_id) return res.status(400).json({ error: "No advisor assigned for this pathway" });
+
+            await db.promise().query(`
+                INSERT INTO messages (sender_id, receiver_id, subject, body)
+                VALUES (?, ?, ?, ?)
+            `, [sender_id, receiver_id, subject, body]);
+
+            return res.status(200).json({ message: "Message sent to advisor" });
+
+        } catch (err) {
+            console.error("Error contacting advisor:", err.message);
+            return res.status(500).json({ error: "Failed to send message to advisor" });
+        }
+    });
+
 
     return router;
 
