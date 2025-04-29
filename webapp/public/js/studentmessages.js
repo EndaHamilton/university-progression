@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load Sent Messages 
     async function loadSentMessages() {
         try {
-            const res = await fetch('/studentmessages/sent');
+            const res = await fetch('/studentmessages/sent-from-student');
             const data = await res.json();
 
             sentTable.innerHTML = '';

@@ -126,7 +126,7 @@ module.exports = function (db) {
             // Fetch matching messages
             const [messages] = await db.promise().query(`
             SELECT * FROM messages
-            WHERE receiver_id = 5
+            WHERE receiver_id = ?
             OR (
             -- Messages to everyone (fully null cohort targeting, no specific user)
                 receiver_id IS NULL
@@ -137,9 +137,9 @@ module.exports = function (db) {
             OR (
                 -- Cohort-targeted messages
                 receiver_id IS NULL
-                AND (target_pathway_id IS NULL OR target_pathway_id = 1)
-                AND (target_level_id IS NULL OR target_level_id = 1)
-                AND (target_study_status_id IS NULL OR target_study_status_id = 1)
+                AND (target_pathway_id IS NULL OR target_pathway_id = ?)
+                AND (target_level_id IS NULL OR target_level_id = ?)
+                AND (target_study_status_id IS NULL OR target_study_status_id = ?)
                 AND (
                 target_pathway_id IS NOT NULL
                 OR target_level_id IS NOT NULL

@@ -129,6 +129,18 @@ router.post('/contact-advisor', requireStudent, async (req, res) => {
     }
 });
 
+// GET: Student sent messages
+router.get('/sent-from-student', requireStudent, async (req, res) =>{
+    try {
+        const response = await axios.get(`http://localhost:4000/messages/sent-from-student/${req.session.userID}`, config);
+        return res.status(200).json(response.data);
+    } catch (err) {
+        const status = err.response?.status || 500;
+        const message = err.response?.data?.error || "Failed to fetch sent messages";
+        return res.status(status).json({ error: message });
+    }
+});
+
 // Routes accessed by both admin and student
 
 // PATCH: Mark message as read
