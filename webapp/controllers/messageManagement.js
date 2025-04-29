@@ -9,6 +9,35 @@ const requireAdmin = require('../middleware/requireAdmin');
 const requireStudent = require('../middleware/requireStudent');
 
 
+router.get('/student-side', requireStudent, async (req, res) => {
+    try {
+        const [pathwaysRes, levelsRes, statusesRes, studentsRes, studentProfileRes] = await Promise.all([
+            axios.get('http://localhost:4000/pathway', config),
+            axios.get('http://localhost:4000/level', config),
+            axios.get('http://localhost:4000/studystatus', config),
+            // axios.get('http://localhost:4000/student/details', config)
+            axios.get('http://localhost:4000/messages/students-with-userid', config),
+            axios.get(`http://localhost:4000/student/by-user/${req.session.userID}`, config)
+        ]);
+
+        res.render('studentmessages', {
+            user: {
+                id: req.session.userID,
+                email: req.session.email
+            },
+            pathways: pathwaysRes.data,
+            levels: levelsRes.data,
+            statuses: statusesRes.data,
+            students: studentsRes.data,
+            student: studentProfileRes.data
+        });
+
+    } catch (err) {
+        console.error("Error loading messaging page:", err.message);
+        res.status(500).send("Error loading messaging page.");
+    }
+});
+
 // Admin only routes
 
 // GET: Render admin communication dashboard

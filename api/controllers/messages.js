@@ -101,6 +101,7 @@ module.exports = function (db) {
         }
     });
 
+    // Fetch received messages for a student
     router.get('/received/:userId', async (req, res) => {
         const userId = parseInt(req.params.userId);
         if (isNaN(userId) || userId <= 0) {
