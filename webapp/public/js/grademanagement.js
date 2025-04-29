@@ -991,11 +991,25 @@ importButton.addEventListener('click', () => {
         header: true, // optional - makes output an array of objects using the first row as keys
         skipEmptyLines: true,
         complete: function (results) {
-          console.log(results.data); // Array of rows (as objects if header:true)
+          const data = results.data;
+
+          // Send to server
+          fetch('/grademanagement/upload-csv', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)  // Send array of row objects
+          })
+          .then(res => res.json())
+          .then(response => {
+            console.log('Server response:', response);
+            alert('CSV imported successfully!');
+          })
+          .catch(err => {
+            console.error('Upload error:', err);
+            alert('Error uploading CSV data.');
+          });
         }
       });
-
-      alert('CSV imported! Check console for content.');
     };
     reader.readAsText(selectedFile);
   }

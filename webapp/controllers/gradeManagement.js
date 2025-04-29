@@ -321,6 +321,19 @@ router.get('/progression-result/:studentId/:acadYearId', async (req, res) => {
     }
 });
 
+router.post('/upload-csv', async (req, res) => {
+    try {
+        const response = await axios.post('http://localhost:4000/grades/upload-csv', req.body, config);
+
+        return res.status(200).json(response.data);
+    } catch (err) {
+        console.error("Error importing grades:", err.message);
+        const status = err.response?.status || 500;
+        const errorMessage = err.response?.data?.error || "Failed to import grades.";
+        return res.status(status).json({ error: errorMessage });
+    }
+});
+
 
 
 module.exports = router;
