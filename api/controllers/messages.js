@@ -123,17 +123,31 @@ module.exports = function (db) {
 
             const { pathway_id, entry_level_id, study_status_id } = studentRows[0];
 
-            // 2. Fetch matching messages
+            // Fetch matching messages
             const [messages] = await db.promise().query(`
             SELECT * FROM messages
-            WHERE 
-              receiver_id = ?
-              OR (
-                (target_pathway_id IS NULL OR target_pathway_id = ?)
-                AND (target_level_id IS NULL OR target_level_id = ?)
-                AND (target_study_status_id IS NULL OR target_study_status_id = ?)
-              )
-            ORDER BY created_at DESC
+            WHERE receiver_id = 5
+            OR (
+            -- Messages to everyone (fully null cohort targeting, no specific user)
+                receiver_id IS NULL
+                AND target_pathway_id IS NULL
+                AND target_level_id IS NULL
+                AND target_study_status_id IS NULL
+            )
+            OR (
+                -- Cohort-targeted messages
+                receiver_id IS NULL
+                AND (target_pathway_id IS NULL OR target_pathway_id = 1)
+                AND (target_level_id IS NULL OR target_level_id = 1)
+                AND (target_study_status_id IS NULL OR target_study_status_id = 1)
+                AND (
+                target_pathway_id IS NOT NULL
+                OR target_level_id IS NOT NULL
+                OR target_study_status_id IS NOT NULL
+                )
+            )
+            ORDER BY created_at DESC;
+
           `, [userId, pathway_id, entry_level_id, study_status_id]);
 
             res.status(200).json(messages);
