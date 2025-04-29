@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    
+
     <div id="userId" data-user-id="<%= user.id %>"></div>
 
 
@@ -80,7 +80,8 @@
                     <h2>Admin Communication</h2>
                 </div>
 
-                <p>Session user ID is: <%= user.id %></p>
+                <p>Session user ID is: <%= user.id %>
+                </p>
 
 
                 <ul class="nav nav-tabs" id="adminMessageTabs" role="tablist">
@@ -98,15 +99,20 @@
                 </ul>
 
                 <div class="tab-content" id="adminMessageTabContent">
+                    
                     <!-- Send to Individual -->
                     <div class="tab-pane fade show active pt-3" id="individual" role="tabpanel">
                         <form id="individualMessageForm">
+
+                            <div id="individualMessageSuccess" class="alert alert-success d-none"></div>
+                            <div id="individualMessageError" class="alert alert-danger d-none"></div>
+
                             <div class="form-group">
                                 <label for="receiver_id">Select Student</label>
                                 <select class="form-control" id="receiver_id" name="receiver_id" required>
                                     <option value="">-- Select Student --</option>
                                     <% students.forEach(student=> { %>
-                                        <option value="<%= student.id %>">
+                                        <option value="<%= student.user_id %>">
                                             <%= student.first_name %>
                                                 <%= student.last_name %> (<%= student.student_number %>)
                                         </option>
@@ -129,6 +135,10 @@
                     <!-- Send to Cohort -->
                     <div class="tab-pane fade pt-3" id="cohort" role="tabpanel">
                         <form id="cohortMessageForm">
+
+                            <div id="cohortMessageSuccess" class="alert alert-success d-none"></div>
+                            <div id="cohortMessageError" class="alert alert-danger d-none"></div>
+
                             <div class="form-row">
                                 <div class="form-group col-md-4">
                                     <label for="pathway">Pathway</label>
@@ -204,7 +214,7 @@
 
 
 
-    
+
 
     <!--js behaviour source-->
     <script src="/js/adminmessages.js"></script>

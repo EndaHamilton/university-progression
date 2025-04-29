@@ -36,6 +36,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return { cleaned };
   }
 
+  // Success / error msg function
+  function showMessage(div, message, isSuccess = true) {
+    div.classList.remove('d-none', 'alert-success', 'alert-danger');
+    div.classList.add(isSuccess ? 'alert-success' : 'alert-danger');
+    div.innerText = message;
+
+
+    setTimeout(() => {
+      div.classList.add('d-none');
+      div.innerText = '';
+    }, 5000);
+  }
+
   // Shared send message function
   async function sendMessage(url, payload) {
     try {
@@ -65,15 +78,23 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const result = validateMessageFields(raw);
-    if (result.error) return alert(result.error);
+
+    const errorDiv = document.getElementById('individualMessageError');
+    const successDiv = document.getElementById('individualMessageSuccess');
+
+    if (result.error) {
+      showMessage(errorDiv, result.error, false);
+      return;
+    }
+
     payload = result.cleaned;
 
     const res = await sendMessage('/adminmessages/send-individual', payload);
     if (res.success) {
-      alert('Message sent!');
+      showMessage(successDiv, 'Message sent!');
       individualForm.reset();
     } else {
-      alert(res.error);
+      showMessage(errorDiv, res.error, false);
     }
   });
 
@@ -92,7 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const raw = { sender_id: userId, subject, body };
 
     const result = validateCohortMessageFields(raw);
-    if (result.error) return alert(result.error);
+
+    const errorDiv = document.getElementById('cohortMessageError');
+    const successDiv = document.getElementById('cohortMessageSuccess');
+
+    if (result.error) {
+      showMessage(errorDiv, result.error, false);
+      return;
+    }
 
     const payload = {
       ...result.cleaned,
@@ -112,10 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const res = await sendMessage('/adminmessages/send-cohort', payload);
     if (res.success) {
-      alert('Cohort message sent!');
+      showMessage(successDiv, 'Cohort message sent!');
       cohortForm.reset();
     } else {
-      alert(res.error);
+      showMessage(errorDiv, res.error, false);
     }
   });
 
@@ -136,11 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
       data.forEach(msg => {
         const recipient = msg.receiver_id
           ? `Student: ${msg.receiver_first_name} ${msg.receiver_last_name} (${msg.receiver_student_number})`
-          : `Cohort: ${[
-            msg.target_pathway_id ? 'Pathway ' + msg.target_pathway_id : '',
-            msg.target_level_id ? 'Level ' + msg.target_level_id : '',
-            msg.target_study_status_id ? 'Status ' + msg.target_study_status_id : ''
-          ].filter(Boolean).join(', ')}`;
+          : (msg.target_pathway_name || msg.target_level_name || msg.target_study_status_name
+            ? `Cohort: ${[
+              msg.target_pathway_name ? 'Pathway: ' + msg.target_pathway_name : '',
+              msg.target_level_name ? 'Level: ' + msg.target_level_name : '',
+              msg.target_study_status_name ? 'Status: ' + msg.target_study_status_name : ''
+            ].filter(Boolean).join(', ')}`
+            : 'All Students');
 
         const row = `
             <tr>

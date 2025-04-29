@@ -5,4 +5,4 @@ async function hashAndLog(password) {
     console.log(`Hashed version of "${password}":\n${hash}`);
 }
 
-hashAndLog('dogfood'); // or whatever the plaintext password is
+hashAndLog('jermainejenas'); // or whatever the plaintext password is

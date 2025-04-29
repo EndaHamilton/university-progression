@@ -8,6 +8,35 @@ module.exports = function (db) {
 
     const validateMessageFields = require('../utils/validateMessageFields');
 
+    // GET: List of students with user.id (for admin messaging dropdown)
+    router.get('/students-with-userid', async (req, res) => {
+        try {
+            const [rows] = await db.promise().query(`
+        SELECT 
+            s.id AS student_id,
+            u.id AS user_id,
+            s.first_name,
+            s.last_name,
+            s.student_number,
+            p.name AS pathway_name,
+            l.name AS level_name,
+            ss.name AS study_status_name
+        FROM user u
+        JOIN student s ON u.student_id = s.id
+        LEFT JOIN pathway p ON s.pathway_id = p.id
+        LEFT JOIN level l ON s.current_level_id = l.id
+        LEFT JOIN study_status ss ON s.study_status_id = ss.id
+        WHERE u.role = 'student'
+        ORDER BY s.first_name;
+      `);
+
+            return res.status(200).json(rows);
+        } catch (err) {
+            console.error("Error fetching students with user IDs:", err.message);
+            return res.status(500).json({ error: "Failed to fetch students" });
+        }
+    });
+
     // POST: Send individual message
     router.post('/individual', validateMessageFields('individual'), async (req, res) => {
         const { sender_id, receiver_id, subject, body } = req.body;
@@ -127,14 +156,22 @@ module.exports = function (db) {
         try {
             const [rows] = await db.promise().query(`
         SELECT 
-        m.*, 
-        s.first_name AS receiver_first_name, 
-        s.last_name AS receiver_last_name, 
-        s.student_number AS receiver_student_number
-      FROM messages m
-      LEFT JOIN student s ON m.receiver_id = s.id
-      WHERE m.sender_id = ?
-      ORDER BY m.created_at DESC
+            m.*, 
+            s.first_name AS receiver_first_name, 
+            s.last_name AS receiver_last_name, 
+            s.student_number AS receiver_student_number,
+            p.name AS target_pathway_name,
+            l.name AS target_level_name,
+            ss.name AS target_status_name
+        FROM messages m
+        LEFT JOIN user u ON m.receiver_id = u.id
+        LEFT JOIN student s ON u.student_id = s.id
+        LEFT JOIN pathway p ON m.target_pathway_id = p.id
+        LEFT JOIN level l ON m.target_level_id = l.id
+        LEFT JOIN study_status ss ON m.target_study_status_id = ss.id
+        WHERE m.sender_id = ?
+        ORDER BY m.created_at DESC
+
       `, [userId]);
 
             res.status(200).json(rows);
@@ -199,6 +236,27 @@ module.exports = function (db) {
             return res.status(500).json({ error: "Failed to send message to advisor" });
         }
     });
+
+    // GET: Sent messages from student (to advisor/admin)
+    router.get('/sent-from-student/:userId', async (req, res) => {
+        try {
+            const [rows] = await db.promise().query(`
+        SELECT 
+          m.*, 
+          u.email AS receiver_email
+        FROM messages m
+        LEFT JOIN user u ON m.receiver_id = u.id
+        WHERE m.sender_id = ?
+        ORDER BY m.created_at DESC
+      `, [req.params.userId]);
+
+            res.status(200).json(rows);
+        } catch (err) {
+            console.error("Error fetching student sent messages:", err.message);
+            res.status(500).json({ error: "Failed to fetch sent messages" });
+        }
+    });
+
 
 
     return router;

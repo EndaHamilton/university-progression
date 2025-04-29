@@ -18,7 +18,8 @@ router.get('/', requireAdmin, async (req, res) => {
             axios.get('http://localhost:4000/pathway', config),
             axios.get('http://localhost:4000/level', config),
             axios.get('http://localhost:4000/studystatus', config),
-            axios.get('http://localhost:4000/student/details', config)
+            // axios.get('http://localhost:4000/student/details', config)
+            axios.get('http://localhost:4000/messages/students-with-userid', config)
         ]);
 
         console.log('Rendering adminmessages.ejs for user:', req.session.userID, req.session.email);
