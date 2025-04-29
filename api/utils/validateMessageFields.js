@@ -36,7 +36,7 @@ function validateMessageFields(mode) {
         return res.status(400).json({ error: "Message subject cannot exceed 255 characters" });
       }
   
-      // Update req.body with validated and cleaned fields
+      // Parse and cleanse fields to be added to req.body
       req.body.sender_id = sender_id;
       req.body.receiver_id = receiver_id || null;
       req.body.cohort_target = cohort_target || null;
