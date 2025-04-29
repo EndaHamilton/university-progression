@@ -4,6 +4,15 @@ const checkApiKey = require("../middleware/checkApiKey");
 
 router.use(checkApiKey) // Apply the API key check middleware to all routes in this router
 
+// Creating local DB for use of transaction within POST route only
+const mysql = require('mysql2/promise');
+const localDb = mysql.createPool({
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'acad_progression_new'
+});
+
 module.exports = function (db) {
 
     //GET all grades for a specific student
@@ -887,115 +896,140 @@ module.exports = function (db) {
         const insertedUsers = [];
         const skippedUsers = [];
 
+        console.log(rows);
+
         // Breaking up the file to save on db requests.
 
         // Create a user array and make it distinct.
-        const users = rows.map(row => [row.firstName, row.lastName, row.sId, row.statusStudy, row.entryLevel]);
+        const users = rows.map(row => ({
+            firstName: row.firstName,
+            lastName: row.lastName,
+            sId: row.sId,
+            statusStudy: row.statusStudy,
+            entryLevel: row.entryLevel
+        }));
+
         const seenUsers = new Set();
         const uniqueUsers = users.filter(user => {
             const key = `${user.sId}`.toLowerCase();
             if (seenUsers.has(key)) return false;
-                seenUsers.add(key);
+            seenUsers.add(key);
             return true;
         });
 
+        console.log('Users:', uniqueUsers);
+
         // Create a modules array and make it distinct.
-        const modules = rows.map(row => [row.subjCode, row.subjCatalog, row.moduleTitle, row.creditCount, row.semModule]);
+        const modules = rows.map(row => ({
+            subjCode: row.subjCode,
+            subjCatalog: row.subjCatalog,
+            moduleTitle: row.moduleTitle,
+            creditCount: row.creditCount,
+            semModule: row.semModule
+        }));
         const seenModules = new Set();
         const uniqueModules = modules.filter(module => {
             const key = `${module.subjCode}|${module.subjCatalog}|${module.moduleTitle}`.toLowerCase();
             if (seenModules.has(key)) return false;
-                seenModules.add(key);
+            seenModules.add(key);
             return true;
         });
 
         // Create a grades array.
-        const grades = rows.map(row => [row.sId, row.subjCode, row.subjCatalog, row.firstGrade, row.gradeResult, row.resitGrade, row.resitResult]);
-      
-        const conn = await db.getConnection();
-      
+        const grades = rows.map(row => ({
+            sId: row.sId,
+            subjCode: row.subjCode,
+            subjCatalog: row.subjCatalog,
+            firstGrade: row.firstGrade,
+            gradeResult: row.gradeResult,
+            resitGrade: row.resitGrade,
+            resitResult: row.resitResult
+        }));
+        const conn = await localDb.getConnection();
+
         try {
-          await conn.beginTransaction();
+            await conn.beginTransaction();
 
-          // Create students & users if they do not exist.
+            // Create students & users if they do not exist.
 
-          for (const user of uniqueUsers) {
-            // Check to see if student exists already
-            const [existingStudents] = await conn.query('SELECT id FROM student WHERE student_number = ?', [user.sId]);
+            for (const user of uniqueUsers) {
+                // Check to see if student exists already
+                const [existingStudents] = await conn.query('SELECT id FROM student WHERE student_number = ?', [user.sId]);
 
-            // If student does not exist then we must create.
-            if (existingStudents.length === 0) {
-                const parsedStudentId = user.sId.split("-");
+                console.log(user.sId);
+                // If student does not exist then we must create.
+                if (existingStudents.length === 0) {
+                    const parsedStudentId = user.sId.split('-');
 
-                const acadYear = parsedStudentId[0];
-                const pathway = parsedStudentId[1];
+                    const acadYear = parsedStudentId[0];
+                    const pathway = parsedStudentId[1];
 
-                // Check if pathway exists and if not create. Then grab relevant id.
-                const [existingPathway] = await conn.query('SELECT id FROM pathway WHERE code = ?', [pathway]);
-                let pathwayId = 0;
+                    // Check if pathway exists and if not create. Then grab relevant id.
+                    const [existingPathway] = await conn.query('SELECT id FROM pathway WHERE code = ?', [pathway]);
+                    let pathwayId = 0;
 
-                if (existingPathway.length === 0) {
-                    const [pathwayResult] = await conn.query(`INSERT INTO pathway (code) VALUES (?)`, [pathway]);
-                    pathwayId = pathwayResult.insertId;
-                } else {
-                    pathwayId = existingPathway[0].id;
-                }
+                    if (existingPathway.length === 0) {
+                        const [pathwayResult] = await conn.query(`INSERT INTO pathway (code) VALUES (?)`, [pathway]);
+                        pathwayId = pathwayResult.insertId;
+                    } else {
+                        pathwayId = existingPathway[0].id;
+                    }
 
-                // Check if studey status exists and if not create. Then grab relevant id.
-                // Can validate this if you want.
-                const [existingStudyStatus] = await conn.query('SELECT id FROM study_status WHERE name = ?', [user.statusStudy]);
+                    // Check if studey status exists and if not create. Then grab relevant id.
+                    // Can validate this if you want.
+                    const [existingStudyStatus] = await conn.query('SELECT id FROM study_status WHERE name = ?', [user.statusStudy]);
 
-                const studyStatusId = existingStudyStatus[0].id;
+                    const studyStatusId = existingStudyStatus[0].id;
 
-                // Parsing entry level
-                const entryLevelNumber = user.entryLevel.split('L')[1];
-                const entryLevel = '0' + entryLevelNumber;
+                    // Parsing entry level
+                    const entryLevelNumber = user.entryLevel.split('L')[1];
+                    const entryLevel = '0' + entryLevelNumber;
 
-                // Should probably validate this also
-                const [existingEntryLevel] = await conn.query('SELECT id FROM level WHERE name = ?', [entryLevel]);
-                const entryLevelId = existingEntryLevel[0].id;
+                    // Should probably validate this also
+                    const [existingEntryLevel] = await conn.query('SELECT id FROM level WHERE name = ?', [entryLevel]);
+                    const entryLevelId = existingEntryLevel[0].id;
 
-                // Concat enrollment year.
-                const enrollmentYear = `20` + acadYear;
+                    // Concat enrollment year.
+                    const enrollmentYear = `20` + acadYear;
 
-                await conn.query(
-                    `INSERT INT0 student (student_number, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
+                    await conn.query(
+                        `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                    [user.sId, pathwayId, user.firstName, user.lastName, studyStatusId, entryLevelId, enrollmentYear]);
-                insertedUsers.push(user);
-            } else {
-                skippedUsers.push(user);
+                        [user.sId, pathwayId, user.firstName, user.lastName, studyStatusId, entryLevelId, enrollmentYear]);
+                    insertedUsers.push(user);
+                } else {
+                    skippedUsers.push(user);
+                }
             }
-          }
-      
-        //   for (const row of rows) {
-        //     const [existing] = await conn.query('SELECT id FROM users WHERE email = ?', [row.email]);
-      
-        //     if (existing.length === 0) {
-        //       await conn.query(
-        //         'INSERT INTO users (name, age, email) VALUES (?, ?, ?)',
-        //         [row.name, row.age, row.email]
-        //       );
-        //       inserted.push(row);
-        //     } else {
-        //       skipped.push(row);
-        //     }
-        //   }
-      
-          await conn.commit();
-          res.json({
-            success: true,
-            insertedCount: insertedUsers.length,
-            skippedCount: skippedUsers.length,
-            skipped
-          });
-      
+
+            //   for (const row of rows) {
+            //     const [existing] = await conn.query('SELECT id FROM users WHERE email = ?', [row.email]);
+
+            //     if (existing.length === 0) {
+            //       await conn.query(
+            //         'INSERT INTO users (name, age, email) VALUES (?, ?, ?)',
+            //         [row.name, row.age, row.email]
+            //       );
+            //       inserted.push(row);
+            //     } else {
+            //       skipped.push(row);
+            //     }
+            //   }
+
+            await conn.commit();
+            res.json({
+                success: true,
+                insertedCount: insertedUsers.length,
+                skippedCount: skippedUsers.length,
+                skippedUsers
+            });
+
         } catch (err) {
-          await conn.rollback();
-          console.error('Transaction failed:', err);
-          res.status(500).json({ success: false, error: 'Transaction failed.' });
+            await conn.rollback();
+            console.error('Transaction failed:', err);
+            res.status(500).json({ success: false, error: 'Transaction failed.' });
         } finally {
-          conn.release();
+            conn.release();
         }
 
     });
