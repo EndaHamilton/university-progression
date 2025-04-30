@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcrypt');
+
 const checkApiKey = require("../middleware/checkApiKey");
 
 router.use(checkApiKey) // Apply the API key check middleware to all routes in this router
@@ -890,18 +892,18 @@ module.exports = function (db) {
         }
     });
 
-    //POST a new Student Grade - /grades
+    //POST - import a csv of student grades
     router.post("/upload-csv", async (req, res) => {
         const rows = req.body;
-        const insertedUsers = [];
-        const skippedUsers = [];
+        const insertedStudents = [];
+        const skippedStudents = [];
 
         console.log(rows);
 
         // Breaking up the file to save on db requests.
 
-        // Create a user array and make it distinct.
-        const users = rows.map(row => ({
+        // Create a students array and make it distinct.
+        const students = rows.map(row => ({
             firstName: row.firstName,
             lastName: row.lastName,
             sId: row.sId,
@@ -909,15 +911,15 @@ module.exports = function (db) {
             entryLevel: row.entryLevel
         }));
 
-        const seenUsers = new Set();
-        const uniqueUsers = users.filter(user => {
-            const key = `${user.sId}`.toLowerCase();
-            if (seenUsers.has(key)) return false;
-            seenUsers.add(key);
+        const seenStudents = new Set();
+        const uniqueStudents = students.filter(student => {
+            const key = `${student.sId}`.toLowerCase();
+            if (seenStudents.has(key)) return false;
+            seenStudents.add(key);
             return true;
         });
 
-        console.log('Users:', uniqueUsers);
+        console.log('Students: ', uniqueStudents);
 
         // Create a modules array and make it distinct.
         const modules = rows.map(row => ({
@@ -952,17 +954,24 @@ module.exports = function (db) {
 
             // Create students & users if they do not exist.
 
-            for (const user of uniqueUsers) {
+            for (const student of uniqueStudents) {
                 // Check to see if student exists already
-                const [existingStudents] = await conn.query('SELECT id FROM student WHERE student_number = ?', [user.sId]);
+                const [existingStudents] = await conn.query('SELECT id FROM student WHERE student_number = ?', [student.sId]);
 
-                console.log(user.sId);
+
+                const parsedStudentNumber = student.sId.split('-');
+                const studentNumber = parsedStudentNumber[2];
+                console.log('Student Number: ', String(studentNumber).trim(), studentNumber.length);
+
+                console.log(student.sId);
                 // If student does not exist then we must create.
                 if (existingStudents.length === 0) {
-                    const parsedStudentId = user.sId.split('-');
+                    const parsedStudentId = student.sId.split('-');
 
-                    const acadYear = parsedStudentId[0];
+                    const enrollYear = parsedStudentId[0];
                     const pathway = parsedStudentId[1];
+
+
 
                     // Check if pathway exists and if not create. Then grab relevant id.
                     const [existingPathway] = await conn.query('SELECT id FROM pathway WHERE code = ?', [pathway]);
@@ -977,12 +986,12 @@ module.exports = function (db) {
 
                     // Check if studey status exists and if not create. Then grab relevant id.
                     // Can validate this if you want.
-                    const [existingStudyStatus] = await conn.query('SELECT id FROM study_status WHERE name = ?', [user.statusStudy]);
+                    const [existingStudyStatus] = await conn.query('SELECT id FROM study_status WHERE name = ?', [student.statusStudy]);
 
                     const studyStatusId = existingStudyStatus[0].id;
 
                     // Parsing entry level
-                    const entryLevelNumber = user.entryLevel.split('L')[1];
+                    const entryLevelNumber = student.entryLevel.split('L')[1];
                     const entryLevel = '0' + entryLevelNumber;
 
                     // Should probably validate this also
@@ -990,15 +999,60 @@ module.exports = function (db) {
                     const entryLevelId = existingEntryLevel[0].id;
 
                     // Concat enrollment year.
-                    const enrollmentYear = `20` + acadYear;
+                    const enrollmentYear = `20` + enrollYear;
 
-                    await conn.query(
+                    const [studentResult] = await conn.query(
                         `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                        [user.sId, pathwayId, user.firstName, user.lastName, studyStatusId, entryLevelId, enrollmentYear]);
-                    insertedUsers.push(user);
+                        [student.sId, pathwayId, student.firstName, student.lastName, studyStatusId, entryLevelId, enrollmentYear]);
+
+                    const studentId = studentResult.insertId;
+
+                    // Check if a user already exists for this student_id
+                    const [existingUser] = await conn.query(
+                        `SELECT id FROM user WHERE student_id = ?`,
+                        [studentId]
+                    );
+
+                    if (existingUser.length === 0) {
+                        const studentNumberUsername = String(parsedStudentNumber[2]).trim();
+
+                        // Check if username already exists 
+                        const [existingUsername] = await conn.query(
+                            `SELECT id FROM user WHERE username = ?`,
+                            [studentNumberUsername]
+                        );
+
+                        if (existingUsername.length === 0) {
+                            // Generate and hash password
+                            const rawPassword = Math.random().toString(36).slice(-8);
+                            const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+                            await conn.query(`
+                                INSERT INTO user (username, password, student_id, role)
+                                VALUES (?, ?, ?, 'student')`,
+                                [studentNumberUsername, hashedPassword, studentId]
+                            );
+
+                            insertedStudents.push({
+                                ...student,
+                                student_Id: studentId,
+                                username: studentNumberUsername,
+                                password: rawPassword
+                            });
+
+                        } else if (existingUsername.length > 0) {
+                            console.error(`Username ${studentNumberUsername} already exists, skipping user creation for studentId ${studentId}`)
+
+                        }
+
+                    } else if (existingUser.length > 0) {
+                        console.error(`User already exists for studentId ${studentId}, skipping user creation.`);
+                    }
+
                 } else {
-                    skippedUsers.push(user);
+                    skippedStudents.push(student);
+                    console.error(`Student ${student.sId} already exists, skipping.`);
                 }
             }
 
@@ -1019,9 +1073,10 @@ module.exports = function (db) {
             await conn.commit();
             res.json({
                 success: true,
-                insertedCount: insertedUsers.length,
-                skippedCount: skippedUsers.length,
-                skippedUsers
+                insertedCount: insertedStudents.length,
+                skippedCount: skippedStudents.length,
+                skippedStudents,
+                insertedStudents
             });
 
         } catch (err) {
