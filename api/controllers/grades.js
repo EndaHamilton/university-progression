@@ -685,6 +685,10 @@ module.exports = function (db) {
 
                 // totalCreditsAttempted += module.credits;
 
+                // Skip any modules that haven't been attempted yet
+                const hasAttempted = module.grade_result !== null || module.resit_result !== null;
+                if (!hasAttempted) continue;
+
                 let passed = false;
                 if (module.grade_result === 'pass') {
                     passed = true;
