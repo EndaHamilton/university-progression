@@ -549,7 +549,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       try {
-        // 1. Fetch all academic years the student has grades for
+        // Fetch all academic years the student has grades for
         const studentRes = await fetch(`/grademanagement/student/${studentId}`);
         const studentData = await studentRes.json();
 
@@ -619,11 +619,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="mb-3">
                   <h6><strong>Credits Overview:</strong></h6>
                   <ul>
-                    <li><strong>Total Credits Attempted:</strong> ${progressionData.total_credits_attempted}</li>
-                    <li><strong>Total Credits Passed:</strong> ${progressionData.total_credits_passed}</li>
-                    <li><strong>Level 1 Credits Attempted:</strong> ${progressionData.level1_credits_attempted}</li>
                     <li><strong>Level 1 Credits Passed:</strong> ${progressionData.level1_credits_passed}</li>
-                    <li><strong>Level 2 Credits Attempted:</strong> ${progressionData.level2_credits_attempted}</li>
                     <li><strong>Level 2 Credits Passed:</strong> ${progressionData.level2_credits_passed}</li>
                   </ul>
                 </div>
@@ -633,11 +629,11 @@ document.addEventListener("DOMContentLoaded", () => {
                   <ul>
                     <li><strong>Failed Core Modules:</strong> ${progressionData.failed_core_modules.length}</li>
                     <ul>
-                      <li>${progressionData.failed_core_modules.map(m => `${m.module_code} (${m.module_title})`).join(', ')}</li>
+                      <li>${progressionData.failed_core_modules.map(m => `${m.module_code}(${m.title} (CATS: ${m.credit})`).join('<li>')}</li>
                     </ul>
                     <li><strong>Outstanding Failed Modules:</strong> ${progressionData.outstanding_fails.length}</li>
                     <ul>
-                      <li>${progressionData.outstanding_fails.map(m => `${m.module_code} ${m.title} (CATS: ${m.credits})`).join('; ')}</li>
+                      <li>${progressionData.outstanding_fails.map(m => `${m.module_code} ${m.title} (CATS: ${m.credits})`).join('<li>')}</li>
                     </ul>
                   </ul>
                 </div>
@@ -647,11 +643,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <ul>
                   <li><strong>Resits Required:</strong> ${progressionData.modules_needing_resit.length}</li>
                   <ul>
-                    <li>${progressionData.modules_needing_resit.map(m => `${m.module_code} ${m.title} (CATS: ${m.credits})`).join('; ')}</li>
+                    <li>${progressionData.modules_needing_resit.map(m => `${m.module_code} ${m.title} (CATS: ${m.credits})`).join('<li>')}</li>
                   </ul>
                   <li><strong>Reenrollments Required:</strong> ${progressionData.modules_needing_reenrollment.length}</li> 
                   <ul>
-                    <li>${progressionData.modules_needing_reenrollment.map(m => `${m.module_code} ${m.title} (CATS: ${m.credits})`).join('; ')}</li>
+                    <li>${progressionData.modules_needing_reenrollment.map(m => `${m.module_code} ${m.title} (CATS: ${m.credits})`).join('<li>')}</li>
                   </ul>
                 </ul>
                 </div>

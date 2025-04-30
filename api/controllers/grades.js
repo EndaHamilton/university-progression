@@ -632,46 +632,58 @@ module.exports = function (db) {
                 sm.grade_result,
                 sm.resit_grade,
                 sm.resit_result,
+                sm.academic_year_id,
                 m.credits,
                 m.module_code,
                 m.title,
                 pm.pathway_level,
                 pm.core,
-                current_level.name AS current_level
+                current_level.name AS current_level,
+                s.entry_level_id
             FROM student_module sm
             JOIN module m ON sm.module_id = m.id
             JOIN student s ON sm.student_id = s.id
             JOIN level current_level ON s.current_level_id = current_level.id
             JOIN pathway_module pm ON pm.module_id = m.id AND pm.pathway_id = s.pathway_id
-            WHERE sm.student_id = ? AND sm.academic_year_id = ?
-            `, [studentId, acadYearId]);
+            WHERE sm.student_id = ?
+            `, [studentId]);
 
             if (rows.length === 0) {
-                return res.status(404).json({ error: "No module records found for this student and academic year." });
+                return res.status(404).json({ error: "No module records found for this student." });
             }
 
             // Get student's current level
             const currentLevel = parseInt(rows[0].current_level);
+            const entryLevel = parseInt(rows[0].entry_level_id);
 
-            let totalCreditsAttempted = 0;
-            let totalCreditsPassed = 0;
-
-            let level1CreditsAttempted = 0;
             let level1CreditsPassed = 0;
-
-            let level2CreditsAttempted = 0;
             let level2CreditsPassed = 0;
 
             let failedCoreModules = [];
             let outstandingFails = [];
-
             let modulesNeedingResit = [];
             let modulesNeedingReenrollment = [];
 
+            // let totalCreditsAttempted = 0;
+            // let totalCreditsPassed = 0;
+
+            // let level1CreditsAttempted = 0;
+            // let level1CreditsPassed = 0;
+
+            // let level2CreditsAttempted = 0;
+            // let level2CreditsPassed = 0;
+
+            // let failedCoreModules = [];
+            // let outstandingFails = [];
+
+            // let modulesNeedingResit = [];
+            // let modulesNeedingReenrollment = [];
+
             for (const module of rows) {
+                const isCurrentYear = module.academic_year_id === acadYearId;
                 const moduleLevel = module.pathway_level;
 
-                totalCreditsAttempted += module.credits;
+                // totalCreditsAttempted += module.credits;
 
                 let passed = false;
                 if (module.grade_result === 'pass') {
@@ -681,34 +693,50 @@ module.exports = function (db) {
                 }
 
                 if (passed) {
-                    totalCreditsPassed += module.credits;
+                    // totalCreditsPassed += module.credits;
 
                     if (moduleLevel === 1) {
-                        level1CreditsAttempted += module.credits;
+                        // level1CreditsAttempted += module.credits;
                         level1CreditsPassed += module.credits;
-                    } else if (moduleLevel === 2) {
-                        level2CreditsAttempted += module.credits;
+                    } else if (isCurrentYear && moduleLevel === 2) {
+                        // level2CreditsAttempted += module.credits;
                         level2CreditsPassed += module.credits;
                     }
                 } else {
-                    if (moduleLevel === 1) {
-                        level1CreditsAttempted += module.credits;
-                    } else if (moduleLevel === 2) {
-                        level2CreditsAttempted += module.credits;
-                    }
+                    if (isCurrentYear) {
+                        if (moduleLevel.core) {
+                            failedCoreModules.push(module);
+                        } else {
+                            outstandingFails.push(module);
+                        }
 
-                    if (module.core) {
-                        failedCoreModules.push(module);
-                    } else {
-                        outstandingFails.push(module);
-                    }
-
-                    if (!module.resit_result) {
-                        modulesNeedingResit.push(module);
-                    } else if (!['pass', 'pass capped'].includes(module.resit_result)) {
-                        modulesNeedingReenrollment.push(module);
+                        if (!module.resit_result) {
+                            modulesNeedingResit.push(module);
+                        } else if (!['pass', 'pass capped'].includes(module.resit_result)) {
+                            modulesNeedingReenrollment.push(module);
+                        }
                     }
                 }
+
+                // else {
+                //     if (moduleLevel === 1) {
+                //         level1CreditsAttempted += module.credits;
+                //     } else if (moduleLevel === 2) {
+                //         level2CreditsAttempted += module.credits;
+                //     }
+
+                //     if (module.core) {
+                //         failedCoreModules.push(module);
+                //     } else {
+                //         outstandingFails.push(module);
+                //     }
+
+                //     if (!module.resit_result) {
+                //         modulesNeedingResit.push(module);
+                //     } else if (!['pass', 'pass capped'].includes(module.resit_result)) {
+                //         modulesNeedingReenrollment.push(module);
+                //     }
+                // }
             }
 
             let canProgress = false;
@@ -727,11 +755,17 @@ module.exports = function (db) {
                     }
                 }
             } else if (currentLevel === 2) {
-                if (level1CreditsPassed >= 120 && level2CreditsPassed >= 120 && failedCoreModules.length === 0 && outstandingFails.length === 0) {
+                const meetsLevel1Requirement = (entryLevel === 2) || (level1CreditsPassed >= 120); // ignores level 1 req for entry level 2 students
+                if (
+                    meetsLevel1Requirement &&
+                    level2CreditsPassed >= 120 &&
+                    failedCoreModules.length === 0 &&
+                    outstandingFails.length === 0
+                ) {
                     canProgress = true;
-                    decisionReasons.push("All modules from Level 1 and level 2 passed.");
+                    decisionReasons.push("All required modules passed.");
                 } else {
-                    if (level1CreditsPassed < 120) {
+                    if (entryLevel === 1 && level1CreditsPassed <= 120) {
                         decisionReasons.push("Unresolved Level 1 module failures.");
                     }
                     if (level2CreditsPassed < 120) {
@@ -744,17 +778,36 @@ module.exports = function (db) {
                         decisionReasons.push("Outstanding failed modules.");
                     }
                 }
+
+                // if (level1CreditsPassed >= 120 && level2CreditsPassed >= 120 && failedCoreModules.length === 0 && outstandingFails.length === 0) {
+                //     canProgress = true;
+                //     decisionReasons.push("All modules from Level 1 and level 2 passed.");
+                // } else {
+                //     if (level1CreditsPassed < 120) {
+                //         decisionReasons.push("Unresolved Level 1 module failures.");
+                //     }
+                //     if (level2CreditsPassed < 120) {
+                //         decisionReasons.push("Insufficient level 2 credits.");
+                //     }
+                //     if (failedCoreModules.length > 0) {
+                //         decisionReasons.push("Failed core module(s).");
+                //     }
+                //     if (outstandingFails.length > 0) {
+                //         decisionReasons.push("Outstanding failed modules.");
+                //     }
+                // }
             }
 
             return res.status(200).json({
                 student_id: studentId,
                 acad_year_id: acadYearId,
                 current_level: currentLevel,
-                total_credits_attempted: totalCreditsAttempted,
-                total_credits_passed: totalCreditsPassed,
-                level1_credits_attempted: level1CreditsAttempted,
+                entry_level: entryLevel,
+                // total_credits_attempted: totalCreditsAttempted,
+                // total_credits_passed: totalCreditsPassed,
+                // level1_credits_attempted: level1CreditsAttempted,
                 level1_credits_passed: level1CreditsPassed,
-                level2_credits_attempted: level2CreditsAttempted,
+                // level2_credits_attempted: level2CreditsAttempted,
                 level2_credits_passed: level2CreditsPassed,
                 failed_core_modules: failedCoreModules,
                 modules_needing_resit: modulesNeedingResit,
