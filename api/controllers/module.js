@@ -271,14 +271,15 @@ module.exports = function (db) {
             //     [subject_code.trim(), catalogue_code, title.trim()]
             // );
 
-            // Check if module with same module code (e.g. IFSY211) already exists - UQ in DB
+            // Check if module with same module code and title (e.g. IFSY211 - Computing Practice) already exists - the UQ in DB
             const [existing] = await db.promise().query(
-                `SELECT * FROM module WHERE module_code = ?`,
-                [moduleCode]
+                `SELECT * FROM module WHERE module_code = ? AND title = ?`,
+                [moduleCode.trim(), title.trim()]
             );
 
             if (existing.length > 0) {
-                return res.status(409).json({ error: "A module with the same module code (Same subject and subject module number) already exists." });
+                return res.status(409).json({ error: `A module with the same module code and title (Same subject, subject module number and title) already exists. 
+                                                    Suggest modifying the title to be unique.` });
             }
 
             // Insert new module (module_code will be generated automatically by the DB)

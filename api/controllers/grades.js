@@ -898,7 +898,7 @@ module.exports = function (db) {
         const insertedStudents = [];
         const skippedStudents = [];
 
-        console.log(rows);
+        // console.log(rows);
 
         // Breaking up the file to save on db requests.
 
@@ -947,6 +947,7 @@ module.exports = function (db) {
             resitGrade: row.resitGrade,
             resitResult: row.resitResult
         }));
+        
         const conn = await localDb.getConnection();
 
         try {
@@ -961,9 +962,9 @@ module.exports = function (db) {
 
                 const parsedStudentNumber = student.sId.split('-');
                 const studentNumber = parsedStudentNumber[2];
-                console.log('Student Number: ', String(studentNumber).trim(), studentNumber.length);
+                // console.log('Student Number: ', String(studentNumber).trim(), studentNumber.length);
 
-                console.log(student.sId);
+                console.log('Checking for student number: ' , student.sId);
                 // If student does not exist then we must create.
                 if (existingStudents.length === 0) {
                     const parsedStudentId = student.sId.split('-');
@@ -1004,7 +1005,8 @@ module.exports = function (db) {
                     const [studentResult] = await conn.query(
                         `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                        [student.sId, pathwayId, student.firstName, student.lastName, studyStatusId, entryLevelId, enrollmentYear]);
+                        [student.sId.trim(), parseInt(pathwayId), student.firstName.trim(), student.lastName.trim(), parseInt(studyStatusId), parseInt(entryLevelId), enrollmentYear.trim()
+                        ]);
 
                     const studentId = studentResult.insertId;
 
