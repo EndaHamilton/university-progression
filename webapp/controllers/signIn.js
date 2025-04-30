@@ -32,6 +32,7 @@ router.post('/login', async (req, res) => {
 
             console.log("User ID stored in session: ", req.session.userID);
             console.log("User role stored in session: ", req.session.role);
+            console.log(`AY2022_23`.slice(-5));
 
             if(req.session.role === 'admin') {
                 return res.redirect('studentmanagement');

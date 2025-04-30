@@ -892,6 +892,11 @@ module.exports = function (db) {
         }
     });
 
+    // Helper function for parsing 0s and nulls from csv import for grade columns
+    const parseNullableInt = val =>
+        val !== '' && val !== null && val !== undefined ? parseInt(val) : null;
+
+
     //POST - import a csv of student grades
     router.post("/upload-csv", async (req, res) => {
         const rows = req.body;
@@ -899,6 +904,8 @@ module.exports = function (db) {
         const skippedStudents = [];
         const insertedModules = [];
         const skippedModules = [];
+        const insertedGrades = [];
+        const skippedGrades = [];
 
 
 
@@ -927,11 +934,11 @@ module.exports = function (db) {
 
         // Create a modules array and make it distinct.
         const modules = rows.map(row => ({
-            subjCode: row.subjCode.trim(),
+            subjCode: String(row.subjCode).trim(),
             subjCatalog: String(row.subjCatalog).trim(),
-            moduleTitle: row.moduleTitle.trim(),
+            moduleTitle: String(row.moduleTitle).trim(),
             creditCount: parseInt(row.creditCount),
-            semModule: row.semModule.trim()
+            semModule: String(row.semModule).trim()
         }));
         const seenModules = new Set();
         const uniqueModules = modules.filter(module => {
@@ -941,16 +948,26 @@ module.exports = function (db) {
             return true;
         });
 
-        // Create a grades array.
+        // Create a grades array and make it distinct.
         const grades = rows.map(row => ({
-            sId: row.sId,
-            subjCode: row.subjCode,
-            subjCatalog: row.subjCatalog,
-            firstGrade: row.firstGrade,
-            gradeResult: row.gradeResult,
-            resitGrade: row.resitGrade,
-            resitResult: row.resitResult
+            sId: String(row.sId).trim(),
+            acadYear: String(row.acad_Yr).trim().slice(-5),
+            subjCode: String(row.subjCode).trim(),
+            subjCatalog: String(row.subjCatalog).trim(),
+            firstGrade: parseNullableInt(row.firstGrade),
+            gradeResult: String(row.gradeResult).trim().toLowerCase() || null,
+            resitGrade: parseNullableInt(row.resitGrade),
+            resitResult: String(row.resitResult).trim().toLowerCase() || null,
+            moduleTitle: String(row.moduleTitle).trim(),
         }));
+
+        const seenGrades = new Set();
+        const uniqueGrades = grades.filter(grade => {
+            const key = `${grade.sId}|${grade.subjCode}|${grade.subjCatalog}|${grade.acadYear}|${grade.moduleTitle}`.toLowerCase();
+            if (seenGrades.has(key)) return false;
+            seenGrades.add(key);
+            return true;
+        });
 
         const conn = await localDb.getConnection();
 
@@ -1138,6 +1155,69 @@ module.exports = function (db) {
                 }
             }
 
+            for (const grade of uniqueGrades) {
+
+                // Check if student exists - not creating here as we will already have done so
+                const [studentExists] = await conn.query('SELECT id FROM student WHERE student_number = ?', [grade.sId]);
+                if (studentExists.length === 0) {
+                    console.error(`Student ${grade.sId} does not exist, skipping grade.`);
+                    continue;
+                }
+                const studentId = studentExists[0].id;
+
+                // Check if module exists - not creating here as we will already have done so
+                const concatModuleCode = `${grade.subjCode}${grade.subjCatalog}`;
+                const [moduleExists] = await conn.query('SELECT id FROM module WHERE module_code = ? AND title = ?', [concatModuleCode, grade.moduleTitle]);
+                if (moduleExists.length === 0) {
+                    console.error(`Module ${concatModuleCode} ${grade.moduleTitle} does not exist, skipping grade.`);
+                    continue;
+                }
+                const moduleId = moduleExists[0].id;
+
+                const acadYearFormatted = `AY20${grade.acadYear}`;
+
+                // Check if academic year exists - if it doesnt, create it.
+                let academicYearId = 0;
+                const [academicYearExists] = await conn.query('SELECT id FROM acad_year WHERE name = ?', [acadYearFormatted]);
+                if (academicYearExists.length === 0) {
+                    const [academicYearResult] = await conn.query(`INSERT INTO acad_year (name) VALUES (?)`, [acadYearFormatted]);
+                    academicYearId = academicYearResult.insertId;
+                } else {
+                    academicYearId = academicYearExists[0].id;
+                }
+
+                // Check if student_module record exists
+                const [existingGrades] = await conn.query(`
+                    SELECT * FROM student_module 
+                    WHERE student_id = ? AND module_id = ? AND academic_year_id = ?`,
+                    [parseInt(studentId), parseInt(moduleId), parseInt(academicYearId)]);
+
+
+                // If it doesn't exist, insert the new record
+                if (existingGrades.length === 0) {
+                    const [gradeResult] = await conn.query(`
+                        INSERT INTO student_module 
+                        (student_id, module_id, academic_year_id, first_grade, grade_result, resit_grade, resit_result) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                        [
+                            parseInt(studentId),
+                            parseInt(moduleId),
+                            parseInt(academicYearId),
+                            parseNullableInt(grade.firstGrade),
+                            grade.gradeResult ? grade.gradeResult.trim().toLowerCase() : null,
+                            parseNullableInt(grade.resitGrade),
+                            grade.resitResult ? grade.resitResult.trim().toLowerCase() : null
+                        ]);
+
+                    insertedGrades.push(grade);
+
+                } else if (existingGrades.length > 0) {
+                    console.error(`Student ${grade.sId} already has a grade for ${concatModuleCode} ${grade.moduleTitle} in ${acadYearFormatted}, skipping.`);
+                    skippedGrades.push(grade);
+                }
+
+            }
+
 
             await conn.commit();
             res.json({
@@ -1146,8 +1226,14 @@ module.exports = function (db) {
                 skippedStudents: skippedStudents.length,
                 insertedModules: insertedModules.length,
                 skippedModules: skippedModules.length,
+                insertedGrades: insertedGrades.length,
+                skippedGrades: skippedGrades.length,
                 skippedStudents,
-                insertedStudents
+                insertedStudents,
+                insertedModules,
+                skippedModules,
+                insertedGrades,
+                skippedGrades
             });
 
         } catch (err) {
