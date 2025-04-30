@@ -395,7 +395,42 @@ function updateCatsCounter() {
     });
 
     document.getElementById("catsCounter").textContent = total;
-    document.getElementById("submitEnrollmentBtn").disabled = total < 120;
+
+    const coreModuleCheckboxes = document.querySelectorAll('#mandatoryCoreModules .module-checkbox');
+    const optionalCoreCheckboxes = document.querySelectorAll('#optionalCoreModules .module-checkbox');
+
+    const hasCoreModules = coreModuleCheckboxes.length > 0;
+    const hasOptionalCoreModules = optionalCoreCheckboxes.length > 0;
+
+    const coreSelected = Array.from(coreModuleCheckboxes).some(cb => cb.checked);
+    const optionalCoreSelected = Array.from(optionalCoreCheckboxes).some(cb => cb.checked);
+
+    const coreWarningDiv = document.getElementById("coreWarning");
+    if (hasCoreModules && !coreSelected) {
+        coreWarningDiv.textContent = "You must select at least one mandatory core module.";
+        coreWarningDiv.classList.remove("d-none");
+    } else {
+        coreWarningDiv.textContent = "";
+        coreWarningDiv.classList.add("d-none");
+    }
+
+
+    const optionalCoreWarningDiv = document.getElementById("optionalCoreWarning");
+    if (hasOptionalCoreModules && !optionalCoreSelected) {
+        optionalCoreWarningDiv.textContent = "You must select at least one optional core module (EITHER/OR).";
+        optionalCoreWarningDiv.classList.remove("d-none");
+    } else {
+        optionalCoreWarningDiv.textContent = "";
+        optionalCoreWarningDiv.classList.add("d-none");
+    }
+
+    const submitButton = document.getElementById("submitEnrollmentBtn");
+    const meetsCreditRequirement = total >= 120;
+    const meetsCoreRequirement = !hasCoreModules || coreSelected;
+    const meetsOptionalCoreRequirement = !hasOptionalCoreModules || optionalCoreSelected;
+
+
+    submitButton.disabled = !(meetsCreditRequirement && meetsCoreRequirement && meetsOptionalCoreRequirement);
 
     // Semester breakdown
     document.getElementById("autumnCATS").textContent = `Autumn: ${autumn} CATS`;
