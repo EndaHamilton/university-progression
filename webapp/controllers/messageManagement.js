@@ -9,34 +9,7 @@ const requireAdmin = require('../middleware/requireAdmin');
 const requireStudent = require('../middleware/requireStudent');
 
 
-router.get('/student-side', requireStudent, async (req, res) => {
-    try {
-        const [pathwaysRes, levelsRes, statusesRes, studentsRes, studentProfileRes] = await Promise.all([
-            axios.get('http://localhost:4000/pathway', config),
-            axios.get('http://localhost:4000/level', config),
-            axios.get('http://localhost:4000/studystatus', config),
-            // axios.get('http://localhost:4000/student/details', config)
-            axios.get('http://localhost:4000/messages/students-with-userid', config),
-            axios.get(`http://localhost:4000/student/by-user/${req.session.userID}`, config)
-        ]);
 
-        res.render('studentmessages', {
-            user: {
-                id: req.session.userID,
-                email: req.session.email
-            },
-            pathways: pathwaysRes.data,
-            levels: levelsRes.data,
-            statuses: statusesRes.data,
-            students: studentsRes.data,
-            student: studentProfileRes.data
-        });
-
-    } catch (err) {
-        console.error("Error loading messaging page:", err.message);
-        res.status(500).send("Error loading messaging page.");
-    }
-});
 
 // Admin only routes
 
@@ -96,8 +69,51 @@ router.post('/send-cohort', requireAdmin, async (req, res) => {
     }
 });
 
+// GET: Admin inbox (direct messages only)
+router.get('/admin-inbox', requireAdmin, async (req, res) => {
+    try {
+        const response = await axios.get(`http://localhost:4000/messages/received-direct/${req.session.userID}`, config);
+        return res.status(200).json(response.data);
+    } catch (err) {
+        const status = err.response?.status || 500;
+        const message = err.response?.data?.error || "Failed to load admin inbox";
+        return res.status(status).json({ error: message });
+    }
+});
+
+
 
 // Student only routes
+
+// GET : Render student communication dashboard
+router.get('/student-side', requireStudent, async (req, res) => {
+    try {
+        const [pathwaysRes, levelsRes, statusesRes, studentsRes, studentProfileRes] = await Promise.all([
+            axios.get('http://localhost:4000/pathway', config),
+            axios.get('http://localhost:4000/level', config),
+            axios.get('http://localhost:4000/studystatus', config),
+            // axios.get('http://localhost:4000/student/details', config)
+            axios.get('http://localhost:4000/messages/students-with-userid', config),
+            axios.get(`http://localhost:4000/student/by-user/${req.session.userID}`, config)
+        ]);
+
+        res.render('studentmessages', {
+            user: {
+                id: req.session.userID,
+                email: req.session.email
+            },
+            pathways: pathwaysRes.data,
+            levels: levelsRes.data,
+            statuses: statusesRes.data,
+            students: studentsRes.data,
+            student: studentProfileRes.data
+        });
+
+    } catch (err) {
+        console.error("Error loading messaging page:", err.message);
+        res.status(500).send("Error loading messaging page.");
+    }
+});
 
 // GET: Student inbox messages
 router.get('/inbox', requireStudent, async (req, res) => {
@@ -130,7 +146,7 @@ router.post('/contact-advisor', requireStudent, async (req, res) => {
 });
 
 // GET: Student sent messages
-router.get('/sent-from-student', requireStudent, async (req, res) =>{
+router.get('/sent-from-student', requireStudent, async (req, res) => {
     try {
         const response = await axios.get(`http://localhost:4000/messages/sent-from-student/${req.session.userID}`, config);
         return res.status(200).json(response.data);

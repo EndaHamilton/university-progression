@@ -659,6 +659,11 @@ module.exports = function (db) {
             let level1CreditsPassed = 0;
             let level2CreditsPassed = 0;
 
+            let level1CreditsAttempted = 0;
+            let level2CreditsAttempted = 0;
+
+
+
             let failedCoreModules = [];
             let outstandingFails = [];
             let modulesNeedingResit = [];
@@ -667,10 +672,8 @@ module.exports = function (db) {
             // let totalCreditsAttempted = 0;
             // let totalCreditsPassed = 0;
 
-            // let level1CreditsAttempted = 0;
             // let level1CreditsPassed = 0;
 
-            // let level2CreditsAttempted = 0;
             // let level2CreditsPassed = 0;
 
             // let failedCoreModules = [];
@@ -682,6 +685,13 @@ module.exports = function (db) {
             for (const module of rows) {
                 const isCurrentYear = module.academic_year_id === acadYearId;
                 const moduleLevel = module.pathway_level;
+
+                // Always count total attempted credits when enrolled
+                if (moduleLevel === 1) {
+                    level1CreditsAttempted += module.credits;
+                } else if (isCurrentYear && moduleLevel === 2) {
+                    level2CreditsAttempted += module.credits;
+                }
 
                 // totalCreditsAttempted += module.credits;
 
@@ -809,9 +819,9 @@ module.exports = function (db) {
                 entry_level: entryLevel,
                 // total_credits_attempted: totalCreditsAttempted,
                 // total_credits_passed: totalCreditsPassed,
-                // level1_credits_attempted: level1CreditsAttempted,
+                level1_credits_attempted: level1CreditsAttempted,
                 level1_credits_passed: level1CreditsPassed,
-                // level2_credits_attempted: level2CreditsAttempted,
+                level2_credits_attempted: level2CreditsAttempted,
                 level2_credits_passed: level2CreditsPassed,
                 failed_core_modules: failedCoreModules,
                 modules_needing_resit: modulesNeedingResit,

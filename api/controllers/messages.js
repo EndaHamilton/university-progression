@@ -101,6 +101,31 @@ module.exports = function (db) {
         }
     });
 
+    // GET: Admin inbox messages
+    router.get('/received-direct/:userId', async (req, res) => {
+        try {
+            const [rows] = await db.promise().query(`
+        SELECT 
+          m.*, 
+          u.email AS sender_email,
+          s.first_name AS sender_first_name,
+          s.last_name AS sender_last_name,
+          s.student_number AS sender_student_number
+        FROM messages m
+        LEFT JOIN user u ON m.sender_id = u.id
+        LEFT JOIN student s ON u.student_id = s.id
+        WHERE m.receiver_id = ?
+        ORDER BY m.created_at DESC
+      `, [req.params.userId]);
+
+            return res.status(200).json(rows);
+        } catch (err) {
+            console.error("Error fetching admin inbox messages:", err.message);
+            return res.status(500).json({ error: "Failed to fetch admin inbox messages" });
+        }
+    });
+
+
     // Fetch received messages for a student
     router.get('/received/:userId', async (req, res) => {
         const userId = parseInt(req.params.userId);
@@ -265,10 +290,10 @@ module.exports = function (db) {
         ORDER BY m.created_at DESC
       `, [req.params.userId]);
 
-            res.status(200).json(rows);
+            return res.status(200).json(rows);
         } catch (err) {
             console.error("Error fetching student sent messages:", err.message);
-            res.status(500).json({ error: "Failed to fetch sent messages" });
+            return res.status(500).json({ error: "Failed to fetch sent messages" });
         }
     });
 

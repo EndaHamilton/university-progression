@@ -188,6 +188,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Load received messages function
+  async function loadReceivedMessages() {
+    try {
+      const res = await fetch('/adminmessages/admin-inbox');
+      const data = await res.json();
+
+      const tableBody = document.querySelector('#receivedMessagesTable tbody');
+      tableBody.innerHTML = '';
+
+      if (!Array.isArray(data) || data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="4">No messages received.</td></tr>`;
+        return;
+      }
+
+      data.forEach(msg => {
+        const sender = msg.sender_first_name && msg.sender_last_name
+          ? `${msg.sender_first_name} ${msg.sender_last_name} (${msg.sender_student_number})`
+          : msg.sender_email || `User ID ${msg.sender_id}`;
+
+        const row = `
+        <tr>
+          <td>${msg.subject}</td>
+          <td>${sender}</td>
+          <td>${msg.body}</td>
+          <td>${new Date(msg.created_at).toLocaleString()}</td>
+        </tr>
+      `;
+        tableBody.insertAdjacentHTML('beforeend', row);
+      });
+
+    } catch (err) {
+      console.error("Error loading received messages:", err);
+    }
+  }
+
+  // Load received messages on tab click1
+  document.getElementById('received-tab')?.addEventListener('click', loadReceivedMessages);
   // Load sent messages on tab click
   document.getElementById('sent-tab')?.addEventListener('click', loadSentMessages);
 

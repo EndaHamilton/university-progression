@@ -70,16 +70,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
         // Display grades summary (Credits and Average)
-        const totalCreditsAttempted = document.getElementById('totalCreditsAttempted');
+        // const totalCreditsAttempted = document.getElementById('totalCreditsAttempted');
         const totalCreditsPassed = document.getElementById('totalCreditsPassed');
         const overallAverageGrade = document.getElementById('overallAverageGrade');
 
         if (gradeSummary) {
-            if (studentProfile.current_level_id === 1) {
-                totalCreditsAttempted.textContent = studentProgression.level1_credits_attempted || 0;
-            } else if (studentProfile.current_level_id === 2) {
-                totalCreditsAttempted.textContent = studentProgression.level2_credits_attempted || 0;
-            }
+            // if (studentProfile.current_level_id === 1) {
+            //     totalCreditsAttempted.textContent = studentProgression.level1_credits_attempted || 0;
+            // } else if (studentProfile.current_level_id === 2) {
+            //     totalCreditsAttempted.textContent = studentProgression.level2_credits_attempted || 0;
+            // }
             if (totalCreditsPassed) totalCreditsPassed.textContent = gradeSummary.total_credits_achieved || 0;
             if (overallAverageGrade) overallAverageGrade.textContent = `${gradeSummary.average_grade || 0}%`;
         }
