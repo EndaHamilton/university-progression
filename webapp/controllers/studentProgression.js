@@ -26,13 +26,6 @@ router.get('/', async (req, res) => {
         // // Fetch students  grades
         const studentGradesRes = await axios.get(`http://localhost:4000/grades/student/${studentId}`, config);
 
-        // // Fetch students progression decision
-        // const studentProgressionRes = await axios.get(`http://localhost:4000/grades/progression/${studentId}/${LATEST_ACADEMIC_YEAR_ID}`, config);
-
-        // // Fetch students grade summary (credits and average grade)
-        // const gradeSummaryRes = await axios.get(`http://localhost:4000/grades/summary/${studentId}?academic_year_id=${LATEST_ACADEMIC_YEAR_ID}`, config);
-
-
         res.render('studentprogression', {
             user: {
                 id: req.session.userID,
@@ -40,9 +33,6 @@ router.get('/', async (req, res) => {
             },
             student: studentProfileRes.data,
             studentGrades: studentGradesRes.data,
-            // studentProgression: studentProgressionRes.data,
-            // gradeSummary: gradeSummaryRes.data,
-
         });
 
     } catch (error) {

@@ -42,8 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const acadYearId = gradesArray[0]?.academic_year_id;
             if (studentId && acadYearId) {
                 try {
-                    // const historyRes = await fetch(`/grademanagement/student-history/${studentId}/${acadYearId}`);
-                    // const historyData = await historyRes.json();
+
 
                     const progressionResultArea = document.getElementById('progressionResultArea');
                     if (progressionResult && progressionResult.progression_result !== null) {
@@ -75,11 +74,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const overallAverageGrade = document.getElementById('overallAverageGrade');
 
         if (gradeSummary) {
-            // if (studentProfile.current_level_id === 1) {
-            //     totalCreditsAttempted.textContent = studentProgression.level1_credits_attempted || 0;
-            // } else if (studentProfile.current_level_id === 2) {
-            //     totalCreditsAttempted.textContent = studentProgression.level2_credits_attempted || 0;
-            // }
             if (totalCreditsPassed) totalCreditsPassed.textContent = gradeSummary.total_credits_achieved || 0;
             if (overallAverageGrade) overallAverageGrade.textContent = `${gradeSummary.average_grade || 0}%`;
         }

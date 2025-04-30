@@ -10,14 +10,11 @@ function validateModuleForm(form, errorDiv) {
     const subjectId = form.querySelector('[name="subject_id"]').value.trim();
     const defaultProgramLevel = form.querySelector('[name="default_program_level"]').value.trim();
 
-    // const subjectCode = form.querySelector('[name="subject_code"]').value.trim();
-    // const catalogueCode = form.querySelector('[name="catalogue_code"]').value.trim();
 
     const title = form.querySelector('[name="title"]').value.trim();
     const credits = form.querySelector('[name="credits"]').value.trim();
     const semesterId = form.querySelector('[name="semester_id"]').value.trim();
 
-    // const pathwayIds = Array.from(form.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
 
 
     const isPositiveInteger = val => /^\d+$/.test(val);
@@ -28,10 +25,6 @@ function validateModuleForm(form, errorDiv) {
     if (!title) return showError('Title is required.');
     if (!credits) return showError('Credits is required.');
     if (!semesterId) return showError('Semester is required.');
-
-    // if (!pathwayIds || pathwayIds.length === 0) return showError('Pathway is required.');
-
-
 
 
     // 2. Format check for individual fields
@@ -52,10 +45,6 @@ function validateModuleForm(form, errorDiv) {
         return showError('Semester must be be one of: SPR, AUT, or FYR.');
     }
 
-    // const allowedPathwayIds = [1, 2];
-    // if(!pathwayIds.every(id => allowedPathwayIds.includes(Number(id)))){
-    //     return showError('Pathway must be either 1 (Information Systems) or 2 (Business Data Analysis');
-    // }
 
     return null; // No errors found
 
@@ -91,12 +80,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const formData = new FormData(form);
 
-            // // Manually extract pathway_ids as an array
-            // const pathwayIds = Array.from(form.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
 
             const payload = Object.fromEntries(formData.entries());
-
-            // payload.pathway_ids = pathwayIds; // overwrite if already there
 
             console.log("Submitting form with payload: ", payload);
 
@@ -168,13 +153,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 editForm.querySelector('[name="credits"]').value = module.credits;
                 editForm.querySelector('[name="semester_id"]').value = module.semester_id;
 
-                // // Set selected pathways
-                // const select = editForm.querySelector('[name="pathway_ids"]');
-                // const selectedIds = module.pathway_ids || [];
-                // Array.from(select.options).forEach(opt => {
-                //     opt.selected = selectedIds.includes(parseInt(opt.value));
-                // });
-
                 // Show modal
                 $('#editModuleModal').modal('show');
 
@@ -195,11 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const moduleId = editForm.getAttribute("data-id");
         const formData = new FormData(editForm);
 
-        // const pathwayIds = Array.from(editForm.querySelector('[name="pathway_ids"]').selectedOptions).map(opt => opt.value);
-
         const payload = Object.fromEntries(formData.entries());
-
-        // payload.pathway_ids = pathwayIds; // overwrite if already there
 
         // Clear previous feedback
         const errorDiv = document.getElementById("editError");

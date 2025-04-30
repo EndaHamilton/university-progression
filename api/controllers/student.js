@@ -3,7 +3,6 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 
 const checkApiKey = require("../middleware/checkApiKey");
-
 router.use(checkApiKey) // Apply the API key check middleware to all routes in this router
 
 // Creating local DB for use of transaction within POST route only

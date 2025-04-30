@@ -42,6 +42,10 @@ app.use('/studentprogression', studentProgressionRoutes);
 const gradeManagementRoutes = require("./controllers/gradeManagement");
 app.use('/grademanagement', gradeManagementRoutes);
 
+// Pathway Management page route
+const pathwayManagementRoutes = require("./controllers/pathwayManagement");
+app.use('/pathwaymanagement', pathwayManagementRoutes); // pathway management page
+
 // Message Management page route
 const messageManagementRoutes = require("./controllers/messageManagement");
 app.use('/adminmessages', messageManagementRoutes); // admin messages page

@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
+const checkApiKey = require("../middleware/checkApiKey");
+router.use(checkApiKey) // Apply the API key check middleware to all routes in this router
+
 module.exports = function (db) {
 
     router.get('/', (req, res) => {

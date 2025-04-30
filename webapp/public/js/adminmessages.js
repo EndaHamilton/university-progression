@@ -102,11 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cohortForm = document.getElementById('cohortMessageForm');
   cohortForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    // const pathway = document.getElementById('pathway').value || null;
-    // const level = document.getElementById('level').value || null;
-    // const status = document.getElementById('study_status').value || null;
-    // const subject = document.getElementById('cohort_subject').value.trim();
-    // const body = document.getElementById('cohort_body').value.trim();
+
 
     const subject = document.getElementById('cohort_subject').value;
     const body = document.getElementById('cohort_body').value;
@@ -128,15 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
       target_level_id: parseInt(document.getElementById('level').value) || null,
       target_study_status_id: parseInt(document.getElementById('study_status').value) || null
     };
-
-    // const payload = {
-    //   sender_id: userId,
-    //   target_pathway_id: pathway,
-    //   target_level_id: level,
-    //   target_study_status_id: status,
-    //   subject,
-    //   body
-    // };
 
     const res = await sendMessage('/adminmessages/send-cohort', payload);
     if (res.success) {

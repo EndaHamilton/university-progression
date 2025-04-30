@@ -90,10 +90,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const formData = new FormData(form);
       const payload = cleanOptionalFields(Object.fromEntries(formData.entries())); // convers optional fields to null if empty
 
-      // // Convert optional fields to null if empty
-      // if (!payload.resit_grade || payload.resit_grade === "") payload.resit_grade = null;
-      // if (!payload.resit_result || payload.resit_result === "Select Result" || payload.resit_result === "") payload.resit_result = null;
-
       console.log("Form is valid! Payload would be:", payload);
 
       console.log("Submitting grade with payload:", payload);
@@ -181,11 +177,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const gradeId = editForm.getAttribute("data-id");
     const formData = new FormData(editForm);
     const payload = cleanOptionalFields(Object.fromEntries(formData.entries()));
-
-    // // Convert optional fields to null if empty
-    // if (!payload.resit_grade || payload.resit_grade === "") payload.resit_grade = null;
-    // if (!payload.resit_result || payload.resit_result === "Select Result" || payload.resit_result === "") payload.resit_result = null;
-
 
     // Clear previous feedback
     const errorDiv = document.getElementById("editGradeError");
@@ -421,39 +412,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         modalBody.appendChild(tabNav);
         modalBody.appendChild(tabContent);
-
-        // // Populate grades
-        // const tbody = document.getElementById("modalGradeTableBody");
-        // tbody.innerHTML = "";
-
-        // data.studentGrades.forEach(g => {
-        //   const row = document.createElement("tr");
-        //   row.innerHTML = `
-        //       <td>${g.module_title} (${g.module_code})</td>
-        //       <td>${g.academic_year}</td>
-        //       <td><input type="number" class="form-control form-control-sm" value="${g.first_grade}" data-id="${g.id}" data-type="first_grade"></td>
-        //       <td>
-        //         <select class="form-control form-control-sm" data-id="${g.id}" data-type="grade_result">
-        //           ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
-        //     `<option value="${opt}" ${opt === g.grade_result ? "selected" : ""}>${opt}</option>`
-        //   ).join("")}
-        //         </select>
-        //       </td>
-        //       <td><input type="number" class="form-control form-control-sm" value="${g.resit_grade || ""}" data-id="${g.id}" data-type="resit_grade"></td>
-        //       <td>
-        //         <select class="form-control form-control-sm" data-id="${g.id}" data-type="resit_result">
-        //           <option value=""></option>
-        //           ${["pass", "fail", "pass capped", "excused", "absent"].map(opt =>
-        //     `<option value="${opt}" ${opt === g.resit_result ? "selected" : ""}>${opt}</option>`
-        //   ).join("")}
-        //         </select>
-        //       </td>
-        //       <td>
-        //         <button class="btn btn-sm btn-success save-grade-btn" data-id="${g.id}">Save</button>
-        //       </td>
-        //     `;
-        //   tbody.appendChild(row);
-        // });
 
         $('#studentGradeModal').modal('show');
       } catch (err) {
@@ -792,8 +750,7 @@ document.addEventListener("DOMContentLoaded", () => {
                       let errorDiv = document.getElementById("progressionError");
                       errorDiv.textContent = error.message || 'Failed to finalise progression.';
                       errorDiv.classList.remove("d-none");
-                      // console.error('Error submitting progression:', error);
-                      // alert('Network error finalising progression.');
+
                     }
                   });
                 }
@@ -826,71 +783,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// // Handle dropdown selection within progression modal
-// document.getElementById(`progressionDecision-${tabId}`).addEventListener('change', (e) => {
-//   const selected = e.target.value;
-//   const commentBox = document.getElementById(`mitigatingCommentBox-${tabId}`);
-//   const finaliseBtn = document.querySelector(`.finalise-progression-btn[data-tab-id="${tabId}"]`);
-
-//   if (selected === "Progress with Mitigating Circumstances") {
-//     commentBox.classList.remove('d-none');
-//   } else {
-//     commentBox.classList.add('d-none');
-//   }
-
-//   // Enable Finalise button if a choice is made
-//   if (selected !== "") {
-//     finaliseBtn.disabled = false;
-//     finaliseBtn.classList.remove('btn-secondary');
-//     finaliseBtn.classList.add('btn-primary');
-//   } else {
-//     finaliseBtn.disabled = true;
-//     finaliseBtn.classList.remove('btn-success');
-//     finaliseBtn.classList.add('btn-secondary');
-//   }
-// });
-
-// // Handle Finalise click
-// document.querySelector(`.finalise-progression-btn[data-tab-id="${tabId}"]`).addEventListener('click', async () => {
-//   const decision = document.getElementById(`progressionDecision-${tabId}`).value;
-//   const comment = document.getElementById(`mitigatingComment-${tabId}`)?.value || "";
-//   const studentId = studentId;
-//   const acadYearId = grades[0].academic_year_id;
-
-//   if (decision === "") {
-//     alert("Please select a progression outcome.");
-//     return;
-//   }
-//   if (decision === "Progress with Mitigating Circumstances" && comment.trim() === "") {
-//     alert("Please provide details for mitigating circumstances.");
-//     return;
-//   }
-
-//   try {
-//     const response = await fetch('/grademanagement/finalise-progression', {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify({
-//         student_id: studentId,
-//         academic_year_id: acadYearId,
-//         overall_result: decision,
-//         comment: comment
-//       })
-//     });
-
-//     const result = await response.json();
-
-//     if (response.ok) {
-//       alert("Progression finalised successfully!");
-//       $('#progressionModal').modal('hide');
-//     } else {
-//       alert(result.error || "Error finalising progression.");
-//     }
-//   } catch (err) {
-//     console.error("Error finalising progression:", err);
-//     alert("Something went wrong. Please try again.");
-//   }
-// });
 
 
 

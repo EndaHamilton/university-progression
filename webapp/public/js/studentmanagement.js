@@ -19,8 +19,7 @@ function validateStudentForm(form, errorDiv) {
     //query for checking positive integers
     const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
 
-    // 1. Presence check for all fields
-    // if (!studentNumber) return showError('Student number is required.');
+    // Presence check for all fields
     if (!pathwayId) return showError('Please select a pathway.');
     if (!firstName) return showError('First name is required.');
     if (!lastName) return showError('Last name is required.');
@@ -29,9 +28,7 @@ function validateStudentForm(form, errorDiv) {
     if (!currentLevelId) return showError('Current Level ID is required.');
     if (!enrollmentYear) return showError('Enrollment Year is required.');
 
-    // 2. Format check for individual fields
-    // if (studentNumber.length < 5 || studentNumber.length > 15)
-    //     return showError('Student number must be between 5 and 15 characters.');
+    // Format check for individual fields
     if (userId && !isPositiveInteger(userId))
         return showError('User ID must be a positive whole number.');
     if (!isNaN(firstName) || !isNaN(lastName))
