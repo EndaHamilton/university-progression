@@ -897,6 +897,10 @@ module.exports = function (db) {
         const rows = req.body;
         const insertedStudents = [];
         const skippedStudents = [];
+        const insertedModules = [];
+        const skippedModules = [];
+
+
 
         // console.log(rows);
 
@@ -923,11 +927,11 @@ module.exports = function (db) {
 
         // Create a modules array and make it distinct.
         const modules = rows.map(row => ({
-            subjCode: row.subjCode,
-            subjCatalog: row.subjCatalog,
-            moduleTitle: row.moduleTitle,
-            creditCount: row.creditCount,
-            semModule: row.semModule
+            subjCode: row.subjCode.trim(),
+            subjCatalog: String(row.subjCatalog).trim(),
+            moduleTitle: row.moduleTitle.trim(),
+            creditCount: parseInt(row.creditCount),
+            semModule: row.semModule.trim()
         }));
         const seenModules = new Set();
         const uniqueModules = modules.filter(module => {
@@ -947,7 +951,7 @@ module.exports = function (db) {
             resitGrade: row.resitGrade,
             resitResult: row.resitResult
         }));
-        
+
         const conn = await localDb.getConnection();
 
         try {
@@ -955,16 +959,33 @@ module.exports = function (db) {
 
             // Create students & users if they do not exist.
 
+            // Determine current level for each student based on subjCatalog
+            const studentCurrentLevels = {};
+
+            rows.forEach(row => {
+                const sId = row.sId;
+                const subjCatalog = String(row.subjCatalog).trim();
+
+                if (!studentCurrentLevels[sId]) {
+                    studentCurrentLevels[sId] = 'L1'; // Default
+                }
+
+                if (subjCatalog.startsWith('2')) {
+                    studentCurrentLevels[sId] = 'L2'; // Change to L2 if any catalog starts with '2'
+                }
+            });
+
+
             for (const student of uniqueStudents) {
                 // Check to see if student exists already
                 const [existingStudents] = await conn.query('SELECT id FROM student WHERE student_number = ?', [student.sId]);
 
 
-                const parsedStudentNumber = student.sId.split('-');
-                const studentNumber = parsedStudentNumber[2];
+                // const parsedStudentNumber = student.sId.split('-');
+                // const studentNumber = parsedStudentNumber[2];
                 // console.log('Student Number: ', String(studentNumber).trim(), studentNumber.length);
 
-                console.log('Checking for student number: ' , student.sId);
+                console.log('Checking for student number: ', student.sId);
                 // If student does not exist then we must create.
                 if (existingStudents.length === 0) {
                     const parsedStudentId = student.sId.split('-');
@@ -986,7 +1007,7 @@ module.exports = function (db) {
                     }
 
                     // Check if studey status exists and if not create. Then grab relevant id.
-                    // Can validate this if you want.
+                    // Can validate this also.
                     const [existingStudyStatus] = await conn.query('SELECT id FROM study_status WHERE name = ?', [student.statusStudy]);
 
                     const studyStatusId = existingStudyStatus[0].id;
@@ -999,13 +1020,21 @@ module.exports = function (db) {
                     const [existingEntryLevel] = await conn.query('SELECT id FROM level WHERE name = ?', [entryLevel]);
                     const entryLevelId = existingEntryLevel[0].id;
 
+                    // Get current level string (L1 or L2) from earlier map
+                    const currentLevel = studentCurrentLevels[student.sId] || 'L1'; // fallback
+                    const currentLevelFormatted = '0' + currentLevel.split('L')[1];
+
+                    // Lookup ID for current level
+                    const [existingCurrentLevel] = await conn.query('SELECT id FROM level WHERE name = ?', [currentLevelFormatted]);
+                    const currentLevelId = existingCurrentLevel[0].id;
+
                     // Concat enrollment year.
                     const enrollmentYear = `20` + enrollYear;
 
                     const [studentResult] = await conn.query(
-                        `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, entry_level_id, enrollment_year) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                        [student.sId.trim(), parseInt(pathwayId), student.firstName.trim(), student.lastName.trim(), parseInt(studyStatusId), parseInt(entryLevelId), enrollmentYear.trim()
+                        `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, entry_level_id, current_level_id, enrollment_year) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [student.sId.trim(), parseInt(pathwayId), student.firstName.trim(), student.lastName.trim(), parseInt(studyStatusId), parseInt(entryLevelId), parseInt(currentLevelId), enrollmentYear.trim()
                         ]);
 
                     const studentId = studentResult.insertId;
@@ -1017,7 +1046,7 @@ module.exports = function (db) {
                     );
 
                     if (existingUser.length === 0) {
-                        const studentNumberUsername = String(parsedStudentNumber[2]).trim();
+                        const studentNumberUsername = String(parsedStudentId[2]).trim();
 
                         // Check if username already exists 
                         const [existingUsername] = await conn.query(
@@ -1058,25 +1087,65 @@ module.exports = function (db) {
                 }
             }
 
-            //   for (const row of rows) {
-            //     const [existing] = await conn.query('SELECT id FROM users WHERE email = ?', [row.email]);
+            for (const module of uniqueModules) {
 
-            //     if (existing.length === 0) {
-            //       await conn.query(
-            //         'INSERT INTO users (name, age, email) VALUES (?, ?, ?)',
-            //         [row.name, row.age, row.email]
-            //       );
-            //       inserted.push(row);
-            //     } else {
-            //       skipped.push(row);
-            //     }
-            //   }
+                const concatModuleCode = `${module.subjCode}${module.subjCatalog}`;
+
+                //Check if module exists already (same module code and title)
+                const [existingModules] = await conn.query('SELECT * FROM module WHERE module_code = ? AND title = ?',
+                    [concatModuleCode, module.moduleTitle]);
+
+                if (existingModules.length === 0) {
+
+                    // Check if subject exists and if not create. Then grab relevant id.
+                    const [existingSubject] = await conn.query('SELECT id FROM subject WHERE code = ?', [module.subjCode]);
+                    let subjectId = 0;
+
+                    if (existingSubject.length === 0) {
+                        const [subjectResult] = await conn.query(`INSERT INTO subject (code) VALUES (?)`, [module.subjCode]);
+                        subjectId = subjectResult.insertId;
+                    } else {
+                        subjectId = existingSubject[0].id;
+                    }
+
+                    // Check if semester exists and if not create. Then grab relevant id.
+                    const [existingSemester] = await conn.query('SELECT id FROM semester WHERE name = ?', [module.semModule]);
+                    let semesterId = 0;
+
+                    if (existingSemester.length === 0) {
+                        const [semesterResult] = await conn.query(`INSERT INTO semester (name) VALUES (?)`, [module.semModule]);
+                        semesterId = semesterResult.insertId;
+                    } else {
+                        semesterId = existingSemester[0].id;
+                    }
+
+                    // Get default program / pathway level and subject module number
+                    const defaultProgramLevel = module.subjCatalog[0];
+                    const subjectModuleNumber = module.subjCatalog;
+
+                    const [moduleResult] = await conn.query(`
+                    INSERT INTO module(subject_id, default_program_level, title, subject_module_number, credits, semester_id, module_code)
+                    VALUES(?, ?, ?, ?, ?, ?, ?)`,
+                        [parseInt(subjectId), defaultProgramLevel.trim(), module.moduleTitle.trim(), subjectModuleNumber.trim(), parseInt(module.creditCount), parseInt(semesterId), concatModuleCode.trim()
+                        ]);
+
+                    insertedModules.push(module);
+
+
+                } else {
+                    skippedModules.push(module);
+                    console.error(`Module ${concatModuleCode} ${module.moduleTitle} already exists, skipping.`);
+                }
+            }
+
 
             await conn.commit();
             res.json({
                 success: true,
-                insertedCount: insertedStudents.length,
-                skippedCount: skippedStudents.length,
+                insertedStudents: insertedStudents.length,
+                skippedStudents: skippedStudents.length,
+                insertedModules: insertedModules.length,
+                skippedModules: skippedModules.length,
                 skippedStudents,
                 insertedStudents
             });
