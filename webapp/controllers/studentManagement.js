@@ -20,6 +20,9 @@ const config = getApiConfig(); //default JSON
 // Fetch all student details
 router.get('/', async (req, res) => {
 
+    console.log("Current session:", req.session);
+
+
 
     try {
         //GET request to different API endpoints for all data studentManagement page uses
@@ -57,9 +60,10 @@ router.get('/', async (req, res) => {
 // Add Student Route - Posting Data to API
 router.post('/add-student', async (req, res) => {
 
-    const studentData = { ...req.body };
+    console.log("Current session:", req.session);
 
-    console.log("Incoming POST body: ", req.body);
+
+    const studentData = { ...req.body };
 
     if (!studentData.user_id) {
         studentData.user_id = null; // Set user_id to null if it is not provided in the form

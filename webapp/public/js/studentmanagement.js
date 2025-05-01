@@ -138,8 +138,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 setTimeout(() => {
                     successDiv.textContent = data.message || 'Student added successfully!';
                     successDiv.classList.remove('d-none');
-                    window.location.href = '/studentprofile';
-                }, 2000);
+                    window.location.href = '/studentmanagement';
+                }, 4000);
+
+
 
             } catch (err) {
                 console.error('Error submitting form:', err);
