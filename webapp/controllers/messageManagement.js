@@ -24,11 +24,8 @@ router.get('/', requireAdmin, async (req, res) => {
             axios.get('http://localhost:4000/messages/students-with-userid', config)
         ]);
 
-        console.log('Rendering adminmessages.ejs for user:', req.session.userID, req.session.email);
-        console.log('Session contents:', req.session);
 
-
-        res.render('adminmessages', {
+        return res.render('adminmessages', {
             user: {
                 id: req.session.userID,
                 email: req.session.email
@@ -41,7 +38,7 @@ router.get('/', requireAdmin, async (req, res) => {
 
     } catch (err) {
         console.error("Error loading messaging page:", err.message);
-        res.status(500).send("Error loading messaging page.");
+        return res.status(500).send("Error loading messaging page.");
     }
 });
 
@@ -97,7 +94,7 @@ router.get('/student-side', requireStudent, async (req, res) => {
             axios.get(`http://localhost:4000/student/by-user/${req.session.userID}`, config)
         ]);
 
-        res.render('studentmessages', {
+        return res.render('studentmessages', {
             user: {
                 id: req.session.userID,
                 email: req.session.email
@@ -111,7 +108,7 @@ router.get('/student-side', requireStudent, async (req, res) => {
 
     } catch (err) {
         console.error("Error loading messaging page:", err.message);
-        res.status(500).send("Error loading messaging page.");
+        return res.status(500).send("Error loading messaging page.");
     }
 });
 

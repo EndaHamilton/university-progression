@@ -26,6 +26,7 @@ router.get("/", async (req, res) => {
                     statsByYear[year][moduleId] = {
                         module_code: module.module_code,
                         module_title: module.module_title,
+                        module_subject_code: module.subject_code,
                         pass: 0,
                         fail: 0,
                         total: 0

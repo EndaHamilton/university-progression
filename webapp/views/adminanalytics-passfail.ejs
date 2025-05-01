@@ -89,10 +89,25 @@
                         Progression Rates</a>
                 </div>
 
+                <div class="form-group">
+                    <label for="subjectFilter"><strong>Filter by Subject</strong></label>
+                    <select id="subjectFilter" class="form-control w-25">
+                        <option value="all">Show All</option>
+                        <% const subjectsSet=new Set(); Object.values(analyticsData).forEach(modules=> {
+                            Object.values(modules).forEach(mod => subjectsSet.add(mod.module_subject_code));
+                            }); Array.from(subjectsSet).sort().forEach(subject => { %>
+                            <option value="<%= subject %>">
+                                <%= subject %>
+                            </option>
+                            <% }) %>
+                    </select>
+                </div>
+
 
                 <% Object.entries(analyticsData).forEach(([year, modules])=> { %>
                     <h4 class="mt-4 text-primary">Academic Year: <%= year %>
                     </h4>
+
                     <table class="table table-sm table-bordered">
                         <thead class="thead-light">
                             <tr>
@@ -106,7 +121,7 @@
                         </thead>
                         <tbody>
                             <% Object.values(modules).forEach(stats=> { %>
-                                <tr>
+                                <tr data-subject="<%= stats.module_subject_code %>">
                                     <td>
                                         <%= stats.module_code %>
                                     </td>
@@ -132,15 +147,15 @@
                     <% }) %>
 
 
+
+
             </main>
         </div>
 
     </div>
 
-
-
     <!--js behaviour source-->
-    <script src=""></script>
+    <script src="/js/adminPassFail.js"></script>
 
 
     <!-- Bootstrap CDSN -->

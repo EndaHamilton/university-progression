@@ -166,6 +166,7 @@ module.exports = function (db) {
                 m.id AS module_id,
                 m.title AS module_title,
                 m.module_code,
+                subj.code AS subject_code,
                 s.id AS student_id,
                 s.student_number,
                 s.first_name,
@@ -177,6 +178,7 @@ module.exports = function (db) {
                 sm.resit_result
             FROM student_module sm
             JOIN module m ON sm.module_id = m.id
+            JOIN subject subj ON m.subject_id = subj.id
             JOIN student s ON sm.student_id = s.id
             JOIN acad_year ay ON sm.academic_year_id = ay.id
             ORDER BY m.id, ay.name;
@@ -191,6 +193,7 @@ module.exports = function (db) {
                         module_id: row.module_id,
                         module_title: row.module_title,
                         module_code: row.module_code,
+                        subject_code: row.subject_code,
                         students: []
                     };
                 }
