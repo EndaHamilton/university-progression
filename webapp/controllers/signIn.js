@@ -32,6 +32,7 @@ router.post('/login', async (req, res) => {
             if (req.session.role === 'admin') {
                 return res.redirect('studentmanagement');
             } else if (req.session.role === 'student') {
+                req.session.studentID = response.data.student_id;
                 return res.redirect('studentprofile');
             } else {
                 return res.redirect('/?error=1'); // Fallback in case of unknown role error

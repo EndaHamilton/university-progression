@@ -25,8 +25,6 @@ function getUpdatedFields(reqBody, existingRow, fieldsToCheck) {
             const normalizedNew = stringComparison(newVal);
             const normalizedExisting = stringComparison(existingVal);
 
-            console.log(`[COMPARE] ${key}: new=${normalizedNew}, existing=${normalizedExisting}`);
-
             if (normalizedNew !== normalizedExisting) {
                 updateFields.push(`${key} = ?`);
                 updateValues.push(normalize(newVal)); // when pushing, insert original value as normalized (e.g. prevents entries converting to lower case)

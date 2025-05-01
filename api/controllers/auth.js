@@ -23,7 +23,14 @@ module.exports = function (db) {
                 const passwordMatch = await bcrypt.compare(password, user.password);
 
                 if (passwordMatch) {
+                    if (user.role === 'admin') {
+                        return res.json({ authenticate: true, userID: user.id, role: user.role });
+                    }
+                    if (user.role === 'student') {
+                        return res.json({ authenticate: true, userID: user.id, role: user.role, student_id: user.student_id });
+                    }
                     return res.json({ authenticate: true, userID: user.id, role: user.role });
+                    
                 } else {
                     return res.json({ authenticate: false });
                 }

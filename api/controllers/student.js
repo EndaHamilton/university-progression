@@ -14,6 +14,8 @@ const localDb = mysql.createPool({
     database: 'acad_progression_new'
 });
 
+const phonePattern = /^[\d\s()+-]+$/;
+
 module.exports = function (db) {
 
     //Format validation function for shared fields between adding and updating student
@@ -140,8 +142,14 @@ module.exports = function (db) {
         if (shouldCheck('primary_phone')) {
             const val = data.primary_phone;
             if (val && val.trim() !== "") {
-                if (!isNaN(val)) {
-                    errors.push("Primary phone must not be purely numeric.");
+                if (!phonePattern.test(val)) {
+                    errors.push("Primary phone must be a valid phone number (digits, spaces, +, -, () only).");
+                }
+                if(val.length < 7) {
+                    errors.push("Primary phone number must be at least 7 digits long.");
+                }
+                if(val.length > 20) {
+                    errors.push("Primary phone number must be less than 20 characters long.");
                 }
             }
         }
@@ -252,9 +260,9 @@ module.exports = function (db) {
 
     router.post("/", async (req, res) => {
 
-        const { pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id, enrollment_year, 
+        const { pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id, enrollment_year,
             address, primary_email, secondary_email, primary_phone
-         } = req.body;
+        } = req.body;
 
         // const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
 
@@ -371,7 +379,7 @@ module.exports = function (db) {
             return res.status(400).json({ error: 'Invalid ID. Must be a number' });
         }
 
-        const {pathway_id, enrollment_year } = req.body;
+        const { pathway_id, enrollment_year } = req.body;
 
         // // Validate that at least one field is being updated
         // if (!student_number && !user_id && !pathway_id && !first_name && !last_name && !study_status_id && !entry_level_id) {

@@ -1,5 +1,5 @@
-console.log("Student Management JS loaded.");
-// This script handles the display of the student management page, including fetching data from the API and populating the table.
+
+const phonePattern = /^[\d\s()+-]+$/;
 
 function validateStudentForm(form, errorDiv) {
 
@@ -51,8 +51,13 @@ function validateStudentForm(form, errorDiv) {
         return showError('Primary email must not be purely numeric.');
     if (secondaryEmail && !isNaN(secondaryEmail))
         return showError('Secondary email must not be purely numeric.');
-    if (primaryPhone && !isNaN(primaryPhone))
-        return showError('Primary phone must not be purely numeric.');
+    if (primaryPhone && !phonePattern.test(primaryPhone))
+        return showError('Primary phone must be a valid format (numbers, spaces, +, -, ()).');
+    if (primaryPhone && primaryPhone.length > 20)
+        return showError('Primary phone must be less than 20 characters long.');
+    if (primaryPhone && primaryPhone.length < 7) {
+        return showError('Primary phone must be more than 6 characters long.');
+    }
 
     return null;
 
@@ -127,16 +132,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     return;
                 }
 
-                successDiv.textContent = data.message || 'Student added successfully!';
-                successDiv.classList.remove('d-none');
+
 
 
                 setTimeout(() => {
-                    window.location.href = '/studentmanagement';
+                    successDiv.textContent = data.message || 'Student added successfully!';
+                    successDiv.classList.remove('d-none');
+                    window.location.href = '/studentprofile';
                 }, 2000);
-
-
-
 
             } catch (err) {
                 console.error('Error submitting form:', err);
