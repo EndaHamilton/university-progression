@@ -22,7 +22,6 @@ router.post('/login', async (req, res) => {
 
     try {
         const response = await axios.post(authEndpoint, payload, configForm);
-        console.log("Response from API: ", response.data);
         if (response.data.authenticate) {
             req.session.userID = response.data.userID; 
             req.session.email = emailData; 
