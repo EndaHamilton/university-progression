@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const session = require("express-session");
 
+const port = 3000;
+
 app.use(session({
     secret: "my-secret-key",
     resave: false,
@@ -44,14 +46,18 @@ app.use('/grademanagement', gradeManagementRoutes);
 
 // Pathway Management page route
 const pathwayManagementRoutes = require("./controllers/pathwayManagement");
-app.use('/pathwaymanagement', pathwayManagementRoutes); // pathway management page
+app.use('/pathwaymanagement', pathwayManagementRoutes);
+
+// Admin Analytics page route
+const adminAnalyticsRoutes = require("./controllers/adminAnalytics");
+app.use('/adminanalytics', adminAnalyticsRoutes); 
 
 // Message Management page route
 const messageManagementRoutes = require("./controllers/messageManagement");
-app.use('/adminmessages', messageManagementRoutes); // admin messages page
-app.use('/studentmessages', messageManagementRoutes); // student messages page
+app.use('/adminmessages', messageManagementRoutes); // admin messages page access
+app.use('/studentmessages', messageManagementRoutes); // student messages page access - using different namnes to avoid confusion, even though they are accessing same route
 
-app.listen(3000, (err) => {
+app.listen(port, (err) => {
     if (err) console.log(err);
-    console.log("Academics Progression is listening on http://localhost:3000");
+    console.log(`Academics Progression is listening on http://localhost:${port}`);
 });

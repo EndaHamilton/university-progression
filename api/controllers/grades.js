@@ -150,10 +150,10 @@ module.exports = function (db) {
                 });
             });
 
-            res.json(Object.values(grouped));
+            return res.json(Object.values(grouped));
         } catch (error) {
             console.error('Error fetching grades:', error);
-            res.status(500).json({ message: 'Failed to retrieve grades' });
+            return res.status(500).json({ message: 'Failed to retrieve grades' });
         }
     });
 
@@ -209,10 +209,10 @@ module.exports = function (db) {
                 });
             });
 
-            res.json(Object.values(grouped));
+            return res.json(Object.values(grouped));
         } catch (error) {
             console.error("Error fetching grades by module: ", error);
-            res.status(500).json({ message: 'Failed to retrieve grades' });
+            return res.status(500).json({ message: 'Failed to retrieve grades' });
         }
 
     });
@@ -1311,6 +1311,30 @@ module.exports = function (db) {
         }
 
     });
+
+    // GET: Get all progression data for all students, grouped by academic year, pathway, and level
+    router.get('/progression/by-pathway-level', async (req, res) => {
+        try {
+            const [rows] = await db.promise().query(`
+            SELECT
+              ay.name AS academic_year,
+              p.name AS pathway_name,
+              l.name AS level_name,
+              sh.progression_result
+            FROM student_history sh
+            JOIN acad_year ay ON sh.acad_year_id = ay.id
+            JOIN pathway p ON sh.pathway_id = p.id
+            JOIN level l ON sh.current_level_id = l.id
+            ORDER BY ay.name, p.name, l.name
+          `);
+
+            return res.json(rows);
+        } catch (error) {
+            console.error("Error fetching progression data:", error.message);
+            return res.status(500).json({ error: "Failed to fetch progression data" });
+        }
+    });
+
 
     return router;
 }

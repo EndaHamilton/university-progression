@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/design.css">
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+        <a class="navbar-brand col-sm-3 col-md-2 ms-2" href="#"><img class="logo" src="/img/QUB-logo.png" alt="">Generic
+            University Name</a>
+        <ul class="navbar-nav px-3">
+            <li class="nav-item text-nowrap">
+                <a class="nav-link" href="#">Sign out</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- All content below nav bar -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Side Bar -->
+            <nav class="col-12 col-sm-4 col-md-3 col-lg-2 bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span data-feather="home"></span>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/studentmanagement">
+                                <span data-feather="users"></span>
+                                Student Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/modulemanagement">
+                                <span data-feather="file"></span>
+                                Module Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/pathwaymanagement">
+                                <span data-feather="file"></span>
+                                Pathway Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/grademanagement">
+                                <span data-feather="layers"></span>
+                                Grade Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/adminanalytics">
+                                <span data-feather="bar-chart-2"></span>
+                                Analytics
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/adminmessages">
+                                <span data-feather="mail"></span>
+                                Communication
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content to right of Side Bar -->
+            <main class="col px-4 pt-3">
+
+                <h2>Module Pass/Fail Rates by Academic Year</h2>
+
+                <div class="btn-group mb-4" role="group">
+                    <a href="/adminanalytics"
+                        class="btn btn-outline-primary <%= currentPage === 'pass-fail' ? 'active' : '' %>">Module
+                        Pass/Fail Rates</a>
+                    <a href="/adminanalytics/progression"
+                        class="btn btn-outline-primary <%= currentPage === 'progression' ? 'active' : '' %>">Pathway
+                        Progression Rates</a>
+                </div>
+
+
+                <% Object.entries(analyticsData).forEach(([year, modules])=> { %>
+                    <h4 class="mt-4 text-primary">Academic Year: <%= year %>
+                    </h4>
+                    <table class="table table-sm table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Module Code</th>
+                                <th>Module Title</th>
+                                <th>Passes</th>
+                                <th>Fails</th>
+                                <th>Total</th>
+                                <th>Pass Rate (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% Object.values(modules).forEach(stats=> { %>
+                                <tr>
+                                    <td>
+                                        <%= stats.module_code %>
+                                    </td>
+                                    <td>
+                                        <%= stats.module_title %>
+                                    </td>
+                                    <td>
+                                        <%= stats.pass %>
+                                    </td>
+                                    <td>
+                                        <%= stats.fail %>
+                                    </td>
+                                    <td>
+                                        <%= stats.total %>
+                                    </td>
+                                    <td>
+                                        <%= ((stats.pass / stats.total) * 100).toFixed(1) %>%
+                                    </td>
+                                </tr>
+                                <% }) %>
+                        </tbody>
+                    </table>
+                    <% }) %>
+
+
+            </main>
+        </div>
+
+    </div>
+
+
+
+    <!--js behaviour source-->
+    <script src=""></script>
+
+
+    <!-- Bootstrap CDSN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+    <script>
+        feather.replace()
+    </script>
+
+
+</body>
+
+</html>
