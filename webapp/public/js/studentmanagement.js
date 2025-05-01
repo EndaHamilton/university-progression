@@ -532,3 +532,27 @@ document.getElementById("submitEnrollmentBtn").addEventListener("click", async f
 });
 
 
+// Student search function
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("studentSearch");
+    const tableBody = document.getElementById("studentTableBody");
+
+    if (searchInput && tableBody) {
+        searchInput.addEventListener("input", function () {
+            const query = this.value.toLowerCase();
+            const rows = tableBody.querySelectorAll("tr");
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    }
+});
+
+
+
