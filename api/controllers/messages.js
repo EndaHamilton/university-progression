@@ -221,24 +221,6 @@ module.exports = function (db) {
         }
     });
 
-    // PATCH: Mark a message as read
-    router.patch('/read/:messageId', async (req, res) => {
-        const messageId = parseInt(req.params.messageId);
-        if (isNaN(messageId)) {
-            return res.status(400).json({ error: "Invalid message ID" });
-        }
-
-        try {
-            await db.promise().query(`
-        UPDATE messages SET is_read = 1 WHERE id = ?
-      `, [messageId]);
-
-            res.status(200).json({ message: "Message marked as read" });
-        } catch (err) {
-            console.error("Error marking message as read:", err);
-            res.status(500).json({ error: "Failed to update message status" });
-        }
-    });
 
     //POST: for student messaging - as they can only contact their advisor
     router.post('/contact-advisor', validateMessageFields('contact'), async (req, res) => {

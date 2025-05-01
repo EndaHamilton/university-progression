@@ -89,20 +89,6 @@ module.exports = function (db) {
         const shouldCheck = (field) => !isUpdate || field in data;
 
 
-        // Ensure all cases of trim, values are converted to String
-
-        // if (shouldCheck('subject_code')) {
-        //     const val = data.subject_code;
-        //     const valStr = String(val);
-        //     if (!val || valStr.trim() === "") {
-        //         errors.push("Subject code cannot be empty.");
-        //     } else if (!isNaN(valStr)) {
-        //         errors.push("Subject code must not be numeric.");
-        //     } else if (valStr.length !== 4) {
-        //         errors.push("Subject code must be 4 characters exactly.");
-        //     }
-        // }
-
         if (shouldCheck("subject_id")) {
             const val = data.subject_id;
             const valStr = String(val);
@@ -124,29 +110,6 @@ module.exports = function (db) {
             }
         }
 
-
-        // if (shouldCheck('subject_code')) {
-        //     const val = data.subject_code;
-        //     const valStr = String(val);
-        //     if (!val || valStr.trim() === "") {
-        //         errors.push("Subject code cannot be empty.");
-        //     } else if (!isNaN(valStr)) {
-        //         errors.push("Subject code must not be numeric.");
-        //     } else if (valStr.length !== 4) {
-        //         errors.push("Subject code must be 4 characters exactly.");
-        //     }
-        // }
-
-
-        // if (shouldCheck('catalogue_code')) {
-        //     const val = data.catalogue_code;
-        //     const valStr = String(val);
-        //     if (!val || valStr.trim() === "") {
-        //         errors.push("Catalogue code cannot be empty.");
-        //     } else if (valStr.length !== 3) {
-        //         errors.push("Catalogue code must be 3 characters exactly.");
-        //     }
-        // }
 
         if (shouldCheck('title')) {
             const val = data.title;
@@ -181,24 +144,6 @@ module.exports = function (db) {
             }
         }
 
-        // if (shouldCheck('pathway_ids')) {
-        //     const raw = data.pathway_ids;
-
-        //     const parsedPathways = Array.isArray(raw)
-        //         ? raw
-        //         : raw
-        //             ? [raw]
-        //             : [];
-
-        //     const allowedPathwayIds = [1, 2];
-
-        //     if (!parsedPathways || parsedPathways.length === 0) {
-        //         errors.push("Pathway ID(s) cannot be empty")
-        //     } else if (!parsedPathways.every(id => allowedPathwayIds.includes(Number(id)))) {
-        //         errors.push("Each selected pathway must be either 1 (Information Systems) or 2 (Business Data Analysis).");
-        //     }
-
-        // }
 
 
 
@@ -255,21 +200,11 @@ module.exports = function (db) {
         const subjectModuleNumber = `${level}${paddedSequence}`;
         const moduleCode = `${subjectCode}${subjectModuleNumber}`;
 
-        // // Parse pathway_ids
-        // const parsedPathways = Array.isArray(pathway_ids)
-        //     ? pathway_ids.map(id => parseInt(id))
-        //     : pathway_ids
-        //         ? [parseInt(pathway_ids)]
-        //         : [];
 
 
 
         try {
-            // // Check if module with same subject_code, catalogue_code, and title already exists - UQ in DB
-            // const [existing] = await db.promise().query(
-            //     `SELECT * FROM module WHERE subject_code = ? AND catalogue_code = ? AND title = ?`,
-            //     [subject_code.trim(), catalogue_code, title.trim()]
-            // );
+
 
             // Check if module with same module code and title (e.g. IFSY211 - Computing Practice) already exists - the UQ in DB
             const [existing] = await db.promise().query(
@@ -298,25 +233,10 @@ module.exports = function (db) {
                 moduleCode
             ]);
 
-            // Fetch the newly inserted module (to return full object incl. module_code)
-            // const [newModule] = await db.promise().query(
-            //     `SELECT * FROM module WHERE id = ?`,
-            //     [result.insertId]
-            // );
 
             const newModuleId = result.insertId;
 
 
-            // Commenting out pathway_module insert as this will now be done at pathway level
-
-            // // Insert into pathway_module
-            // if (parsedPathways.length > 0) {
-            //     const insertPathways = parsedPathways.map(pathwayId => [pathwayId, newModuleId]);
-            //     await db.promise().query(
-            //         `INSERT INTO pathway_module (pathway_id, module_id) VALUES ?`,
-            //         [insertPathways]
-            //     );
-            // }
 
             res.status(200).json({
                 message: "Module created successfully!",
@@ -356,39 +276,6 @@ module.exports = function (db) {
 
             const existingModule = existingModules[0];
 
-            // Commenting out pathway related checks as these will happen at pathway level now
-
-            // // Check if the data being updated is the same as existing data
-            // // Checks only for fields which are being passed in - doesn't check undefined fields that aren't being toucehd
-            // // Fetch existing pathways from DB
-            // const [existingPathwayRows] = await db.promise().query(
-            //     `SELECT pathway_id FROM pathway_module WHERE module_id = ?`,
-            //     [id]
-            // );
-            // const existingPathwayIds = existingPathwayRows.map(r => r.pathway_id).sort((a, b) => a - b);
-
-            // // Get new pathway IDs from request and parse
-            // const newPathwayIds = Array.isArray(req.body.pathway_ids)
-            //     ? req.body.pathway_ids.map(Number).sort((a, b) => a - b)
-            //     : req.body.pathway_ids
-            //         ? [parseInt(req.body.pathway_ids)]
-            //         : [];
-
-            // // // Compare pathway IDs (unordered)
-            // const pathwaysUnchanged = JSON.stringify(existingPathwayIds) === JSON.stringify(newPathwayIds);
-
-            // // Unique constraint check: only if user is updating all 3 relevant fields
-            // if (subject_code && catalogue_code && title) {
-            //     const [conflicts] = await db.promise().query(
-            //         `SELECT * FROM module 
-            //          WHERE subject_code = ? AND catalogue_code = ? AND title = ? AND id != ?`,
-            //         [subject_code.trim(), parseInt(catalogue_code), title.trim(), id]
-            //     );
-
-            //     if (conflicts.length > 0) {
-            //         return res.status(409).json({ error: "Another module with the same subject code, catalogue code, and title already exists." });
-            //     }
-            // } 
 
             const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
@@ -485,11 +372,6 @@ module.exports = function (db) {
 
             updateValues.push(id);
 
-            // Commenting out pathway related checks as these will happen at pathway level now
-            // if (updateFields.length === 0 && pathwaysUnchanged) {
-            //     return res.status(400).json({ error: "No changes detected. Module data is identical" });
-            // }
-
             if (updateFields.length === 0) {
                 return res.status(400).json({ error: "No changes detected. Module data is identical" });
             }
@@ -500,29 +382,6 @@ module.exports = function (db) {
                 await db.promise().query(updateSQL, updateValues);
             }
 
-            // Commenting out pathway related checks as these will happen at pathway level now
-
-            // // Also update pathway_module junction table
-            // if ('pathway_ids' in req.body) {
-            //     const parsedPathways = Array.isArray(req.body.pathway_ids)
-            //         ? req.body.pathway_ids.map(id => parseInt(id))
-            //         : req.body.pathway_ids
-            //             ? [parseInt(req.body.pathway_ids)]
-            //             : [];
-
-            //     // Delete old mappings
-            //     await db.promise().query(`DELETE FROM pathway_module WHERE module_id = ?`, [id]);
-
-
-            //     // Insert new ones
-            //     if (parsedPathways.length > 0) {
-            //         const insertPathways = parsedPathways.map(pid => [pid, id]);
-            //         await db.promise().query(
-            //             `INSERT INTO pathway_module (pathway_id, module_id) VALUES ?`,
-            //             [insertPathways]
-            //         );
-            //     }
-            // }
 
             res.status(200).json({ message: "Module updated successfully." });
 

@@ -408,12 +408,6 @@ module.exports = function (db) {
             student_id,
             module_id,
             academic_year_id,
-            current_level_id,
-            study_status_id,
-            first_grade,
-            grade_result,
-            resit_grade,
-            resit_result
         } = req.body;
 
         // Validate fields
@@ -463,7 +457,7 @@ module.exports = function (db) {
                 return res.status(400).json({ error: "No changes detected. Student grade data is identical." });
             }
 
-            updateValues.push(id); // for WHERE clause
+            updateValues.push(id);
 
             if (updateFields.length > 0) {
                 const updateSQL = `UPDATE student_module SET ${updateFields.join(", ")} WHERE id = ?`;
@@ -651,19 +645,6 @@ module.exports = function (db) {
             let modulesNeedingResit = [];
             let modulesNeedingReenrollment = [];
 
-            // let totalCreditsAttempted = 0;
-            // let totalCreditsPassed = 0;
-
-            // let level1CreditsPassed = 0;
-
-            // let level2CreditsPassed = 0;
-
-            // let failedCoreModules = [];
-            // let outstandingFails = [];
-
-            // let modulesNeedingResit = [];
-            // let modulesNeedingReenrollment = [];
-
             for (const module of rows) {
                 const isCurrentYear = module.academic_year_id === acadYearId;
                 const moduleLevel = module.pathway_level;
@@ -714,25 +695,6 @@ module.exports = function (db) {
                     }
                 }
 
-                // else {
-                //     if (moduleLevel === 1) {
-                //         level1CreditsAttempted += module.credits;
-                //     } else if (moduleLevel === 2) {
-                //         level2CreditsAttempted += module.credits;
-                //     }
-
-                //     if (module.core) {
-                //         failedCoreModules.push(module);
-                //     } else {
-                //         outstandingFails.push(module);
-                //     }
-
-                //     if (!module.resit_result) {
-                //         modulesNeedingResit.push(module);
-                //     } else if (!['pass', 'pass capped'].includes(module.resit_result)) {
-                //         modulesNeedingReenrollment.push(module);
-                //     }
-                // }
             }
 
             let canProgress = false;
@@ -775,23 +737,6 @@ module.exports = function (db) {
                     }
                 }
 
-                // if (level1CreditsPassed >= 120 && level2CreditsPassed >= 120 && failedCoreModules.length === 0 && outstandingFails.length === 0) {
-                //     canProgress = true;
-                //     decisionReasons.push("All modules from Level 1 and level 2 passed.");
-                // } else {
-                //     if (level1CreditsPassed < 120) {
-                //         decisionReasons.push("Unresolved Level 1 module failures.");
-                //     }
-                //     if (level2CreditsPassed < 120) {
-                //         decisionReasons.push("Insufficient level 2 credits.");
-                //     }
-                //     if (failedCoreModules.length > 0) {
-                //         decisionReasons.push("Failed core module(s).");
-                //     }
-                //     if (outstandingFails.length > 0) {
-                //         decisionReasons.push("Outstanding failed modules.");
-                //     }
-                // }
             }
 
             return res.status(200).json({
@@ -799,8 +744,6 @@ module.exports = function (db) {
                 acad_year_id: acadYearId,
                 current_level: currentLevel,
                 entry_level: entryLevel,
-                // total_credits_attempted: totalCreditsAttempted,
-                // total_credits_passed: totalCreditsPassed,
                 level1_credits_attempted: level1CreditsAttempted,
                 level1_credits_passed: level1CreditsPassed,
                 level2_credits_attempted: level2CreditsAttempted,
@@ -956,10 +899,6 @@ module.exports = function (db) {
         const insertedGrades = [];
         const skippedGrades = [];
 
-
-
-        // console.log(rows);
-
         // Breaking up the file to save on db requests.
 
         // Create a students array and make it distinct.
@@ -1046,11 +985,6 @@ module.exports = function (db) {
                 // Check to see if student exists already
                 const [existingStudents] = await conn.query('SELECT id FROM student WHERE student_number = ?', [student.sId]);
 
-
-                // const parsedStudentNumber = student.sId.split('-');
-                // const studentNumber = parsedStudentNumber[2];
-                // console.log('Student Number: ', String(studentNumber).trim(), studentNumber.length);
-
                 console.log('Checking for student number: ', student.sId);
                 // If student does not exist then we must create.
                 if (existingStudents.length === 0) {
@@ -1073,7 +1007,6 @@ module.exports = function (db) {
                     }
 
                     // Check if studey status exists and if not create. Then grab relevant id.
-                    // Can validate this also.
                     const [existingStudyStatus] = await conn.query('SELECT id FROM study_status WHERE name = ?', [student.statusStudy]);
 
                     const studyStatusId = existingStudyStatus[0].id;
@@ -1082,7 +1015,6 @@ module.exports = function (db) {
                     const entryLevelNumber = student.entryLevel.split('L')[1];
                     const entryLevel = '0' + entryLevelNumber;
 
-                    // Should probably validate this also
                     const [existingEntryLevel] = await conn.query('SELECT id FROM level WHERE name = ?', [entryLevel]);
                     const entryLevelId = existingEntryLevel[0].id;
 

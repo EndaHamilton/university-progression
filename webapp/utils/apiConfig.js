@@ -1,5 +1,4 @@
 const apiKey = 'my-secret-key';
-
 function getApiConfig(contentType = 'application/json') {
     return {
         headers: {
@@ -9,6 +8,4 @@ function getApiConfig(contentType = 'application/json') {
     };
 
 }
-
-
 module.exports = getApiConfig;

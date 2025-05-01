@@ -6,8 +6,6 @@ const getApiConfig = require('../utils/apiConfig');
 const student = require("../../api/controllers/student");
 const config = getApiConfig(); //default JSON
 
-const LATEST_ACADEMIC_YEAR_ID = 3; // hardcoded for now - should be dynamic in future
-
 
 //GET all profile details of specific student - based on user ID
 router.get('/', async (req, res) => {

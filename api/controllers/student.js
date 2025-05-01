@@ -159,7 +159,6 @@ module.exports = function (db) {
     }
 
     // GET all students - /student
-    // This route should return all students in the database
     router.get("/", async (req, res) => {
         const allStudentsSQL = `SELECT * FROM student`;
 
@@ -177,7 +176,6 @@ module.exports = function (db) {
     });
 
     // Get All Students with Related foreign key data(JOIN Query)
-    // - student/details
     router.get("/details", async (req, res) => {
         const allStudentsDetailsSQL = `
             SELECT 
@@ -226,7 +224,6 @@ module.exports = function (db) {
     });
 
     // GET student details by ID
-    // This route should return a single student and all FK details by ID
     router.get("/details/:id", async (req, res) => {
         const id = parseInt(req.params.id);
         const allStudentsDetailsSQL = `
@@ -254,10 +251,6 @@ module.exports = function (db) {
     });
 
     // POST a new student - /student
-    // This route should add a new student to the database
-
-    //adding callback function to handle separate error handling for duplicate student number
-
     router.post("/", async (req, res) => {
 
         const { pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id, enrollment_year,
@@ -372,7 +365,6 @@ module.exports = function (db) {
     });
 
     // PUT (Update) a student by ID - /student/:id
-    // This route should update a student's details based on their ID
     router.put("/:id", async (req, res) => {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
@@ -381,19 +373,13 @@ module.exports = function (db) {
 
         const { pathway_id, enrollment_year } = req.body;
 
-        // // Validate that at least one field is being updated
-        // if (!student_number && !user_id && !pathway_id && !first_name && !last_name && !study_status_id && !entry_level_id) {
-        //     return res.status(400).json({ error: 'No data provided for update' });
-        // }
-
-        // Validation function to validate input data - mirrors client-side validation for extra layer of security
         const validationErrors = validateStudentFields(req.body, { isUpdate: true });
         if (validationErrors.length > 0) {
             return res.status(400).json({ error: validationErrors.join(", ") });
         }
 
         try {
-            // Get the existing student by ID
+
             const [rows] = await db.promise().query(`SELECT * FROM student WHERE id = ?`, [id]);
             if (rows.length === 0) {
                 return res.status(404).json({ error: "Student not found." });
@@ -505,7 +491,6 @@ module.exports = function (db) {
     });
 
     // GETs a student details based on their user id - used primarily for populating student-side views once a student user logs in - user their id from the session
-
     router.get("/by-user/:user_id", async (req, res) => {
         const userId = parseInt(req.params.user_id);
 
