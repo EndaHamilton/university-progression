@@ -93,11 +93,16 @@
                     <label for="subjectFilter"><strong>Filter by Subject</strong></label>
                     <select id="subjectFilter" class="form-control w-25">
                         <option value="all">Show All</option>
-                        <% const subjectsSet=new Set(); Object.values(analyticsData).forEach(modules=> {
-                            Object.values(modules).forEach(mod => subjectsSet.add(mod.module_subject_code));
-                            }); Array.from(subjectsSet).sort().forEach(subject => { %>
-                            <option value="<%= subject %>">
-                                <%= subject %>
+                        <% const subjectsSet=new Set(); 
+                        Object.values(analyticsData).forEach(modules=> {
+                            Object.values(modules).forEach(mod => {
+                                if (mod.module_subject_code) {
+                                    subjectsSet.add(mod.module_subject_code);
+                                    }
+                                });
+                            });
+                            Array.from(subjectsSet).sort().forEach(subject => { %>
+                            <option value="<%= subject %>"><%= subject %>
                             </option>
                             <% }) %>
                     </select>
