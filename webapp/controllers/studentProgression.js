@@ -58,7 +58,6 @@ router.get('/data', async (req, res) => {
         const latestAcademicYearKey = academicYears[0]; // grabs first grouped array within the array of arrays - latest academic year
         const gradesArray = studentGrades[latestAcademicYearKey] || []; // grabs acadmic year id from first module in array
         const latestAcademicYear = gradesArray[0]?.academic_year_id
-        console.log("Latest Academic Year ID:", latestAcademicYear);
 
         const studentProgressionRes = await axios.get(`http://localhost:4000/grades/progression/${studentId}/${latestAcademicYear}`, config);
         const studentProgression = studentProgressionRes.data;

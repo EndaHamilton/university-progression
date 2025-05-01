@@ -4,9 +4,9 @@ Instructions for running academics-webdevproject - 40129192
 1. Open a terminal in VS code - run git clone https://gitlab.eeecs.qub.ac.uk/40129192/academics-webdevproject.git 
 2. You will need to change to the root directory of the project - run cd academics-webdevproject
 3. Then cd api
-4. Open another new terminal window (so 2 are open) - then run cd webapp
+4. Open another new terminal window (so 2 are open) - and repeat step 2 above - then run cd webapp
 5. In both terminals run npm install
-6. Ensure you have mySQL Server running and have imported the DB that I have attached - ensure it is called acad_progression_new and matchesd my db configuration as in server.js
+6. Ensure you have mySQL Server running and have imported the DB that I have attached in the zip file - ensure it is called acad_progression_new and matchesd my db configuration as in server.js
 7. May need tp change configuration for your sql connection, e.g. your username and password for mySQL Server
 8. Then in both terminals - /api and /webapp - run npx nodemon
 9. The /api terminal should give a message that the server has started on port http://localhost:4000
@@ -14,21 +14,16 @@ Instructions for running academics-webdevproject - 40129192
 11. Copy the link - http://localhost:3000 - into your browser and you will be brought to the sign in page
 12. Admin logins :
     email: IFSYadvisor@gmail.com password : ifsyadvisor
-    email: BSASadvisor@gmail.com password : ifsyadvisor
+    email: BSASadvisor@gmail.com password : bsasadvisor
 
 13. Student logins :
     email: enda@gmail.com                password: newhill
     email: freddie@gmail.com             password: dogfood
     email: ava@gmail.com                 password: nguyen
     email: leoali@gmail.com              password: leoali
-    email: mariajorda@gmail.com          password: newhill
-    email: sophietaylor@gmail.com        password: newhill
-    email: daizen@gmail.com              password: daizen
+    email: sophietaylor@gmail.com        password: sophietaylor
     email: jackbyrne@gmail.com           password: jackbyrne
-    email: jermainejenas@gmail.com       password: jermainejenas
-    email: enda@gmail.com                password: newhill
-    email: enda@gmail.com                password: newhill
-    email: enda@gmail.com                password: newhill
+    email: lorettahamilton@gmail.com     password: lorettahamilton
 
 14. You can also use a students username (last 7 digits of their student number) from the user table to log in as opposed to email
 15. Note also: when adding a new student - there will be a log in the terminal showing their username and raw password (before it is hashed) - if you wanted to see that created student's credentials for logging in with
