@@ -145,10 +145,10 @@ module.exports = function (db) {
                 if (!phonePattern.test(val)) {
                     errors.push("Primary phone must be a valid phone number (digits, spaces, +, -, () only).");
                 }
-                if(val.length < 7) {
+                if (val.length < 7) {
                     errors.push("Primary phone number must be at least 7 digits long.");
                 }
-                if(val.length > 20) {
+                if (val.length > 20) {
                     errors.push("Primary phone number must be less than 20 characters long.");
                 }
             }
@@ -474,21 +474,33 @@ module.exports = function (db) {
             return res.status(400).json({ error: 'Invalid ID. Must be a number' });
         }
 
-        try {
-            const [result] = await db.promise().query(`DELETE FROM student WHERE id = ?`, [id]);
+        const connection = await localDb.getConnection();
 
-            if (result.affectedRows === 0) {
+        try {
+            await connection.beginTransaction();
+
+            const [userResult] = await connection.query(`DELETE FROM user WHERE student_id = ?`, [id]);
+
+            const [studentResult] = await connection.query(`DELETE FROM student WHERE id = ?`, [id]);
+
+            if (studentResult.affectedRows === 0) {
+                await connection.rollback();
                 return res.status(404).json({ error: 'Student not found' });
             }
 
-            res.status(200).json({
-                message: "Student deleted successfully",
+            await connection.commit();
+
+            return res.status(200).json({
+                message: "Student and associated user deleted successfully",
                 studentId: id
             });
 
         } catch (err) {
             console.error("Failed to delete student", err);
-            res.status(500).json({ error: 'Failed to delete student', details: err.message });
+            return res.status(500).json({ error: 'Failed to delete student', details: err.message });
+        } finally {
+            connection.release();
+
         }
     });
 

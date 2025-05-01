@@ -16,9 +16,9 @@ const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware to parse URL-encoded data from forms
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-app.use(express.json()); // middleware to parse json requests
+app.use(express.json({ limit: '10mb' })); // middleware to parse json requests
 
 //Student Mannagement page route
 const studentManagementRoutes = require("./controllers/studentManagement");

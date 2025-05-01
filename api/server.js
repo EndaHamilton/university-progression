@@ -4,8 +4,8 @@ const mysql = require('mysql2');
 const app = express(); // create express app
 const port = 4000;
 
-app.use(express.json()); // middleware to parse json requests
-app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data
+app.use(express.json({limit: '10mb'})); // middleware to parse json requests
+app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Middleware to parse URL-encoded data
 
 //create a mySQL connection 
 const db = mysql.createConnection({
