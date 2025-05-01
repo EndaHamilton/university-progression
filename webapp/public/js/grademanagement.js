@@ -14,7 +14,7 @@ function validateGradeForm(form, errorDiv) {
   const isPositiveInteger = val => /^\d+$/.test(val);
   const allowedResults = ['pass', 'fail', 'pass capped', 'excused', 'absent'];
 
-  //1. Presence checks
+  // Presence checks
   if (!studentId) return showError("Student is required.");
   if (!moduleId) return showError("Module is required.");
   if (!academicYearId) return showError("Academic year is required.");
@@ -27,7 +27,7 @@ function validateGradeForm(form, errorDiv) {
   if (!gradeResult) return showError("First result is required.");
 
 
-  //2. Format checks for individual fields
+  // Format checks for individual fields
   if (!isPositiveInteger(studentId)) return showError('Invalid student.');
   if (!isPositiveInteger(moduleId)) return showError('Invalid module.');
   if (!isPositiveInteger(academicYearId)) return showError('Invalid academic year.');
@@ -41,7 +41,7 @@ function validateGradeForm(form, errorDiv) {
     return showError('Invalid first result.');
   }
 
-  // 3. Optional resit fields
+  // Optional resit fields
   if (resitGrade && (isNaN(resitGrade) || resitGrade < 0 || resitGrade > 100)) {
     return showError('Resit grade must be a number between 0 and 100.');
   }
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (error) return;
 
       const formData = new FormData(form);
-      const payload = cleanOptionalFields(Object.fromEntries(formData.entries())); // convers optional fields to null if empty
+      const payload = cleanOptionalFields(Object.fromEntries(formData.entries())); // converts optional fields to null if empty
 
       console.log("Form is valid! Payload would be:", payload);
 

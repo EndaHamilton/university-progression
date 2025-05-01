@@ -10,6 +10,10 @@ function validateStudentForm(form, errorDiv) {
     const entryLevelId = form.querySelector('[name="entry_level_id"]').value.trim();
     const currentLevelId = form.querySelector('[name="current_level_id"]').value.trim();
     const enrollmentYear = form.querySelector('[name="enrollment_year"]').value.trim();
+    const address = form.querySelector('[name="address"]').value.trim();
+    const primaryEmail = form.querySelector('[name="primary_email"]').value.trim();
+    const secondaryEmail = form.querySelector('[name="secondary_email"]').value.trim();
+    const primaryPhone = form.querySelector('[name="primary_phone"]').value.trim();
 
     //query for checking positive integers
     const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
@@ -41,6 +45,15 @@ function validateStudentForm(form, errorDiv) {
     if (parseInt(enrollmentYear) < 2000 || parseInt(enrollmentYear) > 2099)
         return showError('Enrollment Year must be a valid year (between 2000 and 2099).');
 
+    if (address && !isNaN(address))
+        return showError('Address must not be purely numeric.');
+    if (primaryEmail && !isNaN(primaryEmail))
+        return showError('Primary email must not be purely numeric.');
+    if (secondaryEmail && !isNaN(secondaryEmail))
+        return showError('Secondary email must not be purely numeric.');
+    if (primaryPhone && !isNaN(primaryPhone))
+        return showError('Primary phone must not be purely numeric.');
+
     return null;
 
     function showError(msg) {
@@ -49,6 +62,14 @@ function validateStudentForm(form, errorDiv) {
         return msg;
     }
 
+}
+
+function cleanOptionalFields(payload) {
+    if (payload.address === "") payload.address = null;
+    if (payload.primary_email === "") payload.primary_email = null;
+    if (payload.secondary_email === "") payload.secondary_email = null;
+    if (payload.primary_phone === "") payload.primary_phone = null;
+    return payload;
 }
 
 
@@ -74,7 +95,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             const formData = new FormData(form);
-            const payload = Object.fromEntries(formData.entries());
+            // const payload = Object.fromEntries(formData.entries());
+            const payload = cleanOptionalFields(Object.fromEntries(formData.entries()));
+
 
             try {
                 const response = await fetch('/studentmanagement/add-student', {
@@ -101,16 +124,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     errorDiv.textContent = data.error || 'An error occurred.';
                     errorDiv.classList.remove('d-none');
-                    return; 
+                    return;
                 }
 
                 successDiv.textContent = data.message || 'Student added successfully!';
                 successDiv.classList.remove('d-none');
 
-                
+
                 setTimeout(() => {
-                    window.location.href = '/studentmanagement'; 
-                }, 2000); 
+                    window.location.href = '/studentmanagement';
+                }, 2000);
 
 
 
@@ -146,6 +169,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 editForm.querySelector('[name="entry_level_id"]').value = student.entry_level_id;
                 editForm.querySelector('[name="current_level_id"]').value = student.current_level_id;
                 editForm.querySelector('[name="enrollment_year"]').value = student.enrollment_year;
+                editForm.querySelector('[name="address"]').value = student.address || "";
+                editForm.querySelector('[name="primary_email"]').value = student.primary_email || "";
+                editForm.querySelector('[name="secondary_email"]').value = student.secondary_email || "";
+                editForm.querySelector('[name="primary_phone"]').value = student.primary_phone || "";
+
 
                 $('#editStudentModal').modal('show');
 
@@ -160,7 +188,10 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         const studentId = editForm.getAttribute("data-id");
         const formData = new FormData(editForm);
-        const payload = Object.fromEntries(formData.entries());
+
+        // const payload = Object.fromEntries(formData.entries());
+        const payload = cleanOptionalFields(Object.fromEntries(formData.entries()));
+
 
         // Clear previous feedback
         const errorDiv = document.getElementById("editError");
@@ -171,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
         successDiv.textContent = "";
 
         const error = validateStudentForm(editForm, errorDiv);
-        if (error) return; 
+        if (error) return;
 
         try {
             const response = await fetch(`/studentmanagement/edit-student/${studentId}`, {
@@ -477,7 +508,7 @@ document.getElementById("submitEnrollmentBtn").addEventListener("click", async f
 
         if (!response.ok) {
             const errorMessage = data.error || "Unknown error occurred while enrolling modules";
-            errorDiv.innerHTML = errorMessage.replace(/\n/g, "<br>"); 
+            errorDiv.innerHTML = errorMessage.replace(/\n/g, "<br>");
             errorDiv.classList.remove("d-none");
 
             return;

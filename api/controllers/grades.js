@@ -281,26 +281,6 @@ module.exports = function (db) {
             }
         }
 
-        // if (shouldCheck('entry_level_id')) {
-        //     const val = data.entry_level_id;
-        //     const valStr = String(val);
-        //     if (!val || valStr.trim() === "") {
-        //         errors.push("Entry Level ID cannot be empty.");
-        //     } else if (!isPositiveInteger(val)) {
-        //         errors.push("Entry Level ID must be a whole positive number.");
-        //     }
-        // }
-
-        // if (shouldCheck('study_status_id')) {
-        //     const val = data.study_status_id;
-        //     const valStr = String(val);
-        //     if (!val || valStr.trim() === "") {
-        //         errors.push("Study Status ID cannot be empty.");
-        //     } else if (!isPositiveInteger(val)) {
-        //         errors.push("Study Status ID must be a whole positive number.");
-        //     }
-        // }
-
         if (shouldCheck('first_grade')) {
             const val = data.first_grade;
             const valStr = String(val);

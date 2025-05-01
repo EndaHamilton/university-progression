@@ -18,28 +18,11 @@ module.exports = function (db) {
 
     //Format validation function for shared fields between adding and updating student
     //isUpdate check is needed as means if it is a PUT request it only checks for the fields that are being updated and not all fields
-    //An optional nice to have on this later possibly is to implement helper functions to validate field types (e.g. names, numbers)
     function validateStudentFields(data, { isUpdate = false } = {}) {
 
         const errors = [];
         const isPositiveInteger = (value) => /^\d+$/.test(value) && Number(value) > 0;
         const shouldCheck = (field) => !isUpdate || field in data;
-
-        // if (shouldCheck('student_number')) {
-        //     const val = data.student_number;
-        //     const valStr = String(val);
-        //     if (!val || valStr.trim() === "") {
-        //         errors.push("Student number cannot be empty.");
-        //     } else if (valStr.length < 5 || valStr.length > 15) {
-        //         errors.push("Student number must be between 5 to 15 characters.");
-        //     }
-        // }
-
-        // if ('user_id' in data && data.user_id !== null && data.user_id !== "") {
-        //     if (!isPositiveInteger(data.user_id)) {
-        //         errors.push("User ID must be a positive whole number.");
-        //     }
-        // }
 
         if (shouldCheck('first_name')) {
             const val = data.first_name;
@@ -126,6 +109,42 @@ module.exports = function (db) {
                 errors.push("Enrollment year must be a valid year (between 2000 - 2099).");
             }
         } // could adjust year range in future if app were to be used beyond this. Just didn't want to confuse between 2022 and 2122 for example.
+
+        if (shouldCheck('address')) {
+            const val = data.address;
+            if (val && val.trim() !== "") {
+                if (!isNaN(val)) {
+                    errors.push("Address must not be purely numeric.");
+                }
+            }
+        }
+
+        if (shouldCheck('primary_email')) {
+            const val = data.primary_email;
+            if (val && val.trim() !== "") {
+                if (!isNaN(val)) {
+                    errors.push("Primary email must not be purely numeric.");
+                }
+            }
+        }
+
+        if (shouldCheck('secondary_email')) {
+            const val = data.secondary_email;
+            if (val && val.trim() !== "") {
+                if (!isNaN(val)) {
+                    errors.push("Secondary email must not be purely numeric.");
+                }
+            }
+        }
+
+        if (shouldCheck('primary_phone')) {
+            const val = data.primary_phone;
+            if (val && val.trim() !== "") {
+                if (!isNaN(val)) {
+                    errors.push("Primary phone must not be purely numeric.");
+                }
+            }
+        }
 
         return errors;
 
@@ -233,7 +252,9 @@ module.exports = function (db) {
 
     router.post("/", async (req, res) => {
 
-        const { pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id,enrollment_year } = req.body;
+        const { pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id, enrollment_year, 
+            address, primary_email, secondary_email, primary_phone
+         } = req.body;
 
         // const parsedUserId = user_id && user_id.trim() !== '' ? parseInt(user_id) : null; // Check if user_id is provided and set to null if empty (also checks for whitespace entries using .trim)
 
@@ -250,8 +271,9 @@ module.exports = function (db) {
 
             await connection.beginTransaction();
 
-            const insertStudentSQL = `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id, enrollment_year) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            const insertStudentSQL = `INSERT INTO student (student_number, pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id, enrollment_year,
+            address, primary_email, secondary_email, primary_phone) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
             //Insert into student with placeholder student_number before updating after concatenation to get student_number
             const placeholderNumber = 'PENDING';
@@ -263,7 +285,11 @@ module.exports = function (db) {
                 parseInt(study_status_id),
                 parseInt(current_level_id),
                 parseInt(entry_level_id),
-                parseInt(enrollment_year)
+                parseInt(enrollment_year),
+                address?.trim() || null,
+                primary_email?.trim() || null,
+                secondary_email?.trim() || null,
+                primary_phone?.trim() || null
             ]);
 
             // Get pathway code
@@ -321,7 +347,11 @@ module.exports = function (db) {
                 pathway_id,
                 study_status_id,
                 entry_level_id,
-                enrollment_year
+                enrollment_year,
+                address,
+                primary_email,
+                secondary_email,
+                primary_phone
             });
 
         } catch (err) {
@@ -341,7 +371,7 @@ module.exports = function (db) {
             return res.status(400).json({ error: 'Invalid ID. Must be a number' });
         }
 
-        const { user_id, pathway_id, first_name, last_name, study_status_id, current_level_id, entry_level_id, enrollment_year } = req.body;
+        const {pathway_id, enrollment_year } = req.body;
 
         // // Validate that at least one field is being updated
         // if (!student_number && !user_id && !pathway_id && !first_name && !last_name && !study_status_id && !entry_level_id) {
@@ -366,7 +396,8 @@ module.exports = function (db) {
             const { getUpdatedFields } = require("../utils/comparisonHelpers");
 
             const fieldsToCheck = [
-                "student_number", "pathway_id", "first_name", "last_name", "study_status_id", "current_level_id", "entry_level_id", "enrollment_year"
+                "student_number", "pathway_id", "first_name", "last_name", "study_status_id", "current_level_id", "entry_level_id", "enrollment_year",
+                "address", "primary_email", "secondary_email", "primary_phone"
             ];
 
             const { updateFields, updateValues } = getUpdatedFields(req.body, existingStudent, fieldsToCheck);
