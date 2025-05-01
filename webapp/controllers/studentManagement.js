@@ -20,7 +20,6 @@ const config = getApiConfig(); //default JSON
 // Fetch all student details
 router.get('/', async (req, res) => {
 
-    console.log("Current session:", req.session);
 
 
 
@@ -60,7 +59,6 @@ router.get('/', async (req, res) => {
 // Add Student Route - Posting Data to API
 router.post('/add-student', async (req, res) => {
 
-    console.log("Current session:", req.session);
 
 
     const studentData = { ...req.body };
@@ -74,7 +72,7 @@ router.post('/add-student', async (req, res) => {
         const response = await axios.post(addStudentEp, studentData, config);
 
         //passing through response from API to the frontend
-        console.log("Response from API: ", response.data);
+        console.log("Displaying username and raw password for purely demonstrative purposes - to get password before encryption: ", response.data);
 
         return res.status(200).json(response.data);
 
@@ -101,7 +99,6 @@ router.get('/student/:id', async (req, res) => {
         const studentId = req.params.id;
         const getStudentEp = `http://localhost:4000/student/${studentId}`;
         const response = await axios.get(getStudentEp, config);
-        console.log("Response from API: ", response.data);
         return res.status(200).json(response.data);
     } catch (error) {
 
@@ -122,7 +119,6 @@ router.put('/edit-student/:id', async (req, res) => {
         const studentId = req.params.id;
         const editStudentEp = `http://localhost:4000/student/${studentId}`;
         const response = await axios.put(editStudentEp, req.body, config);
-        console.log("Response from API: ", response.data);
         return res.status(response.status).json(response.data);
     } catch (error) {
 
@@ -143,7 +139,6 @@ router.delete('/delete-student/:id', async (req, res) => {
         const studentId = req.params.id;
         const deleteStudentEp = `http://localhost:4000/student/${studentId}`;
         const response = await axios.delete(deleteStudentEp, config);
-        console.log("Response from API: ", response.data);
         return res.status(response.status).json(response.data);
     } catch (error) {
         const status = error.response?.status || 500;
@@ -165,7 +160,6 @@ router.get('/student/:id/available-modules', async (req, res) => {
         const studentId = req.params.id;
         const getStudentModulesEp = `http://localhost:4000/student/${studentId}/available-modules`;
         const response = await axios.get(getStudentModulesEp, config);
-        console.log("Response from API: ", response.data);
         return res.status(200).json(response.data);
     } catch (error) {
 
