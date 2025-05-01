@@ -17,7 +17,7 @@
             University Name</a>
         <ul class="navbar-nav px-3">
             <li class="nav-item text-nowrap">
-                <a class="nav-link" href="#">Sign out</a>
+                <a class="nav-link" href="/logout">Sign out</a>
             </li>
         </ul>
     </nav>
@@ -62,7 +62,7 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/adminanalytics">
                                 <span data-feather="bar-chart-2"></span>
-                                Analytics
+                                Reports
                             </a>
                         </li>
                         <li class="nav-item">
@@ -161,11 +161,6 @@
                 </div>
                 <div class="modal-body">
                     <form action="studentmanagement/add-student" method="POST">
-                        <div class="form-group">
-                            <label>User ID</label>
-                            <input type="number" class="form-control" name="user_id">
-                            <!-- absence of required as user ID is optional -->
-                        </div>
                         <div class="form-group">
                             <label>Pathway</label>
                             <select name="pathway_id" class="form-control" required>

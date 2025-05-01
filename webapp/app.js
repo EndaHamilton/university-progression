@@ -32,6 +32,10 @@ app.use('/modulemanagement', moduleManagementRoutes);
 const signInRoutes = require("./controllers/signIn");
 app.use('/', signInRoutes);
 
+// Sign out route
+const signOutRoute = require('./controllers/signOut');
+app.use('/', signOutRoute);
+
 // Student profile route
 const studentProfileRoutes = require("./controllers/studentProfile");
 app.use('/studentprofile', studentProfileRoutes);
@@ -52,10 +56,13 @@ app.use('/pathwaymanagement', pathwayManagementRoutes);
 const adminAnalyticsRoutes = require("./controllers/adminAnalytics");
 app.use('/adminanalytics', adminAnalyticsRoutes); 
 
-// Message Management page route
-const messageManagementRoutes = require("./controllers/messageManagement");
-app.use('/adminmessages', messageManagementRoutes); // admin messages page access
-app.use('/studentmessages', messageManagementRoutes); // student messages page access - using different namnes to avoid confusion, even though they are accessing same route
+// Admin message management route
+const adminMessagetRoutes = require("./controllers/adminMessages");
+app.use('/adminmessages', adminMessagetRoutes); 
+
+// Student message management route
+const studentMessageRoutes = require("./controllers/studentMessages");
+app.use('/studentmessages', studentMessageRoutes); 
 
 app.listen(port, (err) => {
     if (err) console.log(err);

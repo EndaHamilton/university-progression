@@ -3,11 +3,6 @@ console.log("Student Management JS loaded.");
 
 function validateStudentForm(form, errorDiv) {
 
-    // Handling null instances of user ID
-    const userIdField = form.querySelector('[name="user_id"]');
-    const userId = userIdField ? userIdField.value.trim() : '';
-
-
     const pathwayId = form.querySelector('[name="pathway_id"]').value.trim();
     const firstName = form.querySelector('[name="first_name"]').value.trim();
     const lastName = form.querySelector('[name="last_name"]').value.trim();
@@ -29,8 +24,6 @@ function validateStudentForm(form, errorDiv) {
     if (!enrollmentYear) return showError('Enrollment Year is required.');
 
     // Format check for individual fields
-    if (userId && !isPositiveInteger(userId))
-        return showError('User ID must be a positive whole number.');
     if (!isNaN(firstName) || !isNaN(lastName))
         return showError('Name entries must not be numeric.');
     if (firstName.length < 2 || lastName.length < 2)
@@ -48,7 +41,7 @@ function validateStudentForm(form, errorDiv) {
     if (parseInt(enrollmentYear) < 2000 || parseInt(enrollmentYear) > 2099)
         return showError('Enrollment Year must be a valid year (between 2000 and 2099).');
 
-    return null; // No errors found
+    return null;
 
     function showError(msg) {
         errorDiv.textContent = msg;
@@ -60,7 +53,6 @@ function validateStudentForm(form, errorDiv) {
 
 
 //Client-side add student form with client-side validation
-// This script handles the form submission for adding a student, including client-side validation and error handling.
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector('#addStudentModal form');
 
@@ -80,17 +72,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const error = validateStudentForm(form, errorDiv);
             if (error) return; // If validation fails, show error and return
 
-            /*if all client-side validation passes, the form will submit and hit the API endpoint (database)
-            Only at this point can the check against duplicate student numbers be made, which is validated
-            with the below (keeping the modal open)*/
 
             const formData = new FormData(form);
             const payload = Object.fromEntries(formData.entries());
 
-
-            /*Using fetch here instead of standard form submission to preserve modal state and 
-            provide in-modal validation feedback */
-            // Allows form to get to server side for duplicate student number check
             try {
                 const response = await fetch('/studentmanagement/add-student', {
                     method: 'POST',
@@ -116,17 +101,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     errorDiv.textContent = data.error || 'An error occurred.';
                     errorDiv.classList.remove('d-none');
-                    return; // stay in modal
+                    return; 
                 }
-                // If successful, redirect to the student management page with a success message
 
                 successDiv.textContent = data.message || 'Student added successfully!';
                 successDiv.classList.remove('d-none');
 
-                //delay redirect to allow user to see success message
+                
                 setTimeout(() => {
-                    window.location.href = '/studentmanagement'; // Redirect to student management page
-                }, 2000); // 2 seconds delay before redirecting
+                    window.location.href = '/studentmanagement'; 
+                }, 2000); 
 
 
 
@@ -143,11 +127,9 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Client-side edit student form with client-side validation
-// This script handles the form submission for editing a student, including client-side validation and error handling.
 document.addEventListener("DOMContentLoaded", function () {
     const editForm = document.querySelector("#editStudentForm");
 
-    // 1. Attach click handlers to all "Edit" buttons
     document.querySelectorAll(".edit-btn").forEach(button => {
         button.addEventListener("click", async function () {
             const studentId = this.getAttribute("data-id");
@@ -156,7 +138,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 const response = await fetch(`/studentmanagement/student/${studentId}`);
                 const student = await response.json();
 
-                // Fill form with student data
                 editForm.setAttribute("data-id", student.id);
                 editForm.querySelector('[name="pathway_id"]').value = student.pathway_id;
                 editForm.querySelector('[name="first_name"]').value = student.first_name;
@@ -166,7 +147,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 editForm.querySelector('[name="current_level_id"]').value = student.current_level_id;
                 editForm.querySelector('[name="enrollment_year"]').value = student.enrollment_year;
 
-                // Show modal
                 $('#editStudentModal').modal('show');
 
             } catch (err) {
@@ -175,7 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // 2. Submit handler for Edit Form
+    // Submit handler for Edit Form
     editForm.addEventListener("submit", async function (e) {
         e.preventDefault();
         const studentId = editForm.getAttribute("data-id");
@@ -191,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
         successDiv.textContent = "";
 
         const error = validateStudentForm(editForm, errorDiv);
-        if (error) return; // If validation fails, show error and return
+        if (error) return; 
 
         try {
             const response = await fetch(`/studentmanagement/edit-student/${studentId}`, {
@@ -239,7 +219,6 @@ document.querySelectorAll(".delete-btn").forEach(button => {
     button.addEventListener("click", async function () {
         const studentId = this.getAttribute("data-id");
 
-        // Clear previous feedback
         const errorDiv = document.getElementById("deleteError");
         const successDiv = document.getElementById("deleteSuccess");
         errorDiv.classList.add("d-none");
@@ -248,7 +227,7 @@ document.querySelectorAll(".delete-btn").forEach(button => {
         successDiv.textContent = "";
 
         if (!confirm("Are you sure you want to delete this student?")) {
-            return; // User cancelled
+            return;
         }
 
         try {
@@ -295,10 +274,9 @@ document.querySelectorAll(".assign-modules-btn").forEach(button => {
         const data = await res.json();
 
 
-        // Set student ID as data attribute on the modal - to be fetched by submit handler further down
         document.getElementById("assignModulesModal").setAttribute("data-student-id", studentId);
 
-        // Student details - update this to include student number and name
+        // Student details
         document.getElementById("studentModuleDetails").innerHTML = `
           <strong>Student:</strong> ${data.first_name} ${data.last_name} (${data.student_number})<br>
           <strong>Pathway:</strong> ${data.pathway_name}<br>
@@ -338,6 +316,7 @@ document.querySelectorAll(".assign-modules-btn").forEach(button => {
             });
         });
 
+        // All other available modules (non-core)
         const nonCoreContainer = document.querySelector("#availableModules .d-flex");
         nonCoreContainer.innerHTML = '';
         data.availableModules.forEach(module => {
@@ -355,7 +334,6 @@ document.querySelectorAll(".assign-modules-btn").forEach(button => {
 
 
 
-        // Show modal
         $('#assignModulesModal').modal('show');
     });
 });
@@ -429,7 +407,6 @@ function updateCatsCounter() {
 
     submitButton.disabled = !(meetsCreditRequirement && meetsCoreRequirement && meetsOptionalCoreRequirement);
 
-    // Semester breakdown
     document.getElementById("autumnCATS").textContent = `Autumn: ${autumn} CATS`;
     document.getElementById("springCATS").textContent = `Spring: ${spring} CATS`;
     document.getElementById("fullYearCATS").textContent = `Full Year: ${fullYear} CATS`;
@@ -462,7 +439,6 @@ function updateCatsCounter() {
 document.getElementById("submitEnrollmentBtn").addEventListener("click", async function () {
     const studentId = document.getElementById("assignModulesModal").getAttribute("data-student-id");
 
-    // Clear previous feedback
     const errorDiv = document.getElementById("enrollError");
     const successDiv = document.getElementById("enrollSuccess");
     errorDiv.classList.add("d-none");
@@ -501,7 +477,7 @@ document.getElementById("submitEnrollmentBtn").addEventListener("click", async f
 
         if (!response.ok) {
             const errorMessage = data.error || "Unknown error occurred while enrolling modules";
-            errorDiv.innerHTML = errorMessage.replace(/\n/g, "<br>"); // line breaks for bulleted list
+            errorDiv.innerHTML = errorMessage.replace(/\n/g, "<br>"); 
             errorDiv.classList.remove("d-none");
 
             return;
