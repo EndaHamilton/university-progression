@@ -7,7 +7,7 @@ router.use(checkApiKey) // Apply the API key check middleware to all routes in t
 
 module.exports = function (db) {
     router.post('/authenticate', (req, res) => {
-        console.log('Received authentication request:', req.body);
+
 
         const { email, password } = req.body;
         const sql = 'SELECT * FROM user WHERE email = ? OR username = ?'; // allows login with either email or username
