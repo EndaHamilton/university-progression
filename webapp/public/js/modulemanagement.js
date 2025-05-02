@@ -19,7 +19,7 @@ function validateModuleForm(form, errorDiv) {
 
     const isPositiveInteger = val => /^\d+$/.test(val);
 
-    //1. Presence checks
+    // Presence checks
     if (!subjectId) return showError('Subject ID is required.');
     if (!defaultProgramLevel) return showError('Default Program Level is required.');
     if (!title) return showError('Title is required.');
@@ -27,13 +27,12 @@ function validateModuleForm(form, errorDiv) {
     if (!semesterId) return showError('Semester is required.');
 
 
-    // 2. Format check for individual fields
+    // Format check for individual fields
     if (!isPositiveInteger(subjectId))
         return showError('Subject ID must be a whole positive number.');
     if (defaultProgramLevel < 1 || defaultProgramLevel > 2)
         return showError('Default Program Level must be either 1 or 2');
-    // if (catalogueCode.length !== 3)
-    //     return showError('Catalogue code must be 3 characters exactly.');
+
     if (title.length < 3 || title.length > 50)
         return showError('Title must be between 3 and 50 characters long.');
     if (isNaN(credits))
@@ -46,7 +45,7 @@ function validateModuleForm(form, errorDiv) {
     }
 
 
-    return null; // No errors found
+    return null; 
 
     function showError(msg) {
         errorDiv.textContent = msg;
@@ -118,10 +117,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 successDiv.textContent = data.message || "Module added successfully!";
                 successDiv.classList.remove("d-none");
 
-                //delay redirect to allow user to see success message
                 setTimeout(() => {
-                    window.location.href = '/modulemanagement'; // Redirect to module management page
-                }, 2000); // 2 seconds delay before redirecting
+                    window.location.href = '/modulemanagement'; 
+                }, 2000); 
 
             } catch (err) {
                 console.error("Add module failed:", err);

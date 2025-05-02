@@ -216,19 +216,7 @@
                                     <% }) %>
                             </select>
                         </div>
-                        <!-- <div class="form-group">
-                            <label>Pathways</label>
-                            <select name="pathway_ids" multiple class="form-control" required>
-                                <option value="" disabled selected>Select Pathway(s)</option>
-                                <% pathways.forEach(p=> { %>
-                                    <option value="<%= p.id %>">
-                                        <%= p.name %>
-                                    </option>
-                                    <% }) %>
-                            </select>
-                            <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple
-                                pathways.</small>
-                        </div> -->
+
                         <!--Hidden error msg which appears once submit selected with invalid data-->
                         <div id="addError" class="alert alert-danger d-none"></div>
                         <!-- Success message container -->
@@ -299,19 +287,7 @@
                                     <% }) %>
                             </select>
                         </div>
-                        <!-- <div class="form-group">
-                            <label>Pathway</label>
-                            <select name="pathway_ids" multiple class="form-control" required>
-                                <option value="" disabled>Select a pathway</option>
-                                <% pathways.forEach(p=> { %>
-                                    <option value="<%= p.id %>">
-                                        <%= p.name %>
-                                    </option>
-                                    <% }) %>
-                            </select>
-                            <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple
-                                pathways.</small>
-                        </div> -->
+
                         <div id="editError" class="alert alert-danger d-none"></div>
                         <div id="editSuccess" class="alert alert-success d-none"></div>
                         <button type="submit" class="btn btn-success">Update Module</button>

@@ -1,20 +1,12 @@
 const express = require("express");
-// const router = express.Router();
 const axios = require("axios");
 
 const router = require("../utils/adminOnlyRouter")(); // wrapped router - middleware to check if user is admin
 
-// const requireAdmin = require("../middleware/requireAdmin"); // Middleware to check if user is admin
 
 const getApiConfig = require('../utils/apiConfig');
 const config = getApiConfig(); //default JSON
 
-// const config = {
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'x-api-key': 'my-secret-key'
-//     }
-//   };
 
 
 // Fetch all student details
@@ -71,23 +63,22 @@ router.post('/add-student', async (req, res) => {
         const addStudentEp = "http://localhost:4000/student";
         const response = await axios.post(addStudentEp, studentData, config);
 
-        //passing through response from API to the frontend
+        //passing through studenr creation - purely to display initial raw password that is set along with username
         console.log("Displaying username and raw password for purely demonstrative purposes - to get password before encryption: ", response.data);
 
         return res.status(200).json(response.data);
 
 
 
-        // res.redirect('/studentmanagement');  // Redirect back to student mgmt page after successful addition
     } catch (error) {
         console.error('Error adding student:', error.message);
 
-        const status = error.response?.status || 500; // Default to 500 if status is not available
+        const status = error.response?.status || 500; 
         const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
         console.error('Error message from API:', errorMessage);
         console.error('Status code from API:', status);
 
-        return res.status(status).json({ error: errorMessage }); // updated to handle error response dynamically - not just 409
+        return res.status(status).json({ error: errorMessage });
 
 
     }
@@ -106,7 +97,6 @@ router.get('/student/:id', async (req, res) => {
         const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
         console.error('Error message from API:', errorMessage);
         console.error('Status code from API:', status);
-        // Handle the error response dynamically
 
         return res.status(status).json({ error: errorMessage });
     }
@@ -126,7 +116,6 @@ router.put('/edit-student/:id', async (req, res) => {
         const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
         console.error('Error message from API:', errorMessage);
         console.error('Status code from API:', status);
-        // Handle the error response dynamically
 
         return res.status(status).json({ error: errorMessage });
     }
@@ -145,7 +134,6 @@ router.delete('/delete-student/:id', async (req, res) => {
         const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
         console.error('Error message from API:', errorMessage);
         console.error('Status code from API:', status);
-        // Handle the error response dynamically
 
         return res.status(status).json({ error: errorMessage });
     }
@@ -167,7 +155,6 @@ router.get('/student/:id/available-modules', async (req, res) => {
         const errorMessage = (error.response?.data?.error) || 'An unknown error occurred.';
         console.error('Error message from API:', errorMessage);
         console.error('Status code from API:', status);
-        // Handle the error response dynamically
 
         return res.status(status).json({ error: errorMessage });
     }

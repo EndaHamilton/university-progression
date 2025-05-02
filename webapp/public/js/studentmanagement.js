@@ -96,11 +96,10 @@ document.addEventListener("DOMContentLoaded", function () {
             successDiv.textContent = '';
 
             const error = validateStudentForm(form, errorDiv);
-            if (error) return; // If validation fails, show error and return
+            if (error) return; 
 
 
             const formData = new FormData(form);
-            // const payload = Object.fromEntries(formData.entries());
             const payload = cleanOptionalFields(Object.fromEntries(formData.entries()));
 
 
@@ -133,11 +132,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
 
-
+                successDiv.textContent = data.message || 'Student added successfully!';
+                successDiv.classList.remove('d-none');
 
                 setTimeout(() => {
-                    successDiv.textContent = data.message || 'Student added successfully!';
-                    successDiv.classList.remove('d-none');
                     window.location.href = '/studentmanagement';
                 }, 4000);
 

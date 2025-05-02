@@ -3,7 +3,7 @@ const axios = require("axios");
 const router = require("../utils/adminOnlyRouter")(); // wrapped router - middleware to check if user is admin
 
 const getApiConfig = require('../utils/apiConfig');
-const config = getApiConfig(); //default JSON
+const config = getApiConfig(); 
 
 // Fetch all pathway and module details
 router.get('/', async (req, res) => {

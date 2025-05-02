@@ -69,7 +69,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
         // Display grades summary (Credits and Average)
-        // const totalCreditsAttempted = document.getElementById('totalCreditsAttempted');
         const totalCreditsPassed = document.getElementById('totalCreditsPassed');
         const overallAverageGrade = document.getElementById('overallAverageGrade');
 

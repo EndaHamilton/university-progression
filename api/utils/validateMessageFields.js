@@ -22,13 +22,6 @@ function validateMessageFields(mode) {
       }
     }
 
-    // if (mode === "cohort") {
-    //   if (!cohort_target || String(cohort_target).trim() === "") {
-    //     return res.status(400).json({ error: "Cohort target is required for cohort message" });
-    //   }
-    //   cohort_target = String(cohort_target).trim();
-    // }
-
     // Not checking anything here - just using to validate the sender id, subject and body - and return cleansed data
     if (mode === "contact") {
       

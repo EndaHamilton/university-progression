@@ -12,7 +12,6 @@ router.get('/', async (req, res) => {
             axios.get('http://localhost:4000/pathway', config),
             axios.get('http://localhost:4000/level', config),
             axios.get('http://localhost:4000/studystatus', config),
-            // axios.get('http://localhost:4000/student/details', config)
             axios.get('http://localhost:4000/messages/students-with-userid', config),
             axios.get(`http://localhost:4000/student/by-user/${req.session.userID}`, config)
         ]);
@@ -78,8 +77,6 @@ router.get('/sent-from-student', async (req, res) => {
 });
 
 // Routes accessed by both admin and student
-
-
 
 // GET: Fetch sent messages
 router.get('/sent', async (req, res) => {

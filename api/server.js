@@ -1,7 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2');
 
-const app = express(); // create express app
+const app = express(); 
 const port = 4000;
 
 app.use(express.json({limit: '10mb'})); // middleware to parse json requests
