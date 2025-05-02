@@ -6,7 +6,7 @@ Instructions for running academics-webdevproject - 40129192
 3. Then cd api
 4. Open another new terminal window (so 2 are open) - and repeat step 2 above - then run cd webapp
 5. In both terminals run npm install
-6. Ensure you have mySQL Server running and have imported the DB that I have attached in the zip file - ensure it is called acad_progression_new and matchesd my db configuration as in server.js
+6. Ensure you have mySQL Server running and have imported the DB that I have attached in the zip file - ensure it is called 40129192 and matchesd my db configuration as in server.js
 7. May need tp change configuration for your sql connection, e.g. your username and password for mySQL Server
 8. Then in both terminals - /api and /webapp - run npx nodemon
 9. The /api terminal should give a message that the server has started on port http://localhost:4000

@@ -12,7 +12,7 @@ const db = mysql.createConnection({
     host: "localhost",
     user: "root",       //  MySQL username
     password: "root",       // MySQL password
-    database: "acad_progression_new"    // Name of the database
+    database: "40129192"    // Name of the database
 });
 
 //connect to mySQL
