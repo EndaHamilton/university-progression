@@ -1,4 +1,4 @@
-# academics-webdevproject
+# university-progression
 
 Instructions for running academics-webdevproject - 40129192
 1. Open a terminal in VS code - run git clone https://gitlab.eeecs.qub.ac.uk/40129192/academics-webdevproject.git 
